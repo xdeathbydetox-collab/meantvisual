@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MEANT SHOP — Финансы</title>
+<style>
+:root{--bg:#060606;--panel:#101010;--panel2:#151515;--line:#292929;--gold:#ffd21a;--gold2:#ffb800;--text:#f7f7f7;--muted:#8b8b8b;--green:#7ee787;--red:#ff8585}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -8%,#2a2300 0,#0b0b0b 32%,#050505 72%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.top{height:72px;border:1px solid var(--line);border-radius:22px;background:rgba(12,12,12,.88);backdrop-filter:blur(18px);display:flex;align-items:center;padding:0 18px 0 22px;gap:28px;max-width:1180px;margin:18px auto 0;box-shadow:0 18px 55px #0009}.logo{font-weight:950;letter-spacing:.08em;text-decoration:none;color:#fff}.logo span{color:var(--gold)}.nav{display:flex;gap:8px}.nav a{padding:10px 13px;border:1px solid transparent;border-radius:12px;color:#8d8d8d;text-decoration:none;font-size:12px;font-weight:800}.nav a:hover,.nav .active{border-color:#514714;background:#191707;color:var(--gold)}.balance{margin-left:auto;color:#aaa;font-size:12px}.wrap{max-width:1180px;margin:30px auto;padding:0 18px}.hero,.card{background:linear-gradient(180deg,rgba(20,20,20,.96),rgba(11,11,11,.96));border:1px solid var(--line);border-radius:26px;padding:28px;margin-bottom:18px;box-shadow:0 18px 55px #0005}.hero{position:relative;overflow:hidden;padding:42px 32px}.hero:after{content:"";position:absolute;width:260px;height:260px;right:-100px;top:-150px;background:radial-gradient(circle,#ffd21a2b 0,transparent 68%);pointer-events:none}.label{font-size:10px;color:#6f6f6f;letter-spacing:.17em;font-weight:900;text-transform:uppercase}.hero h1{font-size:clamp(42px,7vw,70px);line-height:.9;margin:10px 0 14px;letter-spacing:-.05em}.muted{color:var(--muted);line-height:1.6}.current{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:22px;border-radius:19px;background:linear-gradient(135deg,#181506,#111);border:1px solid #3b3313}.big{font-size:42px;font-weight:950;color:var(--gold);letter-spacing:-.03em}.smallgray{font-size:12px;color:#777;margin-top:5px}.back{color:var(--gold);text-decoration:none;font-weight:850;font-size:12px;border:1px solid #3d3512;background:#181607;border-radius:12px;padding:10px 13px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-top:28px}.section-head h2{margin:0;font-size:18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}.option{position:relative;background:linear-gradient(180deg,#181818,#111);border:1px solid #303030;color:#fff;border-radius:17px;padding:18px;text-align:left;cursor:pointer;transition:.18s}.option:hover{border-color:#6b5a12;transform:translateY(-3px);box-shadow:0 14px 30px #0008}.amount{font-size:21px;font-weight:950}.equiv{font-size:11px;color:#777;margin-top:6px}.bonus{position:absolute;top:10px;right:10px;background:var(--gold);color:#080808;border-radius:8px;padding:5px 7px;font-size:9px;font-weight:950}.history-wrap{overflow:auto;border:1px solid #252525;border-radius:17px;margin-top:12px}.history{width:100%;border-collapse:collapse}.history th,.history td{text-align:left;padding:14px 12px;border-bottom:1px solid #252525;white-space:nowrap}.history tr:last-child td{border-bottom:0}.history th{color:#666;font-size:10px;text-transform:uppercase;letter-spacing:.08em}.plus{color:var(--green)}.minus{color:var(--red)}.note{font-size:11px;color:#666;margin-top:16px;line-height:1.6}.note strong{color:#999}footer{padding:42px 4px 25px;color:#555;text-align:center;font-size:11px}@media(max-width:760px){.top{margin:10px 10px 0;height:auto;min-height:68px;flex-wrap:wrap;justify-content:center;padding:10px}.nav{width:100%;justify-content:center;overflow:auto}.nav a{font-size:10px;padding:9px 8px;white-space:nowrap}.balance{margin-left:0}.current{flex-direction:column;align-items:flex-start}.grid{grid-template-columns:1fr 1fr}}@media(max-width:480px){.wrap{padding:0 12px}.hero{padding:30px 22px}.grid{grid-template-columns:1fr}.hero h1{font-size:42px}}
+</style>
+</head>
+<body>
+<header class="top">
+<a class="logo" href="visual.html">MEANT <span>SHOP</span></a>
+<nav class="nav"><a href="visual.html">Visual</a><a href="shop.html">Магазин</a><a href="profile.html">Профиль</a><a class="active" href="finance.html">Финансы</a></nav>
+<div class="balance" id="topBalance">Баланс: 200 ₽</div>
+</header>
+
+<main class="wrap">
+<section class="hero">
+<div class="label">MEANT SHOP / ФИНАНСЫ</div>
+<h1>Финансы</h1>
+<p class="muted">Пополняйте баланс и используйте его для покупок в магазине.</p>
+</section>
+
+<section class="card">
+<div class="current">
+<div><div class="label">ТЕКУЩИЙ БАЛАНС</div><div class="big" id="currentBalance">200 ₽</div><div class="smallgray" id="currentEquiv">≈ 2,03 € · 105,32 ₴</div></div>
+<a class="back" href="profile.html">← В профиль</a>
+</div>
+
+<div class="section-head"><h2>Пополнить баланс</h2><div class="label">БЫСТРЫЕ СУММЫ</div></div>
+<div class="grid">
+<button class="option" onclick="demoTopup(50,0)"><div class="amount">50 ₽</div><div class="equiv">≈ 0,51 € · 26,33 ₴</div></button>
+<button class="option" onclick="demoTopup(100,0)"><div class="amount">100 ₽</div><div class="equiv">≈ 1,01 € · 52,65 ₴</div></button>
+<button class="option" onclick="demoTopup(200,0)"><div class="amount">200 ₽</div><div class="equiv">≈ 2,03 € · 105,30 ₴</div></button>
+<button class="option" onclick="demoTopup(400,0)"><div class="amount">400 ₽</div><div class="equiv">≈ 4,06 € · 210,60 ₴</div></button>
+<button class="option" onclick="demoTopup(500,50)"><span class="bonus">+50 ₽</span><div class="amount">500 ₽</div><div class="equiv">≈ 5,07 € · 263,25 ₴</div></button>
+<button class="option" onclick="demoTopup(800,80)"><span class="bonus">+80 ₽</span><div class="amount">800 ₽</div><div class="equiv">≈ 8,12 € · 421,20 ₴</div></button>
+</div>
+<p class="note">500 ₽ → начисление 550 ₽. 800 ₽ → начисление 880 ₽. В реальной версии пополнение будет подтверждаться сервером после оплаты через Tebex.</p>
+</section>
+
+<section class="card">
+<div class="label">ИСТОРИЯ ОПЕРАЦИЙ</div>
+<h2 style="margin:8px 0 0">Последние операции</h2>
+<div class="history-wrap"><table class="history">
+<thead><tr><th>Операция</th><th>Сумма</th><th>Баланс</th></tr></thead>
+<tbody id="history"><tr><td colspan="3" class="muted">Операций пока нет.</td></tr></tbody>
+</table></div>
+</section>
+</main>
+
+<script>
+const ACCOUNT=localStorage.getItem('meant_account_id');
+function fmt(n){return new Intl.NumberFormat('ru-RU').format(n)}
+async function render(){const r=await fetch('/api/me?accountId='+encodeURIComponent(ACCOUNT));const d=await r.json();const b=d.account.balance;document.getElementById('currentBalance').textContent=fmt(b)+' ₽';document.getElementById('topBalance').textContent='Баланс: '+fmt(b)+' ₽';document.getElementById('currentEquiv').textContent='≈ '+(b/98.55).toFixed(2)+' € · '+(b/1.899).toFixed(2)+' ₴';document.getElementById('history').innerHTML=d.history.length?d.history.map(x=>`<tr><td>${x.type==='tebex_topup'?'Пополнение':'Покупка'}</td><td class="${x.amount>=0?'plus':'minus'}">${x.amount>0?'+':''}${fmt(x.amount)} ₽</td><td>${fmt(x.balance_after)} ₽</td></tr>`).join(''):'<tr><td colspan="3" class="muted">Операций пока нет.</td></tr>'}
+async function demoTopup(pay,bonus){const productId='topup-'+pay;try{const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accountId:ACCOUNT,items:[{productId,qty:1}]})});const d=await r.json();if(!r.ok||!d.checkout_url)throw new Error(d.error||'Ошибка Tebex');location.href=d.checkout_url}catch(e){alert(e.message)}}
+render();
+</script>
+</body>
+</html>
