@@ -1,0 +1,13 @@
+name = "meant-shop"
+main = "worker.js"
+compatibility_date = "2026-08-20"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "404-page"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "meant-shop"
+database_id = "ef94a9e6-8b5e-49c2-8f9a-ab808375000d"
