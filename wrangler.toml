@@ -10,4 +10,4 @@ not_found_handling = "404-page"
 [[d1_databases]]
 binding = "DB"
 database_name = "meant-shop"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "ef94a9e6-8b5e-49c2-8f9a-ab808375000d"
