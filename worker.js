@@ -1,50 +1,28 @@
-// ============================================================
-// MEANT SHOP - Cloudflare Worker
-// Авторизация + регистрация + D1
-// ============================================================
-
 const PBKDF2_ITERATIONS = 100000;
-const PASSWORD_SALT_BYTES = 16;
-const PASSWORD_HASH_BYTES = 32;
+const HASH_BYTES = 32;
 
-// ------------------------------------------------------------
-// CORS
-// ------------------------------------------------------------
-
-function corsHeaders() {
-  return {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Content-Type": "application/json; charset=utf-8"
-  };
-}
-
-function json(data, status = 200) {
+function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: corsHeaders()
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Access-Control-Allow-Origin": "*",
+      ...extraHeaders
+    }
   });
 }
 
-// ------------------------------------------------------------
-// OPTIONS
-// ------------------------------------------------------------
-
-function handleOptions() {
+function optionsResponse() {
   return new Response(null, {
     status: 204,
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, Authorization"
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Credentials": "true"
     }
   });
 }
-
-// ------------------------------------------------------------
-// RANDOM
-// ------------------------------------------------------------
 
 function randomBytes(length) {
   const bytes = new Uint8Array(length);
@@ -62,8 +40,8 @@ function bytesToBase64(bytes) {
   return btoa(binary);
 }
 
-function base64ToBytes(base64) {
-  const binary = atob(base64);
+function base64ToBytes(value) {
+  const binary = atob(value);
   const bytes = new Uint8Array(binary.length);
 
   for (let i = 0; i < binary.length; i++) {
@@ -73,87 +51,93 @@ function base64ToBytes(base64) {
   return bytes;
 }
 
-// ------------------------------------------------------------
-// PASSWORD HASH
-// ------------------------------------------------------------
+async function sha256Base64(value) {
+  const data = new TextEncoder().encode(value);
+  const hash = await crypto.subtle.digest("SHA-256", data);
+  return bytesToBase64(new Uint8Array(hash));
+}
 
 async function hashPassword(password) {
-  const salt = randomBytes(PASSWORD_SALT_BYTES);
+  const salt = randomBytes(16);
 
-  const encoder = new TextEncoder();
-
-  const keyMaterial = await crypto.subtle.importKey(
+  const key = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(password),
+    new TextEncoder().encode(password),
     "PBKDF2",
     false,
     ["deriveBits"]
   );
 
-  const derivedBits = await crypto.subtle.deriveBits(
+  const bits = await crypto.subtle.deriveBits(
     {
       name: "PBKDF2",
       salt,
       iterations: PBKDF2_ITERATIONS,
       hash: "SHA-256"
     },
-    keyMaterial,
-    PASSWORD_HASH_BYTES * 8
+    key,
+    HASH_BYTES * 8
   );
 
   return {
-    salt: bytesToBase64(salt),
-    hash: bytesToBase64(new Uint8Array(derivedBits))
+    hash: bytesToBase64(new Uint8Array(bits)),
+    salt: bytesToBase64(salt)
   };
 }
 
-// ------------------------------------------------------------
-// PASSWORD CHECK
-// ------------------------------------------------------------
+async function verifyPassword(password, stored) {
+  try {
+    const parts = stored.split("$");
 
-async function verifyPassword(password, saltBase64, hashBase64) {
-  const salt = base64ToBytes(saltBase64);
-  const expectedHash = base64ToBytes(hashBase64);
+    if (parts.length !== 2) {
+      return false;
+    }
 
-  const encoder = new TextEncoder();
+    const salt = base64ToBytes(parts[0]);
+    const expected = base64ToBytes(parts[1]);
 
-  const keyMaterial = await crypto.subtle.importKey(
-    "raw",
-    encoder.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"]
-  );
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(password),
+      "PBKDF2",
+      false,
+      ["deriveBits"]
+    );
 
-  const derivedBits = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations: PBKDF2_ITERATIONS,
-      hash: "SHA-256"
-    },
-    keyMaterial,
-    PASSWORD_HASH_BYTES * 8
-  );
+    const bits = await crypto.subtle.deriveBits(
+      {
+        name: "PBKDF2",
+        salt,
+        iterations: PBKDF2_ITERATIONS,
+        hash: "SHA-256"
+      },
+      key,
+      HASH_BYTES * 8
+    );
 
-  const actualHash = new Uint8Array(derivedBits);
+    const actual = new Uint8Array(bits);
 
-  if (actualHash.length !== expectedHash.length) {
+    if (actual.length !== expected.length) {
+      return false;
+    }
+
+    let difference = 0;
+
+    for (let i = 0; i < actual.length; i++) {
+      difference |= actual[i] ^ expected[i];
+    }
+
+    return difference === 0;
+  } catch {
     return false;
   }
-
-  let difference = 0;
-
-  for (let i = 0; i < actualHash.length; i++) {
-    difference |= actualHash[i] ^ expectedHash[i];
-  }
-
-  return difference === 0;
 }
 
-// ------------------------------------------------------------
-// SESSION TOKEN
-// ------------------------------------------------------------
+async function createPasswordHash(password) {
+  const result = await hashPassword(password);
+
+  return result.salt + "$" + result.hash;
+}
 
 function createToken() {
   return bytesToBase64(randomBytes(32))
@@ -162,11 +146,33 @@ function createToken() {
     .replace(/=/g, "");
 }
 
-// ------------------------------------------------------------
-// REQUEST BODY
-// ------------------------------------------------------------
+function createSessionId() {
+  return crypto.randomUUID();
+}
 
-async function getBody(request) {
+function getCookie(request, name) {
+  const cookie = request.headers.get("Cookie");
+
+  if (!cookie) {
+    return null;
+  }
+
+  const parts = cookie.split(";");
+
+  for (const part of parts) {
+    const item = part.trim();
+
+    if (item.startsWith(name + "=")) {
+      return decodeURIComponent(
+        item.substring(name.length + 1)
+      );
+    }
+  }
+
+  return null;
+}
+
+async function readJson(request) {
   try {
     return await request.json();
   } catch {
@@ -174,12 +180,81 @@ async function getBody(request) {
   }
 }
 
-// ------------------------------------------------------------
-// REGISTER
-// ------------------------------------------------------------
+async function createSession(env, accountId) {
+  const token = createToken();
+  const tokenHash = await sha256Base64(token);
+  const sessionId = createSessionId();
+
+  const expires = new Date(
+    Date.now() + 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  await env.DB.prepare(`
+    INSERT INTO sessions
+    (id, account_id, token_hash, expires_at)
+    VALUES (?, ?, ?, ?)
+  `)
+    .bind(
+      sessionId,
+      accountId,
+      tokenHash,
+      expires
+    )
+    .run();
+
+  return {
+    token,
+    expires
+  };
+}
+
+async function getCurrentAccount(request, env) {
+  const token = getCookie(request, "meant_session");
+
+  if (!token) {
+    return null;
+  }
+
+  const tokenHash = await sha256Base64(token);
+
+  const row = await env.DB.prepare(`
+    SELECT
+      accounts.id,
+      accounts.username,
+      accounts.balance,
+      sessions.expires_at
+    FROM sessions
+    INNER JOIN accounts
+      ON accounts.id = sessions.account_id
+    WHERE sessions.token_hash = ?
+    LIMIT 1
+  `)
+    .bind(tokenHash)
+    .first();
+
+  if (!row) {
+    return null;
+  }
+
+  if (
+    !row.expires_at ||
+    new Date(row.expires_at).getTime() <= Date.now()
+  ) {
+    await env.DB.prepare(`
+      DELETE FROM sessions
+      WHERE token_hash = ?
+    `)
+      .bind(tokenHash)
+      .run();
+
+    return null;
+  }
+
+  return row;
+}
 
 async function register(request, env) {
-  const body = await getBody(request);
+  const body = await readJson(request);
 
   if (!body) {
     return json({
@@ -187,28 +262,22 @@ async function register(request, env) {
     }, 400);
   }
 
-  const nickname = String(body.nickname || "").trim();
+  const username = String(body.username || "").trim();
   const password = String(body.password || "");
-  const passwordRepeat = String(
-    body.passwordRepeat ??
-    body.confirmPassword ??
-    body.password2 ??
-    ""
-  );
 
-  if (!nickname) {
+  if (!username) {
     return json({
       error: "Введите никнейм"
     }, 400);
   }
 
-  if (nickname.length < 3) {
+  if (username.length < 3) {
     return json({
       error: "Никнейм должен содержать минимум 3 символа"
     }, 400);
   }
 
-  if (nickname.length > 32) {
+  if (username.length > 24) {
     return json({
       error: "Никнейм слишком длинный"
     }, 400);
@@ -220,23 +289,19 @@ async function register(request, env) {
     }, 400);
   }
 
-  if (password.length < 6) {
+  if (password.length < 8) {
     return json({
-      error: "Пароль должен содержать минимум 6 символов"
+      error: "Пароль должен содержать минимум 8 символов"
     }, 400);
   }
 
-  if (password !== passwordRepeat) {
-    return json({
-      error: "Пароли не совпадают"
-    }, 400);
-  }
-
-  // Проверяем существующий аккаунт
-  const existing = await env.DB.prepare(
-    "SELECT id FROM accounts WHERE LOWER(nickname) = LOWER(?) LIMIT 1"
-  )
-    .bind(nickname)
+  const existing = await env.DB.prepare(`
+    SELECT id
+    FROM accounts
+    WHERE LOWER(username) = LOWER(?)
+    LIMIT 1
+  `)
+    .bind(username)
     .first();
 
   if (existing) {
@@ -245,59 +310,83 @@ async function register(request, env) {
     }, 409);
   }
 
-  const passwordData = await hashPassword(password);
-
-  const id = crypto.randomUUID();
+  const accountId = crypto.randomUUID();
+  const passwordHash = await createPasswordHash(password);
 
   try {
     await env.DB.prepare(`
       INSERT INTO accounts
-      (id, nickname, password_hash, password_salt, balance)
-      VALUES (?, ?, ?, ?, ?)
+      (id, username, balance)
+      VALUES (?, ?, 0)
     `)
       .bind(
-        id,
-        nickname,
-        passwordData.hash,
-        passwordData.salt,
+        accountId,
+        username,
         0
       )
       .run();
+
+    await env.DB.prepare(`
+      INSERT INTO credentials
+      (account_id, password_hash)
+      VALUES (?, ?)
+    `)
+      .bind(
+        accountId,
+        passwordHash
+      )
+      .run();
+
   } catch (error) {
+    try {
+      await env.DB.prepare(`
+        DELETE FROM credentials
+        WHERE account_id = ?
+      `)
+        .bind(accountId)
+        .run();
+
+      await env.DB.prepare(`
+        DELETE FROM accounts
+        WHERE id = ?
+      `)
+        .bind(accountId)
+        .run();
+    } catch {}
+
     return json({
-      error: "Ошибка базы данных: " + String(error.message || error)
+      error: "Ошибка базы данных: " + (
+        error?.message || String(error)
+      )
     }, 500);
   }
 
-  const token = createToken();
+  const session = await createSession(
+    env,
+    accountId
+  );
 
-  const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30;
-
-  await env.DB.prepare(`
-    INSERT INTO sessions
-    (token, account_id, expires_at)
-    VALUES (?, ?, ?)
-  `)
-    .bind(token, id, expiresAt)
-    .run();
-
-  return json({
-    success: true,
-    token,
-    user: {
-      id,
-      nickname,
-      balance: 0
+  return json(
+    {
+      success: true,
+      account: {
+        id: accountId,
+        username,
+        balance: 0
+      }
+    },
+    200,
+    {
+      "Set-Cookie":
+        "meant_session=" +
+        encodeURIComponent(session.token) +
+        "; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
     }
-  });
+  );
 }
 
-// ------------------------------------------------------------
-// LOGIN
-// ------------------------------------------------------------
-
 async function login(request, env) {
-  const body = await getBody(request);
+  const body = await readJson(request);
 
   if (!body) {
     return json({
@@ -305,10 +394,10 @@ async function login(request, env) {
     }, 400);
   }
 
-  const nickname = String(body.nickname || "").trim();
+  const username = String(body.username || "").trim();
   const password = String(body.password || "");
 
-  if (!nickname || !password) {
+  if (!username || !password) {
     return json({
       error: "Введите никнейм и пароль"
     }, 400);
@@ -316,16 +405,17 @@ async function login(request, env) {
 
   const account = await env.DB.prepare(`
     SELECT
-      id,
-      nickname,
-      password_hash,
-      password_salt,
-      balance
+      accounts.id,
+      accounts.username,
+      accounts.balance,
+      credentials.password_hash
     FROM accounts
-    WHERE LOWER(nickname) = LOWER(?)
+    INNER JOIN credentials
+      ON credentials.account_id = accounts.id
+    WHERE LOWER(accounts.username) = LOWER(?)
     LIMIT 1
   `)
-    .bind(nickname)
+    .bind(username)
     .first();
 
   if (!account) {
@@ -336,7 +426,6 @@ async function login(request, env) {
 
   const valid = await verifyPassword(
     password,
-    account.password_salt,
     account.password_hash
   );
 
@@ -346,93 +435,37 @@ async function login(request, env) {
     }, 401);
   }
 
-  const token = createToken();
+  const session = await createSession(
+    env,
+    account.id
+  );
 
-  const expiresAt = Date.now() + 1000 * 60 * 60 * 24 * 30;
-
-  await env.DB.prepare(`
-    INSERT INTO sessions
-    (token, account_id, expires_at)
-    VALUES (?, ?, ?)
-  `)
-    .bind(
-      token,
-      account.id,
-      expiresAt
-    )
-    .run();
-
-  return json({
-    success: true,
-    token,
-    user: {
-      id: account.id,
-      nickname: account.nickname,
-      balance: Number(account.balance || 0)
+  return json(
+    {
+      success: true,
+      account: {
+        id: account.id,
+        username: account.username,
+        balance: Number(account.balance || 0)
+      }
+    },
+    200,
+    {
+      "Set-Cookie":
+        "meant_session=" +
+        encodeURIComponent(session.token) +
+        "; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
     }
-  });
+  );
 }
 
-// ------------------------------------------------------------
-// GET TOKEN
-// ------------------------------------------------------------
+async function me(request, env) {
+  const account = await getCurrentAccount(
+    request,
+    env
+  );
 
-function getToken(request) {
-  const authorization = request.headers.get("Authorization");
-
-  if (!authorization) {
-    return null;
-  }
-
-  if (!authorization.startsWith("Bearer ")) {
-    return null;
-  }
-
-  return authorization.slice(7).trim();
-}
-
-// ------------------------------------------------------------
-// CURRENT USER
-// ------------------------------------------------------------
-
-async function getMe(request, env) {
-  const token = getToken(request);
-
-  if (!token) {
-    return json({
-      authenticated: false
-    }, 401);
-  }
-
-  const session = await env.DB.prepare(`
-    SELECT
-      sessions.token,
-      sessions.expires_at,
-      accounts.id,
-      accounts.nickname,
-      accounts.balance
-    FROM sessions
-    JOIN accounts
-      ON accounts.id = sessions.account_id
-    WHERE sessions.token = ?
-    LIMIT 1
-  `)
-    .bind(token)
-    .first();
-
-  if (!session) {
-    return json({
-      authenticated: false
-    }, 401);
-  }
-
-  if (Number(session.expires_at) < Date.now()) {
-    await env.DB.prepare(
-      "DELETE FROM sessions WHERE token = ?"
-    )
-      .bind(token)
-      .run();
-
+  if (!account) {
     return json({
       authenticated: false
     }, 401);
@@ -440,37 +473,42 @@ async function getMe(request, env) {
 
   return json({
     authenticated: true,
-    user: {
-      id: session.id,
-      nickname: session.nickname,
-      balance: Number(session.balance || 0)
+    account: {
+      id: account.id,
+      username: account.username,
+      balance: Number(account.balance || 0)
     }
   });
 }
 
-// ------------------------------------------------------------
-// LOGOUT
-// ------------------------------------------------------------
-
 async function logout(request, env) {
-  const token = getToken(request);
+  const token = getCookie(
+    request,
+    "meant_session"
+  );
 
   if (token) {
-    await env.DB.prepare(
-      "DELETE FROM sessions WHERE token = ?"
-    )
-      .bind(token)
+    const tokenHash = await sha256Base64(token);
+
+    await env.DB.prepare(`
+      DELETE FROM sessions
+      WHERE token_hash = ?
+    `)
+      .bind(tokenHash)
       .run();
   }
 
-  return json({
-    success: true
-  });
+  return json(
+    {
+      success: true
+    },
+    200,
+    {
+      "Set-Cookie":
+        "meant_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
+    }
+  );
 }
-
-// ------------------------------------------------------------
-// HEALTH CHECK
-// ------------------------------------------------------------
 
 async function health(env) {
   try {
@@ -478,29 +516,30 @@ async function health(env) {
       "SELECT 1"
     ).first();
 
+    const accounts = await env.DB.prepare(
+      "SELECT COUNT(*) AS count FROM accounts"
+    ).first();
+
     return json({
       success: true,
       database: true,
-      message: "MEANT SHOP Worker работает"
+      accounts: Number(accounts?.count || 0)
     });
+
   } catch (error) {
     return json({
       success: false,
       database: false,
-      error: String(error.message || error)
+      error: error?.message || String(error)
     }, 500);
   }
 }
-
-// ------------------------------------------------------------
-// MAIN
-// ------------------------------------------------------------
 
 export default {
   async fetch(request, env) {
 
     if (request.method === "OPTIONS") {
-      return handleOptions();
+      return optionsResponse();
     }
 
     const url = new URL(request.url);
@@ -508,30 +547,40 @@ export default {
 
     try {
 
-      // API
-      if (path === "/api/register" && request.method === "POST") {
+      if (
+        path === "/api/auth/register" &&
+        request.method === "POST"
+      ) {
         return await register(request, env);
       }
 
-      if (path === "/api/login" && request.method === "POST") {
+      if (
+        path === "/api/auth/login" &&
+        request.method === "POST"
+      ) {
         return await login(request, env);
       }
 
-      if (path === "/api/me" && request.method === "GET") {
-        return await getMe(request, env);
+      if (
+        path === "/api/auth/me" &&
+        request.method === "GET"
+      ) {
+        return await me(request, env);
       }
 
-      if (path === "/api/logout" && request.method === "POST") {
+      if (
+        path === "/api/auth/logout" &&
+        request.method === "POST"
+      ) {
         return await logout(request, env);
       }
 
-      if (path === "/api/health" && request.method === "GET") {
+      if (
+        path === "/api/health" &&
+        request.method === "GET"
+      ) {
         return await health(env);
       }
-
-      // ------------------------------------------------------
-      // STATIC FILES
-      // ------------------------------------------------------
 
       if (env.ASSETS) {
         return env.ASSETS.fetch(request);
@@ -546,7 +595,7 @@ export default {
       console.error(error);
 
       return json({
-        error: String(error.message || error)
+        error: error?.message || String(error)
       }, 500);
     }
   }
