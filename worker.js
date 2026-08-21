@@ -7,6 +7,8 @@ function json(data, status = 200, extraHeaders = {}) {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
       ...extraHeaders
     }
   });
@@ -54,10 +56,11 @@ function base64ToBytes(value) {
 async function sha256Base64(value) {
   const data = new TextEncoder().encode(value);
   const hash = await crypto.subtle.digest("SHA-256", data);
+
   return bytesToBase64(new Uint8Array(hash));
 }
 
-async function hashPassword(password) {
+async function createPasswordHash(password) {
   const salt = randomBytes(16);
 
   const key = await crypto.subtle.importKey(
@@ -79,15 +82,16 @@ async function hashPassword(password) {
     HASH_BYTES * 8
   );
 
-  return {
-    hash: bytesToBase64(new Uint8Array(bits)),
-    salt: bytesToBase64(salt)
-  };
+  return (
+    bytesToBase64(salt) +
+    "$" +
+    bytesToBase64(new Uint8Array(bits))
+  );
 }
 
 async function verifyPassword(password, stored) {
   try {
-    const parts = stored.split("$");
+    const parts = String(stored || "").split("$");
 
     if (parts.length !== 2) {
       return false;
@@ -128,15 +132,10 @@ async function verifyPassword(password, stored) {
     }
 
     return difference === 0;
+
   } catch {
     return false;
   }
-}
-
-async function createPasswordHash(password) {
-  const result = await hashPassword(password);
-
-  return result.salt + "$" + result.hash;
 }
 
 function createToken() {
@@ -146,10 +145,6 @@ function createToken() {
     .replace(/=/g, "");
 }
 
-function createSessionId() {
-  return crypto.randomUUID();
-}
-
 function getCookie(request, name) {
   const cookie = request.headers.get("Cookie");
 
@@ -157,14 +152,12 @@ function getCookie(request, name) {
     return null;
   }
 
-  const parts = cookie.split(";");
-
-  for (const part of parts) {
+  for (const part of cookie.split(";")) {
     const item = part.trim();
 
     if (item.startsWith(name + "=")) {
       return decodeURIComponent(
-        item.substring(name.length + 1)
+        item.slice(name.length + 1)
       );
     }
   }
@@ -182,8 +175,10 @@ async function readJson(request) {
 
 async function createSession(env, accountId) {
   const token = createToken();
+
   const tokenHash = await sha256Base64(token);
-  const sessionId = createSessionId();
+
+  const sessionId = crypto.randomUUID();
 
   const expires = new Date(
     Date.now() + 30 * 24 * 60 * 60 * 1000
@@ -209,7 +204,10 @@ async function createSession(env, accountId) {
 }
 
 async function getCurrentAccount(request, env) {
-  const token = getCookie(request, "meant_session");
+  const token = getCookie(
+    request,
+    "meant_session"
+  );
 
   if (!token) {
     return null;
@@ -253,6 +251,14 @@ async function getCurrentAccount(request, env) {
   return row;
 }
 
+function sessionCookie(token, maxAge = 2592000) {
+  return (
+    "meant_session=" +
+    encodeURIComponent(token) +
+    `; Path=/; Max-Age=${maxAge}; HttpOnly; Secure; SameSite=Lax`
+  );
+}
+
 async function register(request, env) {
   const body = await readJson(request);
 
@@ -262,8 +268,13 @@ async function register(request, env) {
     }, 400);
   }
 
-  const username = String(body.username || "").trim();
-  const password = String(body.password || "");
+  const username = String(
+    body.username || ""
+  ).trim();
+
+  const password = String(
+    body.password || ""
+  );
 
   if (!username) {
     return json({
@@ -311,13 +322,26 @@ async function register(request, env) {
   }
 
   const accountId = crypto.randomUUID();
-  const passwordHash = await createPasswordHash(password);
+
+  const passwordHash =
+    await createPasswordHash(password);
 
   try {
+
+    /*
+      ВАЖНО:
+
+      Здесь 3 вопросительных знака:
+      (?, ?, ?)
+
+      И здесь ровно 3 значения:
+      accountId, username, 0
+    */
+
     await env.DB.prepare(`
       INSERT INTO accounts
       (id, username, balance)
-      VALUES (?, ?, 0)
+      VALUES (?, ?, ?)
     `)
       .bind(
         accountId,
@@ -338,6 +362,7 @@ async function register(request, env) {
       .run();
 
   } catch (error) {
+
     try {
       await env.DB.prepare(`
         DELETE FROM credentials
@@ -345,7 +370,9 @@ async function register(request, env) {
       `)
         .bind(accountId)
         .run();
+    } catch {}
 
+    try {
       await env.DB.prepare(`
         DELETE FROM accounts
         WHERE id = ?
@@ -355,34 +382,49 @@ async function register(request, env) {
     } catch {}
 
     return json({
-      error: "Ошибка базы данных: " + (
-        error?.message || String(error)
-      )
+      error:
+        "Ошибка базы данных: " +
+        (error?.message || String(error))
     }, 500);
   }
 
-  const session = await createSession(
-    env,
-    accountId
-  );
+  try {
 
-  return json(
-    {
-      success: true,
-      account: {
-        id: accountId,
-        username,
-        balance: 0
+    const session =
+      await createSession(
+        env,
+        accountId
+      );
+
+    return json(
+      {
+        success: true,
+
+        account: {
+          id: accountId,
+          username,
+          balance: 0
+        }
+      },
+
+      200,
+
+      {
+        "Set-Cookie":
+          sessionCookie(
+            session.token
+          )
       }
-    },
-    200,
-    {
-      "Set-Cookie":
-        "meant_session=" +
-        encodeURIComponent(session.token) +
-        "; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
-    }
-  );
+    );
+
+  } catch (error) {
+
+    return json({
+      error:
+        "Аккаунт создан, но не удалось создать сессию: " +
+        (error?.message || String(error))
+    }, 500);
+  }
 }
 
 async function login(request, env) {
@@ -394,8 +436,13 @@ async function login(request, env) {
     }, 400);
   }
 
-  const username = String(body.username || "").trim();
-  const password = String(body.password || "");
+  const username = String(
+    body.username || ""
+  ).trim();
+
+  const password = String(
+    body.password || ""
+  );
 
   if (!username || !password) {
     return json({
@@ -424,10 +471,11 @@ async function login(request, env) {
     }, 401);
   }
 
-  const valid = await verifyPassword(
-    password,
-    account.password_hash
-  );
+  const valid =
+    await verifyPassword(
+      password,
+      account.password_hash
+    );
 
   if (!valid) {
     return json({
@@ -435,35 +483,53 @@ async function login(request, env) {
     }, 401);
   }
 
-  const session = await createSession(
-    env,
-    account.id
-  );
+  try {
 
-  return json(
-    {
-      success: true,
-      account: {
-        id: account.id,
-        username: account.username,
-        balance: Number(account.balance || 0)
+    const session =
+      await createSession(
+        env,
+        account.id
+      );
+
+    return json(
+      {
+        success: true,
+
+        account: {
+          id: account.id,
+          username: account.username,
+          balance: Number(
+            account.balance || 0
+          )
+        }
+      },
+
+      200,
+
+      {
+        "Set-Cookie":
+          sessionCookie(
+            session.token
+          )
       }
-    },
-    200,
-    {
-      "Set-Cookie":
-        "meant_session=" +
-        encodeURIComponent(session.token) +
-        "; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
-    }
-  );
+    );
+
+  } catch (error) {
+
+    return json({
+      error:
+        "Не удалось создать сессию: " +
+        (error?.message || String(error))
+    }, 500);
+  }
 }
 
 async function me(request, env) {
-  const account = await getCurrentAccount(
-    request,
-    env
-  );
+  const account =
+    await getCurrentAccount(
+      request,
+      env
+    );
 
   if (!account) {
     return json({
@@ -473,22 +539,28 @@ async function me(request, env) {
 
   return json({
     authenticated: true,
+
     account: {
       id: account.id,
       username: account.username,
-      balance: Number(account.balance || 0)
+      balance: Number(
+        account.balance || 0
+      )
     }
   });
 }
 
 async function logout(request, env) {
-  const token = getCookie(
-    request,
-    "meant_session"
-  );
+  const token =
+    getCookie(
+      request,
+      "meant_session"
+    );
 
   if (token) {
-    const tokenHash = await sha256Base64(token);
+
+    const tokenHash =
+      await sha256Base64(token);
 
     await env.DB.prepare(`
       DELETE FROM sessions
@@ -502,48 +574,63 @@ async function logout(request, env) {
     {
       success: true
     },
+
     200,
+
     {
       "Set-Cookie":
-        "meant_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
+        sessionCookie("", 0)
     }
   );
 }
 
 async function health(env) {
   try {
-    await env.DB.prepare(
-      "SELECT 1"
-    ).first();
 
-    const accounts = await env.DB.prepare(
-      "SELECT COUNT(*) AS count FROM accounts"
-    ).first();
+    await env.DB
+      .prepare("SELECT 1")
+      .first();
+
+    const accounts =
+      await env.DB
+        .prepare(
+          "SELECT COUNT(*) AS count FROM accounts"
+        )
+        .first();
 
     return json({
       success: true,
       database: true,
-      accounts: Number(accounts?.count || 0)
+      accounts: Number(
+        accounts?.count || 0
+      )
     });
 
   } catch (error) {
+
     return json({
       success: false,
       database: false,
-      error: error?.message || String(error)
+      error:
+        error?.message ||
+        String(error)
     }, 500);
   }
 }
 
 export default {
+
   async fetch(request, env) {
 
     if (request.method === "OPTIONS") {
       return optionsResponse();
     }
 
-    const url = new URL(request.url);
-    const path = url.pathname;
+    const url =
+      new URL(request.url);
+
+    const path =
+      url.pathname;
 
     try {
 
@@ -551,28 +638,40 @@ export default {
         path === "/api/auth/register" &&
         request.method === "POST"
       ) {
-        return await register(request, env);
+        return await register(
+          request,
+          env
+        );
       }
 
       if (
         path === "/api/auth/login" &&
         request.method === "POST"
       ) {
-        return await login(request, env);
+        return await login(
+          request,
+          env
+        );
       }
 
       if (
         path === "/api/auth/me" &&
         request.method === "GET"
       ) {
-        return await me(request, env);
+        return await me(
+          request,
+          env
+        );
       }
 
       if (
         path === "/api/auth/logout" &&
         request.method === "POST"
       ) {
-        return await logout(request, env);
+        return await logout(
+          request,
+          env
+        );
       }
 
       if (
@@ -583,19 +682,26 @@ export default {
       }
 
       if (env.ASSETS) {
-        return env.ASSETS.fetch(request);
+        return env.ASSETS.fetch(
+          request
+        );
       }
 
-      return new Response("Not Found", {
-        status: 404
-      });
+      return new Response(
+        "Not Found",
+        {
+          status: 404
+        }
+      );
 
     } catch (error) {
 
       console.error(error);
 
       return json({
-        error: error?.message || String(error)
+        error:
+          error?.message ||
+          String(error)
       }, 500);
     }
   }
