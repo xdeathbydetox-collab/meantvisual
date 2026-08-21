@@ -2,7 +2,7 @@ const PBKDF2_ITERATIONS = 100000;
 const HASH_BYTES = 32;
 
 /* =========================================================
-   JSON
+   RESPONSE
 ========================================================= */
 
 function json(data, status = 200, extraHeaders = {}) {
@@ -11,15 +11,11 @@ function json(data, status = 200, extraHeaders = {}) {
     headers: {
       "Content-Type": "application/json; charset=utf-8",
       "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "true",
       ...extraHeaders
     }
   });
 }
-
-
-/* =========================================================
-   CORS
-========================================================= */
 
 function optionsResponse() {
   return new Response(null, {
@@ -33,9 +29,8 @@ function optionsResponse() {
   });
 }
 
-
 /* =========================================================
-   RANDOM / BASE64
+   CRYPTO
 ========================================================= */
 
 function randomBytes(length) {
@@ -43,7 +38,6 @@ function randomBytes(length) {
   crypto.getRandomValues(bytes);
   return bytes;
 }
-
 
 function bytesToBase64(bytes) {
   let binary = "";
@@ -55,7 +49,6 @@ function bytesToBase64(bytes) {
   return btoa(binary);
 }
 
-
 function base64ToBytes(value) {
   const binary = atob(value);
   const bytes = new Uint8Array(binary.length);
@@ -66,11 +59,6 @@ function base64ToBytes(value) {
 
   return bytes;
 }
-
-
-/* =========================================================
-   SHA256
-========================================================= */
 
 async function sha256Base64(value) {
   const data = new TextEncoder().encode(value);
@@ -86,13 +74,14 @@ async function sha256Base64(value) {
   );
 }
 
-
 /* =========================================================
    PASSWORD HASH
 ========================================================= */
 
 async function hashPassword(password) {
-  const salt = randomBytes(16);
+
+  const salt =
+    randomBytes(16);
 
   const key =
     await crypto.subtle.importKey(
@@ -119,27 +108,22 @@ async function hashPassword(password) {
     hash: bytesToBase64(
       new Uint8Array(bits)
     ),
-    salt: bytesToBase64(salt)
+
+    salt: bytesToBase64(
+      salt
+    )
   };
 }
 
+async function verifyPassword(
+  password,
+  stored
+) {
 
-async function createPasswordHash(password) {
-  const result =
-    await hashPassword(password);
-
-  return (
-    result.salt +
-    "$" +
-    result.hash
-  );
-}
-
-
-async function verifyPassword(password, stored) {
   try {
+
     const parts =
-      String(stored).split("$");
+      stored.split("$");
 
     if (parts.length !== 2) {
       return false;
@@ -189,42 +173,61 @@ async function verifyPassword(password, stored) {
       i < actual.length;
       i++
     ) {
+
       difference |=
         actual[i] ^ expected[i];
+
     }
 
     return difference === 0;
 
   } catch {
+
     return false;
+
   }
 }
 
+async function createPasswordHash(
+  password
+) {
+
+  const result =
+    await hashPassword(password);
+
+  return (
+    result.salt +
+    "$" +
+    result.hash
+  );
+}
 
 /* =========================================================
-   TOKEN
+   SESSION
 ========================================================= */
 
 function createToken() {
+
   return bytesToBase64(
     randomBytes(32)
   )
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=/g, "");
-}
 
+}
 
 function createSessionId() {
+
   return crypto.randomUUID();
+
 }
 
+function getCookie(
+  request,
+  name
+) {
 
-/* =========================================================
-   COOKIE
-========================================================= */
-
-function getCookie(request, name) {
   const cookie =
     request.headers.get("Cookie");
 
@@ -236,46 +239,49 @@ function getCookie(request, name) {
     cookie.split(";");
 
   for (const part of parts) {
-    const item = part.trim();
+
+    const item =
+      part.trim();
 
     if (
       item.startsWith(
         name + "="
       )
     ) {
+
       return decodeURIComponent(
         item.substring(
           name.length + 1
         )
       );
+
     }
+
   }
 
   return null;
 }
 
+async function readJson(
+  request
+) {
 
-/* =========================================================
-   REQUEST JSON
-========================================================= */
-
-async function readJson(request) {
   try {
+
     return await request.json();
+
   } catch {
+
     return null;
+
   }
 }
-
-
-/* =========================================================
-   SESSION
-========================================================= */
 
 async function createSession(
   env,
   accountId
 ) {
+
   const token =
     createToken();
 
@@ -295,16 +301,12 @@ async function createSession(
       1000
     ).toISOString();
 
-  await env.DB.prepare(`
-    INSERT INTO sessions
-    (
-      id,
-      account_id,
-      token_hash,
-      expires_at
-    )
-    VALUES (?, ?, ?, ?)
-  `)
+  await env.DB
+    .prepare(`
+      INSERT INTO sessions
+      (id, account_id, token_hash, expires_at)
+      VALUES (?, ?, ?, ?)
+    `)
     .bind(
       sessionId,
       accountId,
@@ -319,11 +321,11 @@ async function createSession(
   };
 }
 
-
 async function getCurrentAccount(
   request,
   env
 ) {
+
   const token =
     getCookie(
       request,
@@ -338,19 +340,20 @@ async function getCurrentAccount(
     await sha256Base64(token);
 
   const row =
-    await env.DB.prepare(`
-      SELECT
-        accounts.id,
-        accounts.username,
-        accounts.balance,
-        sessions.expires_at
-      FROM sessions
-      INNER JOIN accounts
-        ON accounts.id =
-           sessions.account_id
-      WHERE sessions.token_hash = ?
-      LIMIT 1
-    `)
+    await env.DB
+      .prepare(`
+        SELECT
+          accounts.id,
+          accounts.username,
+          accounts.balance,
+          sessions.expires_at
+        FROM sessions
+        INNER JOIN accounts
+          ON accounts.id =
+             sessions.account_id
+        WHERE sessions.token_hash = ?
+        LIMIT 1
+      `)
       .bind(tokenHash)
       .first();
 
@@ -365,10 +368,11 @@ async function getCurrentAccount(
     ).getTime() <= Date.now()
   ) {
 
-    await env.DB.prepare(`
-      DELETE FROM sessions
-      WHERE token_hash = ?
-    `)
+    await env.DB
+      .prepare(`
+        DELETE FROM sessions
+        WHERE token_hash = ?
+      `)
       .bind(tokenHash)
       .run();
 
@@ -378,7 +382,6 @@ async function getCurrentAccount(
   return row;
 }
 
-
 /* =========================================================
    REGISTER
 ========================================================= */
@@ -387,13 +390,16 @@ async function register(
   request,
   env
 ) {
+
   const body =
     await readJson(request);
 
   if (!body) {
+
     return json({
       error: "Неверный JSON"
     }, 400);
+
   }
 
   const username =
@@ -407,54 +413,67 @@ async function register(
     );
 
   if (!username) {
+
     return json({
       error: "Введите никнейм"
     }, 400);
+
   }
 
   if (username.length < 3) {
+
     return json({
       error:
         "Никнейм должен содержать минимум 3 символа"
     }, 400);
+
   }
 
   if (username.length > 24) {
+
     return json({
       error:
         "Никнейм слишком длинный"
     }, 400);
+
   }
 
   if (!password) {
+
     return json({
       error: "Введите пароль"
     }, 400);
+
   }
 
   if (password.length < 8) {
+
     return json({
       error:
         "Пароль должен содержать минимум 8 символов"
     }, 400);
+
   }
 
   const existing =
-    await env.DB.prepare(`
-      SELECT id
-      FROM accounts
-      WHERE LOWER(username) =
-            LOWER(?)
-      LIMIT 1
-    `)
+    await env.DB
+      .prepare(`
+        SELECT id
+        FROM accounts
+        WHERE LOWER(username) =
+              LOWER(?)
+        LIMIT 1
+      `)
       .bind(username)
       .first();
 
   if (existing) {
+
     return json({
       error:
         "Этот никнейм уже занят"
     }, 409);
+
   }
 
   const accountId =
@@ -467,30 +486,24 @@ async function register(
 
   try {
 
-    await env.DB.prepare(`
-      INSERT INTO accounts
-      (
-        id,
-        username,
-        balance
-      )
-      VALUES (?, ?, ?)
-    `)
+    await env.DB
+      .prepare(`
+        INSERT INTO accounts
+        (id, username, balance)
+        VALUES (?, ?, 0)
+      `)
       .bind(
         accountId,
-        username,
-        0
+        username
       )
       .run();
 
-    await env.DB.prepare(`
-      INSERT INTO credentials
-      (
-        account_id,
-        password_hash
-      )
-      VALUES (?, ?)
-    `)
+    await env.DB
+      .prepare(`
+        INSERT INTO credentials
+        (account_id, password_hash)
+        VALUES (?, ?)
+      `)
       .bind(
         accountId,
         passwordHash
@@ -501,17 +514,19 @@ async function register(
 
     try {
 
-      await env.DB.prepare(`
-        DELETE FROM credentials
-        WHERE account_id = ?
-      `)
+      await env.DB
+        .prepare(`
+          DELETE FROM credentials
+          WHERE account_id = ?
+        `)
         .bind(accountId)
         .run();
 
-      await env.DB.prepare(`
-        DELETE FROM accounts
-        WHERE id = ?
-      `)
+      await env.DB
+        .prepare(`
+          DELETE FROM accounts
+          WHERE id = ?
+        `)
         .bind(accountId)
         .run();
 
@@ -525,6 +540,7 @@ async function register(
           String(error)
         )
     }, 500);
+
   }
 
   const session =
@@ -536,6 +552,7 @@ async function register(
   return json(
     {
       success: true,
+
       account: {
         id: accountId,
         username,
@@ -554,7 +571,6 @@ async function register(
   );
 }
 
-
 /* =========================================================
    LOGIN
 ========================================================= */
@@ -563,13 +579,16 @@ async function login(
   request,
   env
 ) {
+
   const body =
     await readJson(request);
 
   if (!body) {
+
     return json({
       error: "Неверный JSON"
     }, 400);
+
   }
 
   const username =
@@ -586,35 +605,40 @@ async function login(
     !username ||
     !password
   ) {
+
     return json({
       error:
         "Введите никнейм и пароль"
     }, 400);
+
   }
 
   const account =
-    await env.DB.prepare(`
-      SELECT
-        accounts.id,
-        accounts.username,
-        accounts.balance,
-        credentials.password_hash
-      FROM accounts
-      INNER JOIN credentials
-        ON credentials.account_id =
-           accounts.id
-      WHERE LOWER(accounts.username) =
-            LOWER(?)
-      LIMIT 1
-    `)
+    await env.DB
+      .prepare(`
+        SELECT
+          accounts.id,
+          accounts.username,
+          accounts.balance,
+          credentials.password_hash
+        FROM accounts
+        INNER JOIN credentials
+          ON credentials.account_id =
+             accounts.id
+        WHERE LOWER(accounts.username) =
+              LOWER(?)
+        LIMIT 1
+      `)
       .bind(username)
       .first();
 
   if (!account) {
+
     return json({
       error:
         "Неверный никнейм или пароль"
     }, 401);
+
   }
 
   const valid =
@@ -624,10 +648,12 @@ async function login(
     );
 
   if (!valid) {
+
     return json({
       error:
         "Неверный никнейм или пароль"
     }, 401);
+
   }
 
   const session =
@@ -639,6 +665,7 @@ async function login(
   return json(
     {
       success: true,
+
       account: {
         id: account.id,
         username: account.username,
@@ -660,7 +687,6 @@ async function login(
   );
 }
 
-
 /* =========================================================
    ME
 ========================================================= */
@@ -669,6 +695,7 @@ async function me(
   request,
   env
 ) {
+
   const account =
     await getCurrentAccount(
       request,
@@ -676,13 +703,16 @@ async function me(
     );
 
   if (!account) {
+
     return json({
       authenticated: false
     }, 401);
+
   }
 
   return json({
     authenticated: true,
+
     account: {
       id: account.id,
       username: account.username,
@@ -694,7 +724,6 @@ async function me(
   });
 }
 
-
 /* =========================================================
    LOGOUT
 ========================================================= */
@@ -703,6 +732,7 @@ async function logout(
   request,
   env
 ) {
+
   const token =
     getCookie(
       request,
@@ -716,12 +746,14 @@ async function logout(
         token
       );
 
-    await env.DB.prepare(`
-      DELETE FROM sessions
-      WHERE token_hash = ?
-    `)
+    await env.DB
+      .prepare(`
+        DELETE FROM sessions
+        WHERE token_hash = ?
+      `)
       .bind(tokenHash)
       .run();
+
   }
 
   return json(
@@ -736,84 +768,29 @@ async function logout(
   );
 }
 
-
 /* =========================================================
-   HEALTH
+   TEBEX HELPERS
 ========================================================= */
 
-async function health(env) {
-  try {
-
-    await env.DB.prepare(
-      "SELECT 1"
-    ).first();
-
-    const accounts =
-      await env.DB.prepare(
-        "SELECT COUNT(*) AS count FROM accounts"
-      ).first();
-
-    return json({
-      success: true,
-      database: true,
-      accounts:
-        Number(
-          accounts?.count || 0
-        )
-    });
-
-  } catch (error) {
-
-    return json({
-      success: false,
-      database: false,
-      error:
-        error?.message ||
-        String(error)
-    }, 500);
-  }
-}
-
-
-/* =========================================================
-   TEBEX AUTH
-========================================================= */
-
-function getTebexAuth(env) {
-
-  const publicToken =
-    String(
-      env.TEBEX_PUBLIC_TOKEN || ""
-    ).trim();
-
-  const privateKey =
-    String(
-      env.TEBEX_PRIVATE_KEY || ""
-    ).trim();
+function getTebexAuth(
+  env
+) {
 
   if (
-    !publicToken ||
-    !privateKey
+    !env.TEBEX_PUBLIC_TOKEN ||
+    !env.TEBEX_PRIVATE_KEY
   ) {
-    throw new Error(
-      "Не настроены TEBEX_PUBLIC_TOKEN и TEBEX_PRIVATE_KEY"
-    );
+
+    return null;
+
   }
 
-  return (
-    "Basic " +
-    btoa(
-      publicToken +
-      ":" +
-      privateKey
-    )
+  return btoa(
+    env.TEBEX_PUBLIC_TOKEN +
+    ":" +
+    env.TEBEX_PRIVATE_KEY
   );
 }
-
-
-/* =========================================================
-   TEBEX REQUEST
-========================================================= */
 
 async function tebexRequest(
   env,
@@ -821,18 +798,36 @@ async function tebexRequest(
   options = {}
 ) {
 
-  const headers = {
-    "Authorization":
-      getTebexAuth(env),
+  const auth =
+    getTebexAuth(env);
 
-    "Content-Type":
-      "application/json",
+  if (!auth) {
 
-    "Accept":
-      "application/json",
+    throw new Error(
+      "Не настроены TEBEX_PUBLIC_TOKEN и TEBEX_PRIVATE_KEY"
+    );
 
-    ...(options.headers || {})
-  };
+  }
+
+  const headers =
+    new Headers(
+      options.headers || {}
+    );
+
+  headers.set(
+    "Authorization",
+    "Basic " + auth
+  );
+
+  headers.set(
+    "Content-Type",
+    "application/json"
+  );
+
+  headers.set(
+    "Accept",
+    "application/json"
+  );
 
   const response =
     await fetch(
@@ -849,12 +844,20 @@ async function tebexRequest(
   let data = null;
 
   if (raw.trim()) {
+
     try {
+
       data =
         JSON.parse(raw);
+
     } catch {
-      data = null;
+
+      data = {
+        raw
+      };
+
     }
+
   }
 
   if (!response.ok) {
@@ -863,194 +866,76 @@ async function tebexRequest(
       "Tebex HTTP " +
       response.status;
 
-    if (data) {
+    if (
+      data?.detail
+    ) {
 
-      if (
-        typeof data.error ===
-        "string"
-      ) {
-        message =
-          data.error;
-      }
+      message =
+        data.detail;
 
-      else if (
-        typeof data.message ===
-        "string"
-      ) {
-        message =
-          data.message;
-      }
+    } else if (
+      data?.error
+    ) {
 
-      else if (
-        typeof data.detail ===
-        "string"
-      ) {
-        message =
-          data.detail;
-      }
+      message =
+        data.error;
+
+    } else if (
+      data?.message
+    ) {
+
+      message =
+        data.message;
+
     }
 
     throw new Error(
       message
     );
+
   }
 
   return data;
 }
 
-
 /* =========================================================
-   FIND TEBEX PACKAGE
+   PRODUCT -> TEBEX PACKAGE
 ========================================================= */
 
-async function findTebexPackage(
+function getTebexPackageId(
   env,
   productId
 ) {
 
-  const token =
-    String(
-      env.TEBEX_PUBLIC_TOKEN || ""
-    ).trim();
+  if (
+    productId ===
+    "30-days"
+  ) {
 
-  if (!token) {
-    throw new Error(
-      "TEBEX_PUBLIC_TOKEN не настроен"
-    );
+    return env.TEBEX_PACKAGE_30_DAYS;
+
   }
 
-  const url =
-    "https://headless.tebex.io/api/accounts/" +
-    encodeURIComponent(token) +
-    "/packages";
+  if (
+    productId ===
+    "90-days"
+  ) {
 
-  const data =
-    await tebexRequest(
-      env,
-      url,
-      {
-        method: "GET"
-      }
-    );
+    return env.TEBEX_PACKAGE_90_DAYS;
 
-  const packages =
-    Array.isArray(data?.data)
-      ? data.data
-      : [];
-
-  /*
-    Можно указать реальные ID пакетов
-    через Worker Variables.
-
-    Если ID не указаны,
-    используем поиск по названию.
-  */
-
-  const envNames = {
-    "30-days":
-      "TEBEX_PACKAGE_30_DAYS",
-
-    "90-days":
-      "TEBEX_PACKAGE_90_DAYS",
-
-    "forever":
-      "TEBEX_PACKAGE_FOREVER"
-  };
-
-  const envName =
-    envNames[productId];
-
-  const configuredId =
-    envName
-      ? String(
-          env[envName] || ""
-        ).trim()
-      : "";
-
-  if (configuredId) {
-
-    const found =
-      packages.find(
-        pkg =>
-          String(pkg.id) ===
-          configuredId
-      );
-
-    if (found) {
-      return found;
-    }
-
-    /*
-      Даже если пакет не попал
-      в список packages, его ID
-      можно использовать напрямую.
-    */
-
-    return {
-      id: configuredId,
-      name: productId
-    };
   }
 
+  if (
+    productId ===
+    "forever"
+  ) {
 
-  const names = {
+    return env.TEBEX_PACKAGE_FOREVER;
 
-    "30-days": [
-      "30 дней",
-      "30 days",
-      "30 Days"
-    ],
-
-    "90-days": [
-      "90 дней",
-      "90 days",
-      "90 Days"
-    ],
-
-    "forever": [
-      "Навсегда",
-      "Forever",
-      "Lifetime",
-      "Lifetime Access"
-    ]
-
-  };
-
-  const wanted =
-    names[productId] || [];
-
-  const found =
-    packages.find(pkg => {
-
-      const packageName =
-        String(
-          pkg.name || ""
-        )
-          .trim()
-          .toLowerCase();
-
-      return wanted.some(
-        name =>
-          packageName ===
-          String(
-            name
-          ).toLowerCase()
-      );
-    });
-
-  if (!found) {
-
-    throw new Error(
-      "Товар Tebex не найден: " +
-      productId +
-      ". Укажи его ID через переменную Worker " +
-      (envName || "")
-    );
   }
 
-  return found;
+  return null;
 }
-
 
 /* =========================================================
    CHECKOUT
@@ -1060,6 +945,10 @@ async function checkout(
   request,
   env
 ) {
+
+  /*
+    1. Проверяем авторизацию.
+  */
 
   const account =
     await getCurrentAccount(
@@ -1076,6 +965,25 @@ async function checkout(
 
   }
 
+  /*
+    2. Проверяем Tebex secrets.
+  */
+
+  if (
+    !env.TEBEX_PUBLIC_TOKEN ||
+    !env.TEBEX_PRIVATE_KEY
+  ) {
+
+    return json({
+      error:
+        "Не настроены TEBEX_PUBLIC_TOKEN и TEBEX_PRIVATE_KEY"
+    }, 500);
+
+  }
+
+  /*
+    3. Читаем корзину.
+  */
 
   const body =
     await readJson(request);
@@ -1088,7 +996,6 @@ async function checkout(
     }, 400);
 
   }
-
 
   if (
     !Array.isArray(
@@ -1104,309 +1011,421 @@ async function checkout(
 
   }
 
-
   /*
-    Разрешаем только наши
-    известные товары.
+    На этом этапе разрешаем
+    только один товар за одну оплату.
+
+    Это безопаснее для нашей
+    первой версии магазина.
   */
 
-  const allowedProducts = new Set([
-    "30-days",
-    "90-days",
-    "forever"
-  ]);
-
-
-  const requestedItems =
-    body.items;
-
-
-  /*
-    Защита от покупки
-    произвольного Tebex package ID.
-  */
-
-  for (
-    const item of requestedItems
+  if (
+    body.items.length !== 1
   ) {
 
-    if (
-      !item ||
-      !allowedProducts.has(
-        String(
-          item.productId || ""
-        )
-      )
-    ) {
-
-      return json({
-        error:
-          "Неизвестный товар"
-      }, 400);
-
-    }
-
-    const qty =
-      Number(
-        item.qty || 1
-      );
-
-    if (
-      !Number.isInteger(qty) ||
-      qty < 1 ||
-      qty > 1
-    ) {
-
-      return json({
-        error:
-          "Количество товара должно быть 1"
-      }, 400);
-
-    }
+    return json({
+      error:
+        "За одну оплату можно купить только один товар"
+    }, 400);
 
   }
 
+  const item =
+    body.items[0];
+
+  const productId =
+    String(
+      item.productId || ""
+    );
+
+  const quantity =
+    Number(
+      item.qty || 1
+    );
+
+  if (
+    !productId
+  ) {
+
+    return json({
+      error:
+        "Не указан товар"
+    }, 400);
+
+  }
+
+  if (
+    !Number.isInteger(quantity) ||
+    quantity !== 1
+  ) {
+
+    return json({
+      error:
+        "Некорректное количество товара"
+    }, 400);
+
+  }
+
+  /*
+    4. Получаем настоящий Tebex package ID
+       только из Worker secrets.
+
+    Пользователь не может передать
+    произвольный package ID.
+  */
+
+  const packageId =
+    getTebexPackageId(
+      env,
+      productId
+    );
+
+  if (!packageId) {
+
+    return json({
+      error:
+        "Не настроен Tebex Package ID для товара: " +
+        productId
+    }, 500);
+
+  }
+
+  /*
+    5. URL возврата.
+  */
+
+  const requestUrl =
+    new URL(
+      request.url
+    );
+
+  const origin =
+    requestUrl.origin;
+
+  const completeUrl =
+    origin +
+    "/shop.html?payment=success";
+
+  const cancelUrl =
+    origin +
+    "/shop.html?payment=cancel";
+
+  /*
+    6. Получаем IP пользователя.
+  */
+
+  const ip =
+    request.headers.get(
+      "CF-Connecting-IP"
+    ) ||
+    request.headers.get(
+      "X-Forwarded-For"
+    )?.split(",")[0]
+      ?.trim() ||
+    "";
+
+  /*
+    7. Создаём Tebex basket.
+  */
+
+  let basket;
 
   try {
 
-    /*
-      -------------------------------------------------------
-      1. СОЗДАЁМ TEBEX BASKET
-      -------------------------------------------------------
-    */
-
-    const origin =
-      new URL(
-        request.url
-      ).origin;
-
-
-    const basketUrl =
-      "https://headless.tebex.io/api/accounts/" +
-      encodeURIComponent(
-        String(
-          env.TEBEX_PUBLIC_TOKEN
-        )
-      ) +
-      "/baskets";
-
-
-    const basketData =
+    basket =
       await tebexRequest(
         env,
-        basketUrl,
+        "https://headless.tebex.io/api/accounts/" +
+          encodeURIComponent(
+            env.TEBEX_PUBLIC_TOKEN
+          ) +
+          "/baskets",
         {
           method: "POST",
 
           body: JSON.stringify({
 
             complete_url:
-              origin +
-              "/shop.html?payment=success",
+              completeUrl,
 
             cancel_url:
-              origin +
-              "/shop.html?payment=cancel",
+              cancelUrl,
 
             complete_auto_redirect:
               true,
 
             custom: {
 
-              account_id:
+              meant_account_id:
                 account.id,
 
-              username:
+              meant_username:
                 account.username,
 
-              source:
-                "meant-shop",
+              meant_product_id:
+                productId
 
-              version:
-                1
+            },
 
-            }
+            ...(ip
+              ? {
+                  ip_address: ip
+                }
+              : {})
 
           })
         }
       );
 
+  } catch (error) {
 
-    const basket =
-      basketData?.data ||
-      basketData;
+    console.error(
+      "Tebex basket error:",
+      error
+    );
 
+    return json({
+      error:
+        "Tebex не смог создать корзину: " +
+        (
+          error?.message ||
+          String(error)
+        )
+    }, 502);
 
-    const basketIdent =
-      basket?.ident;
+  }
 
+  /*
+    Tebex может вернуть basket
+    непосредственно или внутри data.
+  */
 
-    if (!basketIdent) {
+  const basketData =
+    basket?.data ||
+    basket;
 
-      throw new Error(
-        "Tebex не вернул basket ident"
-      );
+  const basketIdent =
+    basketData?.ident;
 
-    }
+  if (!basketIdent) {
 
+    console.error(
+      "Tebex basket response:",
+      basket
+    );
 
-    /*
-      -------------------------------------------------------
-      2. ДОБАВЛЯЕМ ТОВАРЫ
-      -------------------------------------------------------
-    */
+    return json({
+      error:
+        "Tebex не вернул идентификатор корзины"
+    }, 502);
 
-    for (
-      const item of requestedItems
-    ) {
+  }
 
-      const productId =
-        String(
-          item.productId
-        );
+  /*
+    8. Добавляем package.
+  */
 
-      const quantity =
-        Number(
-          item.qty || 1
-        );
+  let updatedBasket;
 
+  try {
 
-      const tebexPackage =
-        await findTebexPackage(
-          env,
-          productId
-        );
-
-
-      const packageUrl =
-        "https://headless.tebex.io/api/baskets/" +
-        encodeURIComponent(
-          basketIdent
-        ) +
-        "/packages";
-
-
+    updatedBasket =
       await tebexRequest(
         env,
-        packageUrl,
+        "https://headless.tebex.io/api/baskets/" +
+          encodeURIComponent(
+            basketIdent
+          ) +
+          "/packages",
         {
           method: "POST",
 
           body: JSON.stringify({
 
             package_id:
-              String(
-                tebexPackage.id
-              ),
+              String(packageId),
 
-            quantity
+            quantity: 1
 
           })
         }
       );
 
-    }
+  } catch (error) {
 
-
-    /*
-      -------------------------------------------------------
-      3. ПОЛУЧАЕМ ОБНОВЛЁННУЮ КОРЗИНУ
-      -------------------------------------------------------
-    */
-
-    const finalUrl =
-      "https://headless.tebex.io/api/accounts/" +
-      encodeURIComponent(
-        String(
-          env.TEBEX_PUBLIC_TOKEN
-        )
-      ) +
-      "/baskets/" +
-      encodeURIComponent(
-        basketIdent
-      );
-
-
-    const finalData =
-      await tebexRequest(
-        env,
-        finalUrl,
-        {
-          method: "GET"
-        }
-      );
-
-
-    const finalBasket =
-      finalData?.data ||
-      finalData;
-
-
-    const checkoutUrl =
-      finalBasket?.links?.checkout;
-
-
-    if (!checkoutUrl) {
-
-      throw new Error(
-        "Tebex не вернул ссылку на оплату"
-      );
-
-    }
-
-
-    /*
-      -------------------------------------------------------
-      4. СОХРАНЯЕМ ИНФОРМАЦИЮ О ПОКУПКЕ
-      -------------------------------------------------------
-    */
-
-    /*
-      В текущей схеме нет отдельной
-      таблицы baskets/orders.
-
-      Поэтому пока просто
-      возвращаем checkout URL.
-
-      Позже, когда сделаем webhook,
-      webhook_events + entitlements
-      будут использовать custom.account_id.
-    */
-
+    console.error(
+      "Tebex package error:",
+      error
+    );
 
     return json({
-      success: true,
+      error:
+        "Tebex не смог добавить товар в корзину: " +
+        (
+          error?.message ||
+          String(error)
+        )
+    }, 502);
 
-      checkout_url:
-        checkoutUrl,
+  }
 
-      basket_ident:
-        basketIdent
+  /*
+    9. Ищем ссылку checkout.
+  */
 
-    });
+  const checkoutUrl =
+    updatedBasket?.links?.checkout ||
+    updatedBasket?.data?.links?.checkout ||
+    basketData?.links?.checkout;
 
+  if (!checkoutUrl) {
+
+    console.error(
+      "Tebex checkout response:",
+      updatedBasket
+    );
+
+    return json({
+      error:
+        "Tebex не вернул ссылку на оплату"
+    }, 502);
+
+  }
+
+  /*
+    10. Сохраняем информацию
+        о попытке покупки.
+
+    Пока transaction_id неизвестен.
+    После оплаты его обработает webhook.
+  */
+
+  try {
+
+    await env.DB
+      .prepare(`
+        INSERT INTO transactions
+        (
+          account_id,
+          type,
+          amount,
+          balance_after,
+          tebex_transaction_id,
+          webhook_id,
+          product_id
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `)
+      .bind(
+        account.id,
+        "purchase_pending",
+        0,
+        Number(
+          account.balance || 0
+        ),
+        null,
+        null,
+        productId
+      )
+      .run();
 
   } catch (error) {
 
     console.error(
-      "Tebex checkout error:",
+      "Pending transaction DB error:",
       error
     );
 
+    /*
+      Сам checkout всё равно можно
+      продолжить — Tebex уже создал
+      корзину.
+    */
+
+  }
+
+  /*
+    11. Возвращаем shop.html
+        нормальный JSON.
+  */
+
+  return json({
+    success: true,
+
+    checkout_url:
+      checkoutUrl,
+
+    basket_ident:
+      basketIdent,
+
+    product_id:
+      productId
+  });
+
+}
+
+/* =========================================================
+   HEALTH
+========================================================= */
+
+async function health(
+  env
+) {
+
+  try {
+
+    await env.DB
+      .prepare(
+        "SELECT 1"
+      )
+      .first();
+
+    const accounts =
+      await env.DB
+        .prepare(
+          "SELECT COUNT(*) AS count FROM accounts"
+        )
+        .first();
 
     return json({
+
+      success: true,
+
+      database: true,
+
+      accounts:
+        Number(
+          accounts?.count || 0
+        ),
+
+      tebex:
+        Boolean(
+          env.TEBEX_PUBLIC_TOKEN &&
+          env.TEBEX_PRIVATE_KEY
+        )
+
+    });
+
+  } catch (error) {
+
+    return json({
+
+      success: false,
+
+      database: false,
+
       error:
         error?.message ||
-        "Не удалось создать оплату"
+        String(error)
+
     }, 500);
 
   }
 
 }
 
-
 /* =========================================================
-   MAIN
+   MAIN WORKER
 ========================================================= */
 
 export default {
@@ -1420,9 +1439,10 @@ export default {
       request.method ===
       "OPTIONS"
     ) {
-      return optionsResponse();
-    }
 
+      return optionsResponse();
+
+    }
 
     const url =
       new URL(
@@ -1431,7 +1451,6 @@ export default {
 
     const path =
       url.pathname;
-
 
     try {
 
@@ -1451,7 +1470,6 @@ export default {
 
       }
 
-
       /* LOGIN */
 
       if (
@@ -1467,7 +1485,6 @@ export default {
         );
 
       }
-
 
       /* ME */
 
@@ -1485,7 +1502,6 @@ export default {
 
       }
 
-
       /* LOGOUT */
 
       if (
@@ -1502,6 +1518,21 @@ export default {
 
       }
 
+      /* CHECKOUT */
+
+      if (
+        path ===
+        "/api/checkout" &&
+        request.method ===
+        "POST"
+      ) {
+
+        return await checkout(
+          request,
+          env
+        );
+
+      }
 
       /* HEALTH */
 
@@ -1518,25 +1549,10 @@ export default {
 
       }
 
-
-      /* SHOP CHECKOUT */
-
-      if (
-        path ===
-        "/api/checkout" &&
-        request.method ===
-        "POST"
-      ) {
-
-        return await checkout(
-          request,
-          env
-        );
-
-      }
-
-
-      /* ASSETS */
+      /*
+        Если это обычная страница,
+        картинка, CSS, JS и т.д.
+      */
 
       if (env.ASSETS) {
 
@@ -1546,14 +1562,12 @@ export default {
 
       }
 
-
       return new Response(
         "Not Found",
         {
           status: 404
         }
       );
-
 
     } catch (error) {
 
@@ -1562,9 +1576,11 @@ export default {
       );
 
       return json({
+
         error:
           error?.message ||
           String(error)
+
       }, 500);
 
     }
