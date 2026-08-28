@@ -1,1 +1,5037 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>MEANT ADMIN</title>
+
+<style>
+:root{
+  --bg:#070707;
+  --sidebar:#0b0b0b;
+  --card:#111;
+  --card2:#161616;
+  --line:#292929;
+  --line2:#202020;
+  --yellow:#ffd21a;
+  --yellow2:#ffb900;
+  --text:#f7f7f7;
+  --muted:#8e8e8e;
+  --green:#52d98b;
+  --red:#ff5757;
+  --blue:#63a7ff;
+  --sidebar-width:255px;
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(
+      circle at 75% 0%,
+      rgba(255,210,26,.055),
+      transparent 32%
+    ),
+    var(--bg);
+  color:var(--text);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+button,
+input,
+select{
+  font:inherit;
+}
+
+button{
+  cursor:pointer;
+}
+
+.hidden{
+  display:none!important;
+}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:var(--sidebar-width);
+  background:rgba(11,11,11,.98);
+  border-right:1px solid var(--line);
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  transition:transform .25s ease;
+}
+
+.logo{
+  height:82px;
+  padding:0 22px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+}
+
+.logo-title{
+  font-size:21px;
+  font-weight:950;
+  letter-spacing:-1px;
+}
+
+.logo-title span{
+  color:var(--yellow);
+}
+
+.logo-subtitle{
+  margin-top:4px;
+  color:#5f5f5f;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+}
+
+.nav{
+  flex:1;
+  overflow-y:auto;
+  padding:16px 11px;
+}
+
+.nav-label{
+  color:#505050;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  padding:10px 12px 8px;
+}
+
+.nav-item{
+  width:100%;
+  height:43px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:#929292;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 12px;
+  margin-bottom:4px;
+  text-align:left;
+  transition:.18s;
+}
+
+.nav-item:hover{
+  background:#151515;
+  color:#eee;
+}
+
+.nav-item.active{
+  background:rgba(255,210,26,.105);
+  color:var(--yellow);
+}
+
+.nav-icon{
+  width:20px;
+  text-align:center;
+  font-size:16px;
+}
+
+.nav-name{
+  font-size:12px;
+  font-weight:750;
+}
+
+.nav-count{
+  margin-left:auto;
+  min-width:21px;
+  height:21px;
+  padding:0 6px;
+  border-radius:20px;
+  background:#1c1c1c;
+  color:#777;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:9px;
+  font-weight:900;
+}
+
+.nav-item.active .nav-count{
+  background:var(--yellow);
+  color:#090909;
+}
+
+.sidebar-bottom{
+  border-top:1px solid var(--line);
+  padding:12px;
+}
+
+.user-card{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:9px;
+  border-radius:10px;
+}
+
+.user-avatar{
+  width:36px;
+  height:36px;
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  background:var(--yellow);
+  color:#080808;
+  font-size:13px;
+  font-weight:950;
+}
+
+.user-name{
+  font-size:12px;
+  font-weight:850;
+}
+
+.user-role{
+  margin-top:2px;
+  color:#656565;
+  font-size:9px;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+.mobile-header{
+  display:none;
+  position:fixed;
+  left:0;
+  right:0;
+  top:0;
+  height:64px;
+  z-index:90;
+  padding:0 15px;
+  background:rgba(7,7,7,.95);
+  border-bottom:1px solid var(--line);
+  align-items:center;
+  justify-content:space-between;
+  backdrop-filter:blur(15px);
+}
+
+.mobile-logo{
+  font-size:18px;
+  font-weight:950;
+}
+
+.mobile-logo span{
+  color:var(--yellow);
+}
+
+.menu-btn{
+  width:40px;
+  height:40px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#141414;
+  color:#eee;
+  font-size:18px;
+}
+
+.overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.65);
+  z-index:95;
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.main{
+  min-height:100vh;
+  margin-left:var(--sidebar-width);
+  padding:30px;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:20px;
+  margin-bottom:27px;
+}
+
+.title{
+  font-size:28px;
+  font-weight:950;
+  letter-spacing:-1px;
+}
+
+.subtitle{
+  color:var(--muted);
+  font-size:13px;
+  margin-top:6px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+}
+
+.btn{
+  height:39px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#111;
+  color:#aaa;
+  padding:0 13px;
+  font-size:11px;
+  font-weight:800;
+  transition:.18s;
+}
+
+.btn:hover{
+  background:#181818;
+  color:#fff;
+}
+
+.btn.primary{
+  background:var(--yellow);
+  border-color:var(--yellow);
+  color:#090909;
+}
+
+.btn.primary:hover{
+  background:var(--yellow2);
+}
+
+.btn.danger{
+  color:#ff7777;
+}
+
+.btn.danger:hover{
+  background:rgba(255,87,87,.08);
+}
+
+/* =========================================================
+   PAGES
+========================================================= */
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:13px;
+  margin-bottom:18px;
+}
+
+.stat{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:19px;
+}
+
+.stat-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.stat-label{
+  color:var(--muted);
+  font-size:11px;
+  font-weight:750;
+}
+
+.stat-icon{
+  width:31px;
+  height:31px;
+  border-radius:9px;
+  background:#191919;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.stat-number{
+  font-size:25px;
+  font-weight:950;
+  letter-spacing:-.7px;
+}
+
+.stat-change{
+  margin-top:7px;
+  font-size:10px;
+  color:var(--green);
+  font-weight:800;
+}
+
+/* =========================================================
+   DASH GRID
+========================================================= */
+
+.dashboard-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(290px,1fr);
+  gap:15px;
+}
+
+.panel{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  overflow:hidden;
+}
+
+.panel-head{
+  min-height:60px;
+  padding:0 17px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--line);
+}
+
+.panel-title{
+  font-size:13px;
+  font-weight:900;
+}
+
+.panel-link{
+  border:0;
+  background:transparent;
+  color:var(--yellow);
+  font-size:10px;
+  font-weight:800;
+}
+
+/* =========================================================
+   TRANSACTIONS
+========================================================= */
+
+.transaction{
+  min-height:68px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 17px;
+  border-bottom:1px solid var(--line2);
+}
+
+.transaction:last-child{
+  border-bottom:0;
+}
+
+.tx-icon{
+  width:35px;
+  height:35px;
+  border-radius:9px;
+  background:#191919;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+}
+
+.tx-main{
+  min-width:0;
+  flex:1;
+}
+
+.tx-name{
+  font-size:11px;
+  font-weight:800;
+}
+
+.tx-description{
+  margin-top:3px;
+  color:#656565;
+  font-size:9px;
+}
+
+.tx-amount{
+  font-size:11px;
+  font-weight:900;
+}
+
+.positive{
+  color:var(--green);
+}
+
+.negative{
+  color:var(--red);
+}
+
+/* =========================================================
+   ACTIVITY
+========================================================= */
+
+.activity{
+  padding:5px 17px;
+}
+
+.activity-row{
+  display:flex;
+  gap:10px;
+  padding:13px 0;
+  border-bottom:1px solid var(--line2);
+}
+
+.activity-row:last-child{
+  border-bottom:0;
+}
+
+.activity-dot{
+  width:7px;
+  height:7px;
+  margin-top:5px;
+  border-radius:50%;
+  background:var(--yellow);
+  box-shadow:0 0 0 4px rgba(255,210,26,.07);
+}
+
+.activity-text{
+  color:#aaa;
+  font-size:10px;
+  line-height:1.45;
+}
+
+.activity-text strong{
+  color:#eee;
+}
+
+.activity-time{
+  color:#555;
+  font-size:8px;
+  margin-top:3px;
+}
+
+/* =========================================================
+   QUICK ACTIONS
+========================================================= */
+
+.quick{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  padding:14px;
+}
+
+.quick-btn{
+  min-height:75px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#151515;
+  color:#aaa;
+  text-align:left;
+  transition:.18s;
+}
+
+.quick-btn:hover{
+  background:#1a1a1a;
+  border-color:#393939;
+  color:#fff;
+}
+
+.quick-icon{
+  margin-bottom:7px;
+  font-size:16px;
+}
+
+.quick-title{
+  font-size:10px;
+  font-weight:850;
+}
+
+.quick-desc{
+  margin-top:3px;
+  color:#606060;
+  font-size:8px;
+}
+
+/* =========================================================
+   INNER PAGE
+========================================================= */
+
+.page-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.search{
+  position:relative;
+  flex:1;
+  max-width:400px;
+}
+
+.search input{
+  width:100%;
+  height:40px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  outline:none;
+  background:#111;
+  color:#eee;
+  padding:0 13px;
+  font-size:11px;
+}
+
+.search input:focus{
+  border-color:var(--yellow);
+}
+
+.table-wrap{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:700px;
+}
+
+th{
+  height:44px;
+  padding:0 15px;
+  text-align:left;
+  background:#101010;
+  border-bottom:1px solid var(--line);
+  color:#666;
+  font-size:9px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.7px;
+}
+
+td{
+  height:59px;
+  padding:0 15px;
+  border-bottom:1px solid var(--line2);
+  color:#bbb;
+  font-size:10px;
+}
+
+tr:last-child td{
+  border-bottom:0;
+}
+
+.user-cell{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+
+.small-avatar{
+  width:29px;
+  height:29px;
+  border-radius:8px;
+  background:#1b1b1b;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--yellow);
+  font-size:9px;
+  font-weight:900;
+}
+
+.user-cell-name{
+  color:#eee;
+  font-weight:800;
+}
+
+.user-cell-email{
+  color:#5f5f5f;
+  font-size:8px;
+  margin-top:2px;
+}
+
+.badge{
+  display:inline-flex;
+  align-items:center;
+  height:22px;
+  padding:0 8px;
+  border-radius:20px;
+  font-size:8px;
+  font-weight:900;
+}
+
+.badge.active{
+  background:rgba(82,217,139,.09);
+  color:var(--green);
+}
+
+.badge.blocked{
+  background:rgba(255,87,87,.09);
+  color:var(--red);
+}
+
+.badge.owner{
+  background:rgba(255,210,26,.1);
+  color:var(--yellow);
+}
+
+.badge.admin{
+  background:rgba(99,167,255,.1);
+  color:var(--blue);
+}
+
+.badge.user{
+  background:#1b1b1b;
+  color:#999;
+}
+
+.row-actions{
+  display:flex;
+  gap:5px;
+}
+
+.icon-btn{
+  width:29px;
+  height:29px;
+  border:1px solid var(--line);
+  border-radius:7px;
+  background:#151515;
+  color:#888;
+}
+
+.icon-btn:hover{
+  color:#fff;
+  background:#1b1b1b;
+}
+
+.empty{
+  padding:50px 20px;
+  text-align:center;
+  color:#555;
+  font-size:11px;
+}
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:13px;
+}
+
+.info-card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:18px;
+}
+
+.info-title{
+  color:#777;
+  font-size:10px;
+  font-weight:800;
+}
+
+.info-value{
+  margin-top:10px;
+  font-size:22px;
+  font-weight:950;
+}
+
+.info-description{
+  color:#555;
+  font-size:9px;
+  margin-top:6px;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.72);
+  z-index:300;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.modal-overlay.show{
+  display:flex;
+}
+
+.modal{
+  width:100%;
+  max-width:500px;
+  max-height:90vh;
+  overflow-y:auto;
+  background:#111;
+  border:1px solid var(--line);
+  border-radius:16px;
+  box-shadow:0 30px 90px rgba(0,0,0,.6);
+}
+
+.modal-head{
+  min-height:62px;
+  padding:0 19px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.modal-title{
+  font-size:14px;
+  font-weight:900;
+}
+
+.modal-close{
+  width:30px;
+  height:30px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#161616;
+  color:#888;
+}
+
+.modal-body{
+  padding:20px;
+}
+
+.field{
+  margin-bottom:15px;
+}
+
+.field label{
+  display:block;
+  color:#bbb;
+  font-size:10px;
+  font-weight:800;
+  margin-bottom:7px;
+}
+
+.field input,
+.field select{
+  width:100%;
+  height:42px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  outline:none;
+  background:#161616;
+  color:#eee;
+  padding:0 11px;
+  font-size:11px;
+}
+
+.field input:focus,
+.field select:focus{
+  border-color:var(--yellow);
+}
+
+.permissions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+
+.permission{
+  min-height:38px;
+  padding:8px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:#151515;
+  color:#999;
+  font-size:9px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  cursor:pointer;
+}
+
+.permission input{
+  accent-color:var(--yellow);
+}
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  padding-top:5px;
+}
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast-container{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:500;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.toast{
+  min-width:250px;
+  max-width:350px;
+  padding:12px 14px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#151515;
+  color:#ddd;
+  box-shadow:0 15px 40px rgba(0,0,0,.4);
+  font-size:10px;
+  animation:toastIn .2s ease;
+}
+
+.toast.success{
+  border-color:rgba(82,217,139,.25);
+}
+
+.toast.error{
+  border-color:rgba(255,87,87,.25);
+}
+
+@keyframes toastIn{
+  from{
+    opacity:0;
+    transform:translateY(8px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:1100px){
+
+  .stats{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .dashboard-grid{
+    grid-template-columns:1fr;
+  }
+
+  .cards{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
+
+@media(max-width:760px){
+
+  .mobile-header{
+    display:flex;
+  }
+
+  .sidebar{
+    transform:translateX(-100%);
+  }
+
+  .sidebar.open{
+    transform:translateX(0);
+  }
+
+  .overlay.show{
+    display:block;
+  }
+
+  .main{
+    margin-left:0;
+    padding:88px 15px 25px;
+  }
+
+  .topbar{
+    margin-bottom:20px;
+  }
+
+  .title{
+    font-size:23px;
+  }
+
+  .actions{
+    display:none;
+  }
+
+  .page-toolbar{
+    align-items:stretch;
+    flex-direction:column;
+  }
+
+  .search{
+    max-width:none;
+  }
+
+  .cards{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:480px){
+
+  .stats{
+    grid-template-columns:1fr;
+  }
+
+  .quick{
+    grid-template-columns:1fr;
+  }
+
+  .permissions{
+    grid-template-columns:1fr;
+  }
+
+  .modal-body{
+    padding:16px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- =======================================================
+     MOBILE HEADER
+======================================================= -->
+
+<header class="mobile-header">
+
+  <div class="mobile-logo">
+    MEANT <span>ADMIN</span>
+  </div>
+
+  <button
+    class="menu-btn"
+    id="menuBtn"
+  >
+    ☰
+  </button>
+
+</header>
+
+
+<div
+  class="overlay"
+  id="overlay"
+></div>
+
+
+<!-- =======================================================
+     SIDEBAR
+======================================================= -->
+
+<aside
+  class="sidebar"
+  id="sidebar"
+>
+
+  <div class="logo">
+
+    <div>
+
+      <div class="logo-title">
+        MEANT <span>ADMIN</span>
+      </div>
+
+      <div class="logo-subtitle">
+        Administration Panel
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <nav class="nav">
+
+    <div class="nav-label">
+      Панель
+    </div>
+
+    <button
+      class="nav-item active"
+      data-page="dashboard"
+    >
+      <span class="nav-icon">⌂</span>
+      <span class="nav-name">Dashboard</span>
+    </button>
+
+
+    <div class="nav-label">
+      Управление
+    </div>
+
+    <button
+      class="nav-item"
+      data-page="accounts"
+    >
+      <span class="nav-icon">♙</span>
+      <span class="nav-name">Аккаунты</span>
+      <span class="nav-count" id="accountsCount">0</span>
+    </button>
+
+    <button
+      class="nav-item"
+      data-page="admins"
+    >
+      <span class="nav-icon">♛</span>
+      <span class="nav-name">Администраторы</span>
+      <span class="nav-count" id="adminsCount">0</span>
+    </button>
+
+    <button
+      class="nav-item"
+      data-page="products"
+    >
+      <span class="nav-icon">▣</span>
+      <span class="nav-name">Товары</span>
+    </button>
+
+    <button
+      class="nav-item"
+      data-page="transactions"
+    >
+      <span class="nav-icon">₽</span>
+      <span class="nav-name">Транзакции</span>
+    </button>
+
+    <button
+      class="nav-item"
+      data-page="subscriptions"
+    >
+      <span class="nav-icon">◷</span>
+      <span class="nav-name">Подписки</span>
+    </button>
+
+
+    <div class="nav-label">
+      Система
+    </div>
+
+    <button
+      class="nav-item"
+      data-page="logs"
+    >
+      <span class="nav-icon">≡</span>
+      <span class="nav-name">Логи</span>
+    </button>
+
+    <button
+      class="nav-item"
+      data-page="settings"
+    >
+      <span class="nav-icon">⚙</span>
+      <span class="nav-name">Настройки</span>
+    </button>
+
+  </nav>
+
+
+  <div class="sidebar-bottom">
+
+    <div class="user-card">
+
+      <div class="user-avatar">
+        O
+      </div>
+
+      <div>
+
+        <div class="user-name">
+          OWNER
+        </div>
+
+        <div class="user-role">
+          Полный доступ
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</aside>
+
+
+<!-- =======================================================
+     MAIN
+======================================================= -->
+
+<main class="main">
+
+
+<!-- =======================================================
+     DASHBOARD PAGE
+======================================================= -->
+
+<section
+  class="page active"
+  id="page-dashboard"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Dashboard
+      </h1>
+
+      <p class="subtitle">
+        Управление системой MEANT
+      </p>
+
+    </div>
+
+    <div class="actions">
+
+      <button
+        class="btn"
+        id="refreshBtn"
+      >
+        ↻ Обновить
+      </button>
+
+      <button
+        class="btn primary"
+        id="dashboardCreate"
+      >
+        + Создать аккаунт
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- STATS -->
+
+  <div class="stats">
+
+    <div class="stat">
+
+      <div class="stat-head">
+
+        <span class="stat-label">
+          Всего аккаунтов
+        </span>
+
+        <span class="stat-icon">
+          ♙
+        </span>
+
+      </div>
+
+      <div
+        class="stat-number"
+        id="statAccounts"
+      >
+        0
+      </div>
+
+      <div class="stat-change">
+        Аккаунты системы
+      </div>
+
+    </div>
+
+
+    <div class="stat">
+
+      <div class="stat-head">
+
+        <span class="stat-label">
+          Администраторы
+        </span>
+
+        <span class="stat-icon">
+          ♛
+        </span>
+
+      </div>
+
+      <div
+        class="stat-number"
+        id="statAdmins"
+      >
+        0
+      </div>
+
+      <div class="stat-change">
+        Активные администраторы
+      </div>
+
+    </div>
+
+
+    <div class="stat">
+
+      <div class="stat-head">
+
+        <span class="stat-label">
+          Товары
+        </span>
+
+        <span class="stat-icon">
+          ▣
+        </span>
+
+      </div>
+
+      <div
+        class="stat-number"
+        id="statProducts"
+      >
+        0
+      </div>
+
+      <div class="stat-change">
+        Доступно в магазине
+      </div>
+
+    </div>
+
+
+    <div class="stat">
+
+      <div class="stat-head">
+
+        <span class="stat-label">
+          Баланс пользователей
+        </span>
+
+        <span class="stat-icon">
+          ₽
+        </span>
+
+      </div>
+
+      <div
+        class="stat-number"
+        id="statBalance"
+      >
+        0 ₽
+      </div>
+
+      <div class="stat-change">
+        Общий баланс
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- DASHBOARD GRID -->
+
+  <div class="dashboard-grid">
+
+
+    <div class="panel">
+
+      <div class="panel-head">
+
+        <div class="panel-title">
+          Последние транзакции
+        </div>
+
+        <button
+          class="panel-link"
+          data-open-page="transactions"
+        >
+          Все →
+        </button>
+
+      </div>
+
+      <div id="recentTransactions"></div>
+
+    </div>
+
+
+    <div>
+
+      <div
+        class="panel"
+        style="margin-bottom:15px"
+      >
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            Последняя активность
+          </div>
+
+          <button
+            class="panel-link"
+            data-open-page="logs"
+          >
+            Все →
+          </button>
+
+        </div>
+
+        <div
+          class="activity"
+          id="recentActivity"
+        ></div>
+
+      </div>
+
+
+      <div class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            Быстрые действия
+          </div>
+
+        </div>
+
+        <div class="quick">
+
+          <button
+            class="quick-btn"
+            data-action="account"
+          >
+            <div class="quick-icon">+</div>
+            <div class="quick-title">
+              Создать аккаунт
+            </div>
+            <div class="quick-desc">
+              Новый пользователь
+            </div>
+          </button>
+
+
+          <button
+            class="quick-btn"
+            data-action="admin"
+          >
+            <div class="quick-icon">♛</div>
+            <div class="quick-title">
+              Создать администратора
+            </div>
+            <div class="quick-desc">
+              Новый администратор
+            </div>
+          </button>
+
+
+          <button
+            class="quick-btn"
+            data-action="product"
+          >
+            <div class="quick-icon">▣</div>
+            <div class="quick-title">
+              Добавить товар
+            </div>
+            <div class="quick-desc">
+              Новый товар
+            </div>
+          </button>
+
+
+          <button
+            class="quick-btn"
+            data-action="settings"
+          >
+            <div class="quick-icon">⚙</div>
+            <div class="quick-title">
+              Настройки
+            </div>
+            <div class="quick-desc">
+              Настройки системы
+            </div>
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     ACCOUNTS PAGE
+======================================================= -->
+
+<section
+  class="page"
+  id="page-accounts"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Аккаунты
+      </h1>
+
+      <p class="subtitle">
+        Управление пользователями MEANT
+      </p>
+
+    </div>
+
+    <div class="actions">
+
+      <button
+        class="btn primary"
+        id="createAccountBtn"
+      >
+        + Создать аккаунт
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="page-toolbar">
+
+    <div class="search">
+
+      <input
+        id="accountSearch"
+        type="search"
+        placeholder="Поиск по нику или email..."
+      >
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Пользователь</th>
+            <th>Роль</th>
+            <th>Баланс</th>
+            <th>Статус</th>
+            <th>Создан</th>
+            <th>Действия</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="accountsTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     ADMINS PAGE
+======================================================= -->
+
+<section
+  class="page"
+  id="page-admins"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Администраторы
+      </h1>
+
+      <p class="subtitle">
+        Управление администраторами и их правами
+      </p>
+
+    </div>
+
+    <div class="actions">
+
+      <button
+        class="btn primary"
+        id="createAdminBtn"
+      >
+        + Создать администратора
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Администратор</th>
+            <th>Роль</th>
+            <th>Права</th>
+            <th>Статус</th>
+            <th>Действия</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="adminsTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     PRODUCTS PAGE
+======================================================= -->
+
+<section
+  class="page"
+  id="page-products"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Товары
+      </h1>
+
+      <p class="subtitle">
+        Управление товарами магазина
+      </p>
+
+    </div>
+
+    <div class="actions">
+
+      <button
+        class="btn primary"
+        id="createProductBtn"
+      >
+        + Добавить товар
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div class="cards">
+
+    <div class="info-card">
+
+      <div class="info-title">
+        Всего товаров
+      </div>
+
+      <div
+        class="info-value"
+        id="productsTotal"
+      >
+        0
+      </div>
+
+      <div class="info-description">
+        Товары магазина
+      </div>
+
+    </div>
+
+
+    <div class="info-card">
+
+      <div class="info-title">
+        Активные
+      </div>
+
+      <div
+        class="info-value"
+        id="productsActive"
+      >
+        0
+      </div>
+
+      <div class="info-description">
+        Доступны для покупки
+      </div>
+
+    </div>
+
+
+    <div class="info-card">
+
+      <div class="info-title">
+        Продажи
+      </div>
+
+      <div
+        class="info-value"
+        id="productsSales"
+      >
+        0
+      </div>
+
+      <div class="info-description">
+        Всего покупок
+      </div>
+
+    </div>
+
+  </div>
+
+  <div
+    class="panel"
+    style="margin-top:15px"
+  >
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Товар</th>
+            <th>Цена</th>
+            <th>Тип</th>
+            <th>Статус</th>
+            <th>Продажи</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="productsTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     TRANSACTIONS PAGE
+======================================================= -->
+
+<section
+  class="page"
+  id="page-transactions"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Транзакции
+      </h1>
+
+      <p class="subtitle">
+        История операций пользователей
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div class="page-toolbar">
+
+    <div class="search">
+
+      <input
+        id="transactionSearch"
+        type="search"
+        placeholder="Поиск транзакции..."
+      >
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>ID</th>
+            <th>Пользователь</th>
+            <th>Тип</th>
+            <th>Сумма</th>
+            <th>Дата</th>
+            <th>Статус</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="transactionsTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     SUBSCRIPTIONS PAGE
+======================================================= -->
+
+<section
+  class="page"
+  id="page-subscriptions"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Подписки
+      </h1>
+
+      <p class="subtitle">
+        Активные подписки пользователей
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div class="cards">
+
+    <div class="info-card">
+
+      <div class="info-title">
+        Всего
+      </div>
+
+      <div
+        class="info-value"
+        id="subsTotal"
+      >
+        0
+      </div>
+
+      <div class="info-description">
+        Все подписки
+      </div>
+
+    </div>
+
+
+    <div class="info-card">
+
+      <div class="info-title">
+        Активные
+      </div>
+
+      <div
+        class="info-value"
+        id="subsActive"
+      >
+        0
+      </div>
+
+      <div class="info-description">
+        Действующие подписки
+      </div>
+
+    </div>
+
+
+    <div class="info-card">
+
+      <div class="info-title">
+        Истекают скоро
+      </div>
+
+      <div
+        class="info-value"
+        id="subsSoon"
+      >
+        0
+      </div>
+
+      <div class="info-description">
+        Меньше 7 дней
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div
+    class="panel"
+    style="margin-top:15px"
+  >
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Пользователь</th>
+            <th>Товар</th>
+            <th>Начало</th>
+            <th>Окончание</th>
+            <th>Статус</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="subscriptionsTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     LOGS PAGE
+======================================================= -->
+
+<section
+  class="page"
+  id="page-logs"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Логи
+      </h1>
+
+      <p class="subtitle">
+        Журнал действий администратора
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="table-wrap">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Время</th>
+            <th>Администратор</th>
+            <th>Действие</th>
+            <th>Объект</th>
+          </tr>
+
+        </thead>
+
+        <tbody id="logsTable"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =======================================================
+     SETTINGS PAGE
+======================================================= -->
+
+<section
+  class="page"
+  id="page-settings"
+>
+
+  <div class="topbar">
+
+    <div>
+
+      <h1 class="title">
+        Настройки
+      </h1>
+
+      <p class="subtitle">
+        Настройки административной панели
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <div class="panel">
+
+    <div class="panel-head">
+
+      <div class="panel-title">
+        Общие настройки
+      </div>
+
+    </div>
+
+
+    <div style="padding:20px">
+
+      <div class="field">
+
+        <label>
+          Название панели
+        </label>
+
+        <input
+          id="settingName"
+          value="MEANT ADMIN"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Часовой пояс
+        </label>
+
+        <select id="settingTimezone">
+
+          <option value="Europe/Kyiv">
+            Europe/Kyiv
+          </option>
+
+          <option value="Europe/Moscow">
+            Europe/Moscow
+          </option>
+
+          <option value="UTC">
+            UTC
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <button
+        class="btn primary"
+        id="saveSettings"
+      >
+        Сохранить настройки
+      </button>
+
+    </div>
+
+  </div>
+
+</section>
+
+</main>
+
+
+<!-- =======================================================
+     MODAL
+======================================================= -->
+
+<div
+  class="modal-overlay"
+  id="modalOverlay"
+>
+
+  <div class="modal">
+
+    <div class="modal-head">
+
+      <div
+        class="modal-title"
+        id="modalTitle"
+      >
+        Создание аккаунта
+      </div>
+
+      <button
+        class="modal-close"
+        id="modalClose"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      class="modal-body"
+      id="modalBody"
+    ></div>
+
+  </div>
+
+</div>
+
+
+<!-- =======================================================
+     TOAST
+======================================================= -->
+
+<div
+  class="toast-container"
+  id="toastContainer"
+></div>
+
+
+<script>
+
+/* =========================================================
+   STORAGE
+========================================================= */
+
+const STORAGE_KEY = "meant_admin_data_v1";
+
+
+const defaultData = {
+
+  accounts: [],
+
+  admins: [
+    {
+      id: "admin-owner",
+      username: "OWNER",
+      email: "owner@meant.shop",
+      role: "OWNER",
+      permissions: ["*"],
+      status: "active",
+      createdAt: new Date().toISOString()
+    }
+  ],
+
+  products: [
+    {
+      id: "product-loader",
+      name: "MEANT Loader",
+      price: 299,
+      type: "Loader",
+      active: true,
+      sales: 0
+    },
+    {
+      id: "product-30",
+      name: "MEANT 30 Days",
+      price: 159,
+      type: "Subscription",
+      active: true,
+      sales: 0
+    }
+  ],
+
+  transactions: [],
+
+  subscriptions: [],
+
+  logs: [
+    {
+      time: new Date().toISOString(),
+      admin: "OWNER",
+      action: "Открыта панель",
+      object: "Dashboard"
+    }
+  ],
+
+  settings: {
+    name: "MEANT ADMIN",
+    timezone: "Europe/Kyiv"
+  }
+
+};
+
+
+function loadData(){
+
+  const saved =
+    localStorage.getItem(STORAGE_KEY);
+
+  if(!saved){
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(defaultData)
+    );
+
+    return structuredClone(defaultData);
+
+  }
+
+  try{
+
+    return JSON.parse(saved);
+
+  }catch{
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(defaultData)
+    );
+
+    return structuredClone(defaultData);
+
+  }
+
+}
+
+
+let data = loadData();
+
+
+function saveData(){
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(data)
+  );
+
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+function toast(message, type = "success"){
+
+  const container =
+    document.getElementById("toastContainer");
+
+  const item =
+    document.createElement("div");
+
+  item.className =
+    "toast " + type;
+
+  item.textContent =
+    message;
+
+  container.appendChild(item);
+
+  setTimeout(() => {
+
+    item.remove();
+
+  }, 3000);
+
+}
+
+
+/* =========================================================
+   LOG
+========================================================= */
+
+function addLog(action, object){
+
+  data.logs.unshift({
+
+    time:new Date().toISOString(),
+
+    admin:"OWNER",
+
+    action,
+
+    object
+
+  });
+
+  data.logs =
+    data.logs.slice(0,100);
+
+  saveData();
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+const navItems =
+  document.querySelectorAll(".nav-item");
+
+
+function openPage(page){
+
+  document
+    .querySelectorAll(".page")
+    .forEach(item => {
+
+      item.classList.remove("active");
+
+    });
+
+
+  const target =
+    document.getElementById(
+      "page-" + page
+    );
+
+  if(target){
+
+    target.classList.add("active");
+
+  }
+
+
+  navItems.forEach(item => {
+
+    item.classList.toggle(
+      "active",
+      item.dataset.page === page
+    );
+
+  });
+
+
+  const titles = {
+
+    dashboard:"Dashboard",
+    accounts:"Аккаунты",
+    admins:"Администраторы",
+    products:"Товары",
+    transactions:"Транзакции",
+    subscriptions:"Подписки",
+    logs:"Логи",
+    settings:"Настройки"
+
+  };
+
+
+  document.title =
+    "MEANT ADMIN — " +
+    (titles[page] || "Dashboard");
+
+
+  renderAll();
+
+  closeMobileMenu();
+
+}
+
+
+navItems.forEach(item => {
+
+  item.addEventListener(
+    "click",
+    () => {
+
+      openPage(
+        item.dataset.page
+      );
+
+    }
+  );
+
+});
+
+
+document
+  .querySelectorAll("[data-open-page]")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        openPage(
+          button.dataset.openPage
+        );
+
+      }
+    );
+
+  });
+
+
+/* =========================================================
+   MOBILE MENU
+========================================================= */
+
+const sidebar =
+  document.getElementById("sidebar");
+
+const overlay =
+  document.getElementById("overlay");
+
+const menuBtn =
+  document.getElementById("menuBtn");
+
+
+function openMobileMenu(){
+
+  sidebar.classList.add("open");
+  overlay.classList.add("show");
+
+}
+
+
+function closeMobileMenu(){
+
+  sidebar.classList.remove("open");
+  overlay.classList.remove("show");
+
+}
+
+
+menuBtn.addEventListener(
+  "click",
+  openMobileMenu
+);
+
+overlay.addEventListener(
+  "click",
+  closeMobileMenu
+);
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+const modalOverlay =
+  document.getElementById("modalOverlay");
+
+const modalTitle =
+  document.getElementById("modalTitle");
+
+const modalBody =
+  document.getElementById("modalBody");
+
+const modalClose =
+  document.getElementById("modalClose");
+
+
+function closeModal(){
+
+  modalOverlay.classList.remove("show");
+
+  modalBody.innerHTML = "";
+
+}
+
+
+modalClose.addEventListener(
+  "click",
+  closeModal
+);
+
+
+modalOverlay.addEventListener(
+  "click",
+  event => {
+
+    if(event.target === modalOverlay){
+
+      closeModal();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   CREATE ACCOUNT MODAL
+========================================================= */
+
+function openCreateAccount(){
+
+  modalTitle.textContent =
+    "Создать аккаунт";
+
+
+  modalBody.innerHTML = `
+
+    <form id="createAccountForm">
+
+      <div class="field">
+
+        <label>Ник</label>
+
+        <input
+          id="newUsername"
+          required
+          maxlength="32"
+          placeholder="Например: player123"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Почта</label>
+
+        <input
+          id="newEmail"
+          type="email"
+          required
+          placeholder="player@example.com"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Пароль</label>
+
+        <input
+          id="newPassword"
+          type="password"
+          required
+          minlength="8"
+          placeholder="Минимум 8 символов"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Роль</label>
+
+        <select id="newRole">
+
+          <option value="USER">
+            USER
+          </option>
+
+          <option value="MODERATOR">
+            MODERATOR
+          </option>
+
+          <option value="ADMIN">
+            ADMIN
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Права</label>
+
+        <div class="permissions">
+
+          ${permissionCheckbox(
+            "accounts.view",
+            "Просмотр аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "accounts.create",
+            "Создание аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "accounts.edit",
+            "Изменение аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "accounts.delete",
+            "Удаление аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "balance.manage",
+            "Управление балансом"
+          )}
+
+          ${permissionCheckbox(
+            "products.manage",
+            "Управление товарами"
+          )}
+
+          ${permissionCheckbox(
+            "transactions.view",
+            "Просмотр транзакций"
+          )}
+
+          ${permissionCheckbox(
+            "subscriptions.manage",
+            "Управление подписками"
+          )}
+
+          ${permissionCheckbox(
+            "logs.view",
+            "Просмотр логов"
+          )}
+
+          ${permissionCheckbox(
+            "admins.manage",
+            "Управление администраторами"
+          )}
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn"
+          id="cancelCreate"
+        >
+          Отмена
+        </button>
+
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Создать аккаунт
+        </button>
+
+      </div>
+
+    </form>
+
+  `;
+
+
+  modalOverlay.classList.add("show");
+
+
+  document
+    .getElementById("cancelCreate")
+    .addEventListener(
+      "click",
+      closeModal
+    );
+
+
+  document
+    .getElementById("createAccountForm")
+    .addEventListener(
+      "submit",
+      createAccount
+    );
+
+}
+
+
+function permissionCheckbox(value, text){
+
+  return `
+
+    <label class="permission">
+
+      <input
+        type="checkbox"
+        value="${value}"
+      >
+
+      ${text}
+
+    </label>
+
+  `;
+
+}
+
+
+function createAccount(event){
+
+  event.preventDefault();
+
+
+  const username =
+    document
+      .getElementById("newUsername")
+      .value
+      .trim();
+
+
+  const email =
+    document
+      .getElementById("newEmail")
+      .value
+      .trim()
+      .toLowerCase();
+
+
+  const password =
+    document
+      .getElementById("newPassword")
+      .value;
+
+
+  const role =
+    document
+      .getElementById("newRole")
+      .value;
+
+
+  if(
+    data.accounts.some(
+      account =>
+        account.username.toLowerCase() ===
+        username.toLowerCase()
+    )
+  ){
+
+    toast(
+      "Такой ник уже существует.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  if(
+    data.accounts.some(
+      account =>
+        account.email.toLowerCase() ===
+        email
+    )
+  ){
+
+    toast(
+      "Такая почта уже используется.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  const permissions =
+    [...document.querySelectorAll(
+      ".permission input:checked"
+    )]
+    .map(input => input.value);
+
+
+  /*
+    ВАЖНО:
+
+    В локальной версии пароль нужен
+    только для демонстрации создания.
+
+    В настоящей версии пароль никогда
+    не будет сохраняться здесь.
+
+    Worker будет принимать пароль
+    только по HTTPS и хешировать его
+    на сервере.
+  */
+
+
+  const account = {
+
+    id:
+      "acc-" +
+      crypto.randomUUID(),
+
+    username,
+
+    email,
+
+    passwordChanged:false,
+
+    role,
+
+    permissions,
+
+    balance:0,
+
+    status:"active",
+
+    createdAt:
+      new Date().toISOString()
+
+  };
+
+
+  data.accounts.push(account);
+
+
+  addLog(
+    "Создан аккаунт",
+    username
+  );
+
+
+  saveData();
+
+  closeModal();
+
+  renderAll();
+
+  toast(
+    "Аккаунт " +
+    username +
+    " создан."
+  );
+
+}
+
+
+/* =========================================================
+   ACCOUNT TABLE
+========================================================= */
+
+function renderAccounts(){
+
+  const tbody =
+    document.getElementById(
+      "accountsTable"
+    );
+
+  if(!tbody) return;
+
+
+  const search =
+    (
+      document
+        .getElementById("accountSearch")
+        ?.value ||
+      ""
+    )
+    .trim()
+    .toLowerCase();
+
+
+  const accounts =
+    data.accounts.filter(account => {
+
+      return (
+        !search ||
+        account.username
+          .toLowerCase()
+          .includes(search) ||
+        account.email
+          .toLowerCase()
+          .includes(search)
+      );
+
+    });
+
+
+  if(!accounts.length){
+
+    tbody.innerHTML = `
+
+      <tr>
+        <td colspan="6">
+          <div class="empty">
+            Аккаунтов пока нет.
+          </div>
+        </td>
+      </tr>
+
+    `;
+
+    return;
+
+  }
+
+
+  tbody.innerHTML =
+    accounts
+      .map(account => `
+
+        <tr>
+
+          <td>
+
+            <div class="user-cell">
+
+              <div class="small-avatar">
+                ${escapeHtml(
+                  account.username
+                    .charAt(0)
+                    .toUpperCase()
+                )}
+              </div>
+
+              <div>
+
+                <div class="user-cell-name">
+                  ${escapeHtml(
+                    account.username
+                  )}
+                </div>
+
+                <div class="user-cell-email">
+                  ${escapeHtml(
+                    account.email
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+          </td>
+
+
+          <td>
+
+            <span class="badge ${
+              account.role === "ADMIN"
+                ? "admin"
+                : "user"
+            }">
+
+              ${escapeHtml(
+                account.role
+              )}
+
+            </span>
+
+          </td>
+
+
+          <td>
+            ${formatMoney(
+              account.balance
+            )}
+          </td>
+
+
+          <td>
+
+            <span class="badge ${
+              account.status === "active"
+                ? "active"
+                : "blocked"
+            }">
+
+              ${
+                account.status === "active"
+                  ? "ACTIVE"
+                  : "BLOCKED"
+              }
+
+            </span>
+
+          </td>
+
+
+          <td>
+            ${formatDate(
+              account.createdAt
+            )}
+          </td>
+
+
+          <td>
+
+            <div class="row-actions">
+
+              <button
+                class="icon-btn"
+                title="Изменить"
+                onclick="editAccount('${account.id}')"
+              >
+                ✎
+              </button>
+
+              <button
+                class="icon-btn"
+                title="Удалить"
+                onclick="deleteAccount('${account.id}')"
+              >
+                ×
+              </button>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+      `)
+      .join("");
+
+}
+
+
+/* =========================================================
+   EDIT ACCOUNT
+========================================================= */
+
+function editAccount(id){
+
+  const account =
+    data.accounts.find(
+      item => item.id === id
+    );
+
+  if(!account) return;
+
+
+  modalTitle.textContent =
+    "Изменить аккаунт";
+
+
+  modalBody.innerHTML = `
+
+    <form id="editAccountForm">
+
+      <div class="field">
+
+        <label>Ник</label>
+
+        <input
+          id="editUsername"
+          value="${escapeAttr(
+            account.username
+          )}"
+          required
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Почта</label>
+
+        <input
+          id="editEmail"
+          type="email"
+          value="${escapeAttr(
+            account.email
+          )}"
+          required
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Роль</label>
+
+        <select id="editRole">
+
+          <option
+            value="USER"
+            ${
+              account.role === "USER"
+                ? "selected"
+                : ""
+            }
+          >
+            USER
+          </option>
+
+          <option
+            value="MODERATOR"
+            ${
+              account.role === "MODERATOR"
+                ? "selected"
+                : ""
+            }
+          >
+            MODERATOR
+          </option>
+
+          <option
+            value="ADMIN"
+            ${
+              account.role === "ADMIN"
+                ? "selected"
+                : ""
+            }
+          >
+            ADMIN
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Баланс</label>
+
+        <input
+          id="editBalance"
+          type="number"
+          min="0"
+          step="1"
+          value="${Number(
+            account.balance
+          )}"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Статус</label>
+
+        <select id="editStatus">
+
+          <option
+            value="active"
+            ${
+              account.status === "active"
+                ? "selected"
+                : ""
+            }
+          >
+            ACTIVE
+          </option>
+
+          <option
+            value="blocked"
+            ${
+              account.status === "blocked"
+                ? "selected"
+                : ""
+            }
+          >
+            BLOCKED
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn"
+          id="cancelEdit"
+        >
+          Отмена
+        </button>
+
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Сохранить
+        </button>
+
+      </div>
+
+    </form>
+
+  `;
+
+
+  modalOverlay.classList.add("show");
+
+
+  document
+    .getElementById("cancelEdit")
+    .addEventListener(
+      "click",
+      closeModal
+    );
+
+
+  document
+    .getElementById("editAccountForm")
+    .addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+
+        account.username =
+          document
+            .getElementById("editUsername")
+            .value
+            .trim();
+
+
+        account.email =
+          document
+            .getElementById("editEmail")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+        account.role =
+          document
+            .getElementById("editRole")
+            .value;
+
+
+        account.balance =
+          Math.max(
+            0,
+            Number(
+              document
+                .getElementById("editBalance")
+                .value
+            ) || 0
+          );
+
+
+        account.status =
+          document
+            .getElementById("editStatus")
+            .value;
+
+
+        addLog(
+          "Изменён аккаунт",
+          account.username
+        );
+
+
+        saveData();
+
+        closeModal();
+
+        renderAll();
+
+        toast(
+          "Аккаунт обновлён."
+        );
+
+      }
+    );
+
+}
+
+
+function deleteAccount(id){
+
+  const account =
+    data.accounts.find(
+      item => item.id === id
+    );
+
+  if(!account) return;
+
+
+  if(
+    !confirm(
+      `Удалить аккаунт "${account.username}"?`
+    )
+  ){
+
+    return;
+
+  }
+
+
+  data.accounts =
+    data.accounts.filter(
+      item => item.id !== id
+    );
+
+
+  addLog(
+    "Удалён аккаунт",
+    account.username
+  );
+
+
+  saveData();
+
+  renderAll();
+
+  toast(
+    "Аккаунт удалён."
+  );
+
+}
+
+
+/* =========================================================
+   ADMINS
+========================================================= */
+
+function renderAdmins(){
+
+  const tbody =
+    document.getElementById(
+      "adminsTable"
+    );
+
+  if(!tbody) return;
+
+
+  tbody.innerHTML =
+    data.admins
+      .map(admin => `
+
+        <tr>
+
+          <td>
+
+            <div class="user-cell">
+
+              <div class="small-avatar">
+                ${escapeHtml(
+                  admin.username
+                    .charAt(0)
+                    .toUpperCase()
+                )}
+              </div>
+
+              <div>
+
+                <div class="user-cell-name">
+                  ${escapeHtml(
+                    admin.username
+                  )}
+                </div>
+
+                <div class="user-cell-email">
+                  ${escapeHtml(
+                    admin.email
+                  )}
+                </div>
+
+              </div>
+
+            </div>
+
+          </td>
+
+
+          <td>
+
+            <span class="badge ${
+              admin.role === "OWNER"
+                ? "owner"
+                : "admin"
+            }">
+
+              ${escapeHtml(
+                admin.role
+              )}
+
+            </span>
+
+          </td>
+
+
+          <td>
+
+            ${
+              admin.permissions.includes("*")
+                ? "Все права"
+                : admin.permissions.length +
+                  " прав"
+            }
+
+          </td>
+
+
+          <td>
+
+            <span class="badge active">
+              ACTIVE
+            </span>
+
+          </td>
+
+
+          <td>
+
+            ${
+              admin.role === "OWNER"
+                ? `
+                  <span
+                    style="
+                      color:#555;
+                      font-size:9px;
+                    "
+                  >
+                    Защищён
+                  </span>
+                `
+                : `
+                  <div class="row-actions">
+
+                    <button
+                      class="icon-btn"
+                      onclick="editAdmin('${admin.id}')"
+                    >
+                      ✎
+                    </button>
+
+                    <button
+                      class="icon-btn"
+                      onclick="deleteAdmin('${admin.id}')"
+                    >
+                      ×
+                    </button>
+
+                  </div>
+                `
+            }
+
+          </td>
+
+        </tr>
+
+      `)
+      .join("");
+
+}
+
+
+function openCreateAdmin(){
+
+  modalTitle.textContent =
+    "Создать администратора";
+
+
+  modalBody.innerHTML = `
+
+    <form id="createAdminForm">
+
+      <div class="field">
+
+        <label>Ник</label>
+
+        <input
+          id="adminUsername"
+          required
+          maxlength="32"
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Почта</label>
+
+        <input
+          id="adminEmail"
+          type="email"
+          required
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Пароль</label>
+
+        <input
+          id="adminPassword"
+          type="password"
+          minlength="8"
+          required
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Роль</label>
+
+        <select id="adminRole">
+
+          <option value="MODERATOR">
+            MODERATOR
+          </option>
+
+          <option value="ADMIN">
+            ADMIN
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="field">
+
+        <label>Права</label>
+
+        <div class="permissions">
+
+          ${permissionCheckbox(
+            "accounts.view",
+            "Просмотр аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "accounts.create",
+            "Создание аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "accounts.edit",
+            "Изменение аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "accounts.delete",
+            "Удаление аккаунтов"
+          )}
+
+          ${permissionCheckbox(
+            "balance.manage",
+            "Баланс"
+          )}
+
+          ${permissionCheckbox(
+            "products.manage",
+            "Товары"
+          )}
+
+          ${permissionCheckbox(
+            "transactions.view",
+            "Транзакции"
+          )}
+
+          ${permissionCheckbox(
+            "subscriptions.manage",
+            "Подписки"
+          )}
+
+          ${permissionCheckbox(
+            "logs.view",
+            "Логи"
+          )}
+
+        </div>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn"
+          onclick="closeModal()"
+        >
+          Отмена
+        </button>
+
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Создать
+        </button>
+
+      </div>
+
+    </form>
+
+  `;
+
+
+  modalOverlay.classList.add("show");
+
+
+  document
+    .getElementById("createAdminForm")
+    .addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+
+        const username =
+          document
+            .getElementById("adminUsername")
+            .value
+            .trim();
+
+
+        const email =
+          document
+            .getElementById("adminEmail")
+            .value
+            .trim()
+            .toLowerCase();
+
+
+        const role =
+          document
+            .getElementById("adminRole")
+            .value;
+
+
+        const permissions =
+          [...document.querySelectorAll(
+            ".permission input:checked"
+          )]
+          .map(input => input.value);
+
+
+        data.admins.push({
+
+          id:
+            "admin-" +
+            crypto.randomUUID(),
+
+          username,
+
+          email,
+
+          role,
+
+          permissions,
+
+          status:"active",
+
+          createdAt:
+            new Date().toISOString()
+
+        });
+
+
+        addLog(
+          "Создан администратор",
+          username
+        );
+
+
+        saveData();
+
+        closeModal();
+
+        renderAll();
+
+        toast(
+          "Администратор создан."
+        );
+
+      }
+    );
+
+}
+
+
+function editAdmin(id){
+
+  const admin =
+    data.admins.find(
+      item => item.id === id
+    );
+
+  if(!admin) return;
+
+
+  modalTitle.textContent =
+    "Права администратора";
+
+
+  modalBody.innerHTML = `
+
+    <div class="field">
+
+      <label>
+        Администратор
+      </label>
+
+      <input
+        value="${escapeAttr(
+          admin.username
+        )}"
+        disabled
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Роль
+      </label>
+
+      <select id="editAdminRole">
+
+        <option
+          value="MODERATOR"
+          ${
+            admin.role === "MODERATOR"
+              ? "selected"
+              : ""
+          }
+        >
+          MODERATOR
+        </option>
+
+        <option
+          value="ADMIN"
+          ${
+            admin.role === "ADMIN"
+              ? "selected"
+              : ""
+          }
+        >
+          ADMIN
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Права
+      </label>
+
+      <div class="permissions">
+
+        ${[
+          ["accounts.view","Аккаунты"],
+          ["accounts.create","Создание"],
+          ["accounts.edit","Изменение"],
+          ["accounts.delete","Удаление"],
+          ["balance.manage","Баланс"],
+          ["products.manage","Товары"],
+          ["transactions.view","Транзакции"],
+          ["subscriptions.manage","Подписки"],
+          ["logs.view","Логи"]
+        ]
+        .map(([value,text]) => `
+
+          <label class="permission">
+
+            <input
+              type="checkbox"
+              value="${value}"
+              ${
+                admin.permissions.includes(value)
+                  ? "checked"
+                  : ""
+              }
+            >
+
+            ${text}
+
+          </label>
+
+        `)
+        .join("")}
+
+      </div>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+      <button
+        class="btn"
+        onclick="closeModal()"
+      >
+        Отмена
+      </button>
+
+      <button
+        class="btn primary"
+        id="saveAdminPermissions"
+      >
+        Сохранить
+      </button>
+
+    </div>
+
+  `;
+
+
+  modalOverlay.classList.add("show");
+
+
+  document
+    .getElementById("saveAdminPermissions")
+    .addEventListener(
+      "click",
+      () => {
+
+        admin.role =
+          document
+            .getElementById("editAdminRole")
+            .value;
+
+
+        admin.permissions =
+          [...document.querySelectorAll(
+            ".permission input:checked"
+          )]
+          .map(input => input.value);
+
+
+        addLog(
+          "Изменены права администратора",
+          admin.username
+        );
+
+
+        saveData();
+
+        closeModal();
+
+        renderAll();
+
+        toast(
+          "Права обновлены."
+        );
+
+      }
+    );
+
+}
+
+
+function deleteAdmin(id){
+
+  const admin =
+    data.admins.find(
+      item => item.id === id
+    );
+
+  if(!admin) return;
+
+
+  if(admin.role === "OWNER"){
+
+    toast(
+      "OWNER нельзя удалить.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  if(
+    !confirm(
+      `Удалить администратора "${admin.username}"?`
+    )
+  ){
+
+    return;
+
+  }
+
+
+  data.admins =
+    data.admins.filter(
+      item => item.id !== id
+    );
+
+
+  addLog(
+    "Удалён администратор",
+    admin.username
+  );
+
+
+  saveData();
+
+  renderAll();
+
+  toast(
+    "Администратор удалён."
+  );
+
+}
+
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+function renderProducts(){
+
+  const tbody =
+    document.getElementById(
+      "productsTable"
+    );
+
+  if(!tbody) return;
+
+
+  const total =
+    data.products.length;
+
+  const active =
+    data.products.filter(
+      item => item.active
+    ).length;
+
+  const sales =
+    data.products.reduce(
+      (sum,item) =>
+        sum + Number(item.sales || 0),
+      0
+    );
+
+
+  document.getElementById(
+    "productsTotal"
+  ).textContent = total;
+
+
+  document.getElementById(
+    "productsActive"
+  ).textContent = active;
+
+
+  document.getElementById(
+    "productsSales"
+  ).textContent = sales;
+
+
+  tbody.innerHTML =
+    data.products
+      .map(product => `
+
+        <tr>
+
+          <td>
+            <strong style="color:#eee">
+              ${escapeHtml(
+                product.name
+              )}
+            </strong>
+          </td>
+
+          <td>
+            ${formatMoney(
+              product.price
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              product.type
+            )}
+          </td>
+
+          <td>
+
+            <span class="badge ${
+              product.active
+                ? "active"
+                : "blocked"
+            }">
+
+              ${
+                product.active
+                  ? "ACTIVE"
+                  : "DISABLED"
+              }
+
+            </span>
+
+          </td>
+
+          <td>
+            ${Number(product.sales || 0)}
+          </td>
+
+        </tr>
+
+      `)
+      .join("");
+
+}
+
+
+function openCreateProduct(){
+
+  modalTitle.textContent =
+    "Добавить товар";
+
+
+  modalBody.innerHTML = `
+
+    <form id="createProductForm">
+
+      <div class="field">
+
+        <label>
+          Название
+        </label>
+
+        <input
+          id="productName"
+          required
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Цена
+        </label>
+
+        <input
+          id="productPrice"
+          type="number"
+          min="0"
+          step="1"
+          required
+        >
+
+      </div>
+
+
+      <div class="field">
+
+        <label>
+          Тип
+        </label>
+
+        <select id="productType">
+
+          <option>
+            Loader
+          </option>
+
+          <option>
+            Mod
+          </option>
+
+          <option>
+            Subscription
+          </option>
+
+          <option>
+            Other
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="modal-actions">
+
+        <button
+          type="button"
+          class="btn"
+          onclick="closeModal()"
+        >
+          Отмена
+        </button>
+
+        <button
+          type="submit"
+          class="btn primary"
+        >
+          Добавить
+        </button>
+
+      </div>
+
+    </form>
+
+  `;
+
+
+  modalOverlay.classList.add("show");
+
+
+  document
+    .getElementById("createProductForm")
+    .addEventListener(
+      "submit",
+      event => {
+
+        event.preventDefault();
+
+
+        const product = {
+
+          id:
+            "product-" +
+            crypto.randomUUID(),
+
+          name:
+            document
+              .getElementById("productName")
+              .value
+              .trim(),
+
+          price:
+            Number(
+              document
+                .getElementById("productPrice")
+                .value
+            ),
+
+          type:
+            document
+              .getElementById("productType")
+              .value,
+
+          active:true,
+
+          sales:0
+
+        };
+
+
+        data.products.push(product);
+
+
+        addLog(
+          "Добавлен товар",
+          product.name
+        );
+
+
+        saveData();
+
+        closeModal();
+
+        renderAll();
+
+        toast(
+          "Товар добавлен."
+        );
+
+      }
+    );
+
+}
+
+
+/* =========================================================
+   TRANSACTIONS
+========================================================= */
+
+function renderTransactions(){
+
+  const tbody =
+    document.getElementById(
+      "transactionsTable"
+    );
+
+  if(!tbody) return;
+
+
+  const search =
+    (
+      document
+        .getElementById(
+          "transactionSearch"
+        )
+        ?.value ||
+      ""
+    )
+    .trim()
+    .toLowerCase();
+
+
+  const transactions =
+    data.transactions.filter(tx => {
+
+      return (
+        !search ||
+        tx.id.toLowerCase()
+          .includes(search) ||
+        tx.username
+          .toLowerCase()
+          .includes(search)
+      );
+
+    });
+
+
+  if(!transactions.length){
+
+    tbody.innerHTML = `
+
+      <tr>
+
+        <td colspan="6">
+
+          <div class="empty">
+            Транзакций пока нет.
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+
+  }
+
+
+  tbody.innerHTML =
+    transactions
+      .map(tx => `
+
+        <tr>
+
+          <td>
+            ${escapeHtml(
+              tx.id
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              tx.username
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              tx.type
+            )}
+          </td>
+
+          <td class="${
+            tx.amount >= 0
+              ? "positive"
+              : "negative"
+          }">
+
+            ${
+              tx.amount >= 0
+                ? "+"
+                : ""
+            }
+
+            ${formatMoney(
+              tx.amount
+            )}
+
+          </td>
+
+          <td>
+            ${formatDate(
+              tx.createdAt
+            )}
+          </td>
+
+          <td>
+
+            <span class="badge active">
+              SUCCESS
+            </span>
+
+          </td>
+
+        </tr>
+
+      `)
+      .join("");
+
+}
+
+
+/* =========================================================
+   SUBSCRIPTIONS
+========================================================= */
+
+function renderSubscriptions(){
+
+  const tbody =
+    document.getElementById(
+      "subscriptionsTable"
+    );
+
+  if(!tbody) return;
+
+
+  const total =
+    data.subscriptions.length;
+
+
+  const active =
+    data.subscriptions.filter(
+      sub => sub.status === "active"
+    ).length;
+
+
+  const soon =
+    data.subscriptions.filter(
+      sub => {
+
+        const time =
+          new Date(
+            sub.expiresAt
+          ).getTime() -
+          Date.now();
+
+        return (
+          time > 0 &&
+          time <=
+          7 * 24 * 60 * 60 * 1000
+        );
+
+      }
+    ).length;
+
+
+  document.getElementById(
+    "subsTotal"
+  ).textContent = total;
+
+
+  document.getElementById(
+    "subsActive"
+  ).textContent = active;
+
+
+  document.getElementById(
+    "subsSoon"
+  ).textContent = soon;
+
+
+  if(!data.subscriptions.length){
+
+    tbody.innerHTML = `
+
+      <tr>
+
+        <td colspan="5">
+
+          <div class="empty">
+            Подписок пока нет.
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+
+  }
+
+
+  tbody.innerHTML =
+    data.subscriptions
+      .map(sub => `
+
+        <tr>
+
+          <td>
+            ${escapeHtml(
+              sub.username
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              sub.product
+            )}
+          </td>
+
+          <td>
+            ${formatDate(
+              sub.createdAt
+            )}
+          </td>
+
+          <td>
+            ${formatDate(
+              sub.expiresAt
+            )}
+          </td>
+
+          <td>
+
+            <span class="badge ${
+              sub.status === "active"
+                ? "active"
+                : "blocked"
+            }">
+
+              ${escapeHtml(
+                sub.status
+              )}
+
+            </span>
+
+          </td>
+
+        </tr>
+
+      `)
+      .join("");
+
+}
+
+
+/* =========================================================
+   LOGS
+========================================================= */
+
+function renderLogs(){
+
+  const tbody =
+    document.getElementById(
+      "logsTable"
+    );
+
+  if(!tbody) return;
+
+
+  if(!data.logs.length){
+
+    tbody.innerHTML = `
+
+      <tr>
+
+        <td colspan="4">
+
+          <div class="empty">
+            Логов пока нет.
+          </div>
+
+        </td>
+
+      </tr>
+
+    `;
+
+    return;
+
+  }
+
+
+  tbody.innerHTML =
+    data.logs
+      .map(log => `
+
+        <tr>
+
+          <td>
+            ${formatDate(
+              log.time
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              log.admin
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              log.action
+            )}
+          </td>
+
+          <td>
+            ${escapeHtml(
+              log.object
+            )}
+          </td>
+
+        </tr>
+
+      `)
+      .join("");
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderDashboard(){
+
+  const totalBalance =
+    data.accounts.reduce(
+      (sum,account) =>
+        sum + Number(
+          account.balance || 0
+        ),
+      0
+    );
+
+
+  document.getElementById(
+    "statAccounts"
+  ).textContent =
+    data.accounts.length;
+
+
+  document.getElementById(
+    "statAdmins"
+  ).textContent =
+    data.admins.length;
+
+
+  document.getElementById(
+    "statProducts"
+  ).textContent =
+    data.products.length;
+
+
+  document.getElementById(
+    "statBalance"
+  ).textContent =
+    formatMoney(
+      totalBalance
+    );
+
+
+  document.getElementById(
+    "accountsCount"
+  ).textContent =
+    data.accounts.length;
+
+
+  document.getElementById(
+    "adminsCount"
+  ).textContent =
+    data.admins.length;
+
+
+  const txContainer =
+    document.getElementById(
+      "recentTransactions"
+    );
+
+
+  const transactions =
+    data.transactions.slice(
+      0,
+      5
+    );
+
+
+  if(!transactions.length){
+
+    txContainer.innerHTML = `
+
+      <div class="empty">
+        Транзакций пока нет.
+      </div>
+
+    `;
+
+  }else{
+
+    txContainer.innerHTML =
+      transactions
+        .map(tx => `
+
+          <div class="transaction">
+
+            <div class="tx-icon">
+              ₽
+            </div>
+
+            <div class="tx-main">
+
+              <div class="tx-name">
+                ${escapeHtml(
+                  tx.username
+                )}
+              </div>
+
+              <div class="tx-description">
+                ${escapeHtml(
+                  tx.type
+                )}
+              </div>
+
+            </div>
+
+            <div class="tx-amount ${
+              tx.amount >= 0
+                ? "positive"
+                : "negative"
+            }">
+
+              ${
+                tx.amount >= 0
+                  ? "+"
+                  : ""
+              }
+
+              ${formatMoney(
+                tx.amount
+              )}
+
+            </div>
+
+          </div>
+
+        `)
+        .join("");
+
+  }
+
+
+  const activity =
+    document.getElementById(
+      "recentActivity"
+    );
+
+
+  activity.innerHTML =
+    data.logs
+      .slice(0,4)
+      .map(log => `
+
+        <div class="activity-row">
+
+          <div class="activity-dot"></div>
+
+          <div>
+
+            <div class="activity-text">
+
+              <strong>
+                ${escapeHtml(
+                  log.admin
+                )}
+              </strong>
+
+              ${escapeHtml(
+                log.action
+              )}
+
+              <strong>
+                ${escapeHtml(
+                  log.object
+                )}
+              </strong>
+
+            </div>
+
+            <div class="activity-time">
+              ${formatDate(
+                log.time
+              )}
+            </div>
+
+          </div>
+
+        </div>
+
+      `)
+      .join("");
+
+}
+
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+function renderSettings(){
+
+  const name =
+    document.getElementById(
+      "settingName"
+    );
+
+  const timezone =
+    document.getElementById(
+      "settingTimezone"
+    );
+
+  if(!name || !timezone) return;
+
+
+  name.value =
+    data.settings.name;
+
+
+  timezone.value =
+    data.settings.timezone;
+
+}
+
+
+document
+  .getElementById("saveSettings")
+  .addEventListener(
+    "click",
+    () => {
+
+      data.settings.name =
+        document
+          .getElementById(
+            "settingName"
+          )
+          .value
+          .trim();
+
+
+      data.settings.timezone =
+        document
+          .getElementById(
+            "settingTimezone"
+          )
+          .value;
+
+
+      addLog(
+        "Изменены настройки",
+        "System"
+      );
+
+
+      saveData();
+
+      toast(
+        "Настройки сохранены."
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   SEARCH
+========================================================= */
+
+document
+  .getElementById("accountSearch")
+  .addEventListener(
+    "input",
+    renderAccounts
+  );
+
+
+document
+  .getElementById("transactionSearch")
+  .addEventListener(
+    "input",
+    renderTransactions
+  );
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+document
+  .getElementById("dashboardCreate")
+  .addEventListener(
+    "click",
+    openCreateAccount
+  );
+
+
+document
+  .getElementById("createAccountBtn")
+  .addEventListener(
+    "click",
+    openCreateAccount
+  );
+
+
+document
+  .getElementById("createAdminBtn")
+  .addEventListener(
+    "click",
+    openCreateAdmin
+  );
+
+
+document
+  .getElementById("createProductBtn")
+  .addEventListener(
+    "click",
+    openCreateProduct
+  );
+
+
+document
+  .querySelectorAll("[data-action]")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const action =
+          button.dataset.action;
+
+
+        if(action === "account"){
+          openCreateAccount();
+        }
+
+        if(action === "admin"){
+          openCreateAdmin();
+        }
+
+        if(action === "product"){
+          openCreateProduct();
+        }
+
+        if(action === "settings"){
+          openPage("settings");
+        }
+
+      }
+    );
+
+  });
+
+
+document
+  .getElementById("refreshBtn")
+  .addEventListener(
+    "click",
+    () => {
+
+      data =
+        loadData();
+
+      renderAll();
+
+      toast(
+        "Данные обновлены."
+      );
+
+    }
+  );
+
+
+/* =========================================================
+   RENDER ALL
+========================================================= */
+
+function renderAll(){
+
+  renderDashboard();
+
+  renderAccounts();
+
+  renderAdmins();
+
+  renderProducts();
+
+  renderTransactions();
+
+  renderSubscriptions();
+
+  renderLogs();
+
+  renderSettings();
+
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function formatMoney(value){
+
+  return (
+    Number(value || 0)
+      .toLocaleString(
+        "ru-RU"
+      ) +
+    " ₽"
+  );
+
+}
+
+
+function formatDate(value){
+
+  if(!value) return "—";
+
+
+  const date =
+    new Date(value);
+
+
+  return date.toLocaleString(
+    "ru-RU",
+    {
+      day:"2-digit",
+      month:"2-digit",
+      year:"numeric",
+      hour:"2-digit",
+      minute:"2-digit"
+    }
+  );
+
+}
+
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
+}
+
+
+function escapeAttr(value){
+
+  return escapeHtml(value);
+
+}
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if(event.key === "Escape"){
+
+      closeModal();
+
+      closeMobileMenu();
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   INITIALIZE
+========================================================= */
+
+renderAll();
+
+</script>
+
+</body>
+</html>
