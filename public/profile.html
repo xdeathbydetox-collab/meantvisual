@@ -2,10 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>MEANT SHOP — Профиль</title>
 
@@ -18,11 +15,7 @@
 
         body {
             min-height: 100vh;
-            font-family:
-                Inter,
-                Arial,
-                sans-serif;
-
+            font-family: Inter, Arial, sans-serif;
             background:
                 radial-gradient(
                     circle at 50% -20%,
@@ -30,7 +23,6 @@
                     #111827 42%,
                     #080b12 100%
                 );
-
             color: white;
         }
 
@@ -59,8 +51,7 @@
 
             padding: 18px 24px;
 
-            background:
-                rgba(20, 27, 43, 0.92);
+            background: rgba(20, 27, 43, 0.92);
 
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 22px;
@@ -72,7 +63,6 @@
         .logo {
             font-size: 25px;
             font-weight: 900;
-            letter-spacing: -0.5px;
         }
 
         .logo span {
@@ -87,14 +77,14 @@
 
         .nav a {
             text-decoration: none;
-            color: #fff;
+            color: white;
 
-            padding: 14px 28px;
+            padding: 14px 22px;
 
             border-radius: 15px;
 
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
 
             transition: 0.2s;
         }
@@ -108,24 +98,28 @@
 
             border: 1px solid #ffc400;
 
-            background:
-                rgba(255,196,0,0.04);
-
-            box-shadow:
-                0 0 20px rgba(255,196,0,0.08);
+            background: rgba(255,196,0,0.04);
         }
 
         .logout {
             border: none;
+
             background: #f3f3f3;
             color: #111;
 
-            padding: 10px 18px;
+            padding: 12px 18px;
 
-            border-radius: 8px;
+            border-radius: 10px;
 
-            font-weight: 700;
+            font-weight: 800;
+
             cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .logout:hover {
+            background: #ffc400;
         }
 
         /* =========================
@@ -140,6 +134,7 @@
 
         .profile-grid {
             display: grid;
+
             grid-template-columns:
                 420px
                 1fr;
@@ -205,9 +200,6 @@
             font-weight: 900;
 
             flex-shrink: 0;
-
-            box-shadow:
-                0 12px 30px rgba(255,190,0,0.18);
         }
 
         .user-name {
@@ -226,7 +218,6 @@
             font-weight: 900;
 
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .balance-title {
@@ -301,6 +292,7 @@
             min-height: 70px;
 
             display: flex;
+
             align-items: center;
             justify-content: space-between;
 
@@ -322,17 +314,74 @@
 
         .row-label {
             color: #a9b1c0;
+
             font-size: 14px;
         }
 
         .row-value {
-            max-width: 60%;
+            max-width: 65%;
 
             text-align: right;
 
             font-weight: 800;
 
             word-break: break-all;
+        }
+
+        .account-id {
+            font-family:
+                monospace;
+
+            color: #ffc400;
+        }
+
+        /* =========================
+           CONFIG
+        ========================= */
+
+        .config-card {
+            margin-top: 30px;
+
+            padding: 24px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.07);
+
+            border-radius: 17px;
+
+            background:
+                rgba(255,255,255,0.025);
+        }
+
+        .config-title {
+            font-size: 18px;
+            font-weight: 900;
+        }
+
+        .config-description {
+            margin-top: 8px;
+
+            color: #9ba4b7;
+
+            font-size: 14px;
+
+            line-height: 1.5;
+        }
+
+        .config-name {
+            margin-top: 18px;
+
+            padding: 15px;
+
+            border-radius: 13px;
+
+            background:
+                rgba(0,0,0,0.2);
+
+            color: #ffc400;
+
+            font-weight: 800;
         }
 
         /* =========================
@@ -345,6 +394,7 @@
 
         .subscription-header {
             display: flex;
+
             align-items: center;
             justify-content: space-between;
 
@@ -377,17 +427,26 @@
                 rgba(255,255,255,0.025);
         }
 
-        .subscription-name {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .no-subscription {
+            color: #9ba4b7;
 
             font-size: 15px;
+
+            line-height: 1.5;
+        }
+
+        .subscription-name {
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .subscription-name span {
             color: #aab2c1;
         }
 
         .subscription-name strong {
-            color: white;
             font-size: 17px;
         }
 
@@ -397,8 +456,7 @@
 
             margin-top: 18px;
 
-            background:
-                #283247;
+            background: #283247;
 
             border-radius: 20px;
 
@@ -407,6 +465,7 @@
 
         .progress-bar {
             height: 100%;
+
             width: 0%;
 
             background:
@@ -417,12 +476,11 @@
                 );
 
             border-radius: 20px;
-
-            transition: width 0.4s;
         }
 
         .subscription-info {
             display: grid;
+
             grid-template-columns:
                 repeat(3, 1fr);
 
@@ -456,28 +514,21 @@
             font-size: 14px;
         }
 
-        .no-subscription {
-            color: #9ba4b7;
-
-            font-size: 15px;
-
-            line-height: 1.5;
-        }
-
         /* =========================
-           LOADING / ERROR
+           LOADING
         ========================= */
 
         .loading {
             position: fixed;
+
             inset: 0;
 
             display: flex;
+
             align-items: center;
             justify-content: center;
 
-            background:
-                #080b12;
+            background: #080b12;
 
             z-index: 100;
         }
@@ -520,6 +571,10 @@
             }
         }
 
+        /* =========================
+           ERROR
+        ========================= */
+
         .error-screen {
             display: none;
 
@@ -549,11 +604,13 @@
 
         .error-box h2 {
             color: #ff5c5c;
+
             margin-bottom: 15px;
         }
 
         .error-box p {
             color: #aeb6c5;
+
             line-height: 1.6;
         }
 
@@ -567,11 +624,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .nav a {
-                padding:
-                    12px 16px;
-            }
-
         }
 
         @media (max-width: 700px) {
@@ -582,9 +634,11 @@
 
             .header {
                 padding: 14px;
+
                 border-radius: 17px;
 
                 flex-wrap: wrap;
+
                 gap: 15px;
             }
 
@@ -602,12 +656,14 @@
 
             .nav a {
                 white-space: nowrap;
+
                 padding: 11px 15px;
+
                 font-size: 13px;
             }
 
             .logout {
-                display: none;
+                white-space: nowrap;
             }
 
             .user-card,
@@ -638,12 +694,15 @@
 
             .account-row {
                 align-items: flex-start;
+
                 flex-direction: column;
+
                 gap: 8px;
             }
 
             .row-value {
                 max-width: 100%;
+
                 text-align: left;
             }
         }
@@ -652,564 +711,475 @@
 
 <body>
 
-    <!-- =========================
-         LOADING
-    ========================= -->
+<!-- =====================================================
+     LOADING
+===================================================== -->
 
-    <div
-        class="loading"
-        id="loading"
-    >
-        <div class="loading-box">
+<div
+    class="loading"
+    id="loading"
+>
 
-            <div class="loading-logo">
-                MEANT <span>SHOP</span>
-            </div>
+    <div class="loading-box">
 
-            <div class="spinner"></div>
-
+        <div class="loading-logo">
+            MEANT <span>SHOP</span>
         </div>
+
+        <div class="spinner"></div>
+
     </div>
 
+</div>
 
-    <!-- =========================
-         ERROR
-    ========================= -->
 
-    <div
-        class="error-screen"
-        id="errorScreen"
-    >
-        <div class="error-box">
+<!-- =====================================================
+     ERROR
+===================================================== -->
 
-            <h2>Ошибка авторизации</h2>
+<div
+    class="error-screen"
+    id="errorScreen"
+>
 
-            <p id="errorText">
-                Не удалось загрузить аккаунт.
-            </p>
+    <div class="error-box">
 
-        </div>
+        <h2>
+            Ошибка авторизации
+        </h2>
+
+        <p id="errorText">
+            Не удалось загрузить аккаунт.
+        </p>
+
     </div>
 
-
-    <!-- =========================
-         PAGE
-    ========================= -->
-
-    <div
-        class="page"
-        id="page"
-        style="display:none;"
-    >
-
-        <!-- HEADER -->
-
-        <header class="header">
-
-            <div class="logo">
-                MEANT <span>SHOP</span>
-            </div>
-
-            <nav class="nav">
-
-                <a href="/index.html">
-                    Visual
-                </a>
-
-                <a
-                    href="/profile.html"
-                    class="active"
-                >
-                    Профиль
-                </a>
-
-                <a href="/shop.html">
-                    Магазин
-                </a>
-
-                <a href="/finance.html">
-                    Финансы
-                </a>
-
-                <button
-                    class="logout"
-                    id="logoutButton"
-                >
-                    Выйти
-                </button>
-
-            </nav>
-
-        </header>
+</div>
 
 
-        <!-- MAIN -->
+<!-- =====================================================
+     PAGE
+===================================================== -->
 
-        <main class="container">
+<div
+    class="page"
+    id="page"
+    style="display:none;"
+>
 
-            <div class="profile-grid">
+    <!-- HEADER -->
+
+    <header class="header">
+
+        <div class="logo">
+            MEANT <span>SHOP</span>
+        </div>
 
 
-                <!-- =====================
-                     USER
-                ====================== -->
+        <nav class="nav">
 
-                <section class="card user-card">
+            <a href="/visual.html">
+                Visual
+            </a>
 
-                    <div class="user-top">
+            <a href="/index.html">
+                Главная
+            </a>
+
+            <a
+                href="/profile.html"
+                class="active"
+            >
+                Профиль
+            </a>
+
+            <a href="/shop.html">
+                Магазин
+            </a>
+
+            <a href="/config.html">
+                Конфиг
+            </a>
+
+            <button
+                class="logout"
+                id="logoutButton"
+            >
+                Выйти
+            </button>
+
+        </nav>
+
+    </header>
+
+
+    <!-- MAIN -->
+
+    <main class="container">
+
+        <div class="profile-grid">
+
+
+            <!-- =================================================
+                 USER
+            ================================================== -->
+
+            <section class="card user-card">
+
+                <div class="user-top">
+
+                    <div
+                        class="avatar"
+                        id="avatar"
+                    >
+                        ?
+                    </div>
+
+                    <div>
 
                         <div
-                            class="avatar"
-                            id="avatar"
+                            class="user-name"
+                            id="username"
                         >
-                            ?
+                            —
                         </div>
 
-                        <div>
-
-                            <div
-                                class="user-name"
-                                id="username"
-                            >
-                                —
-                            </div>
-
-                            <div
-                                class="user-status"
-                                id="userStatus"
-                            >
-                                User
-                            </div>
-
+                        <div
+                            class="user-status"
+                            id="userStatus"
+                        >
+                            User
                         </div>
 
                     </div>
 
+                </div>
 
-                    <div class="balance-title">
-                        Текущий баланс
+
+                <div class="balance-title">
+                    Текущий баланс
+                </div>
+
+
+                <div
+                    class="balance"
+                    id="balance"
+                >
+                    0 ₽
+                </div>
+
+
+                <button
+                    class="balance-button"
+                    onclick="location.href='/finance.html'"
+                >
+                    Пополнить баланс
+                </button>
+
+
+                <!-- CONFIG -->
+
+                <div class="config-card">
+
+                    <div class="config-title">
+                        Текущий конфиг
+                    </div>
+
+                    <div class="config-description">
+                        Конфигурация, которая сейчас
+                        загружена пользователем.
                     </div>
 
                     <div
-                        class="balance"
-                        id="balance"
+                        class="config-name"
+                        id="currentConfig"
                     >
-                        0
+                        Не загружен
                     </div>
 
+                </div>
 
-                    <button
-                        class="balance-button"
-                        onclick="location.href='/finance.html'"
+            </section>
+
+
+            <!-- =================================================
+                 ACCOUNT
+            ================================================== -->
+
+            <section class="card account-card">
+
+                <h2 class="section-title">
+                    Данные аккаунта
+                </h2>
+
+
+                <div class="account-row">
+
+                    <span class="row-label">
+                        ID аккаунта
+                    </span>
+
+                    <strong
+                        class="row-value account-id"
+                        id="accountId"
                     >
-                        Пополнить баланс
-                    </button>
+                        —
+                    </strong>
 
-                </section>
-
-
-                <!-- =====================
-                     ACCOUNT
-                ====================== -->
-
-                <section class="card account-card">
-
-                    <h2 class="section-title">
-                        Данные аккаунта
-                    </h2>
+                </div>
 
 
-                    <div class="account-row">
+                <div class="account-row">
 
-                        <span class="row-label">
-                            ID аккаунта
-                        </span>
+                    <span class="row-label">
+                        Никнейм
+                    </span>
 
-                        <strong
-                            class="row-value"
-                            id="accountId"
-                        >
-                            —
-                        </strong>
+                    <strong
+                        class="row-value"
+                        id="accountUsername"
+                    >
+                        —
+                    </strong>
 
-                    </div>
-
-
-                    <div class="account-row">
-
-                        <span class="row-label">
-                            Никнейм
-                        </span>
-
-                        <strong
-                            class="row-value"
-                            id="accountUsername"
-                        >
-                            —
-                        </strong>
-
-                    </div>
+                </div>
 
 
-                    <div class="account-row">
+                <div class="account-row">
 
-                        <span class="row-label">
-                            Статус / титул
-                        </span>
+                    <span class="row-label">
+                        Баланс
+                    </span>
 
-                        <strong
-                            class="row-value"
-                            id="accountStatus"
-                        >
-                            User
-                        </strong>
+                    <strong
+                        class="row-value"
+                        id="accountBalance"
+                    >
+                        0 ₽
+                    </strong>
 
-                    </div>
+                </div>
 
 
-                    <!-- =====================
-                         SUBSCRIPTION
-                    ====================== -->
+                <div class="account-row">
 
-                    <div class="subscription">
+                    <span class="row-label">
+                        Текущий конфиг
+                    </span>
 
-                        <div class="subscription-header">
+                    <strong
+                        class="row-value"
+                        id="accountConfig"
+                    >
+                        Не загружен
+                    </strong>
 
-                            <h2 class="section-title">
-                                Подписка
-                            </h2>
+                </div>
 
-                            <div
-                                class="subscription-status inactive"
-                                id="subscriptionStatus"
-                            >
-                                • НЕТ АКТИВНОЙ
-                            </div>
 
-                        </div>
+                <!-- =================================================
+                     SUBSCRIPTION
+                ================================================== -->
 
+                <div class="subscription">
+
+                    <div class="subscription-header">
+
+                        <h2 class="section-title">
+                            Подписка
+                        </h2>
 
                         <div
-                            class="subscription-box"
-                            id="subscriptionBox"
+                            class="subscription-status inactive"
+                            id="subscriptionStatus"
                         >
-
-                            <div class="no-subscription">
-                                У аккаунта нет активной
-                                Premium-подписки.
-                            </div>
-
+                            • НЕТ АКТИВНОЙ
                         </div>
 
                     </div>
 
-                </section>
 
-            </div>
+                    <div
+                        class="subscription-box"
+                        id="subscriptionBox"
+                    >
 
-        </main>
+                        <div class="no-subscription">
+                            У аккаунта нет активной
+                            Premium-подписки.
+                        </div>
 
-    </div>
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
 
 
 <script>
 
-    /* =====================================================
-       API
-    ===================================================== */
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
 
-    const API_BASE = "";
+async function loadProfile() {
+
+    const loading =
+        document.getElementById(
+            "loading"
+        );
+
+    const page =
+        document.getElementById(
+            "page"
+        );
+
+    const errorScreen =
+        document.getElementById(
+            "errorScreen"
+        );
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/auth/me",
+                {
+                    method: "GET",
+
+                    credentials: "include",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
 
 
-    /* =====================================================
-       HELPERS
-    ===================================================== */
+        let data = null;
 
-    function getInitial(username) {
+        try {
 
-        if (
-            !username ||
-            typeof username !== "string"
-        ) {
-            return "?";
+            data =
+                await response.json();
+
+        } catch {
+
+            throw new Error(
+                "Сервер вернул некорректный ответ"
+            );
+
         }
 
-        const value =
-            username
-                .trim()
-                .charAt(0)
-                .toUpperCase();
-
-        return value || "?";
-    }
-
-
-    function formatBalance(value) {
-
-        const number =
-            Number(value || 0);
-
-        return number.toLocaleString(
-            "ru-RU"
-        );
-    }
-
-
-    function escapeHtml(value) {
-
-        return String(value ?? "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-
-    /* =====================================================
-       SUBSCRIPTION
-       
-       ВАЖНО:
-       Если сервер НЕ передал subscription,
-       мы НИЧЕГО не придумываем.
-    ===================================================== */
-
-    function renderSubscription(
-        account
-    ) {
-
-        const status =
-            document.getElementById(
-                "subscriptionStatus"
-            );
-
-        const box =
-            document.getElementById(
-                "subscriptionBox"
-            );
 
         /*
-          Проверяем только реальные данные,
-          которые пришли с сервера.
-        */
-
-        const subscription =
-            account?.subscription;
-
-
-        /*
-          Нет subscription вообще.
-          Значит Premium отсутствует.
-        */
+         * Если пользователь не авторизован.
+         */
 
         if (
-            !subscription ||
-            subscription.active !== true
+            !response.ok ||
+            !data ||
+            !data.account
         ) {
 
-            status.textContent =
-                "• НЕТ АКТИВНОЙ";
-
-            status.className =
-                "subscription-status inactive";
-
-            box.innerHTML = `
-                <div class="no-subscription">
-                    У аккаунта нет активной
-                    Premium-подписки.
-                </div>
-            `;
+            window.location.href =
+                "/login.html";
 
             return;
         }
 
 
-        /*
-          Реальная активная подписка.
-        */
-
-        status.textContent =
-            "• АКТИВНА";
-
-        status.className =
-            "subscription-status active";
+        const account =
+            data.account;
 
 
-        const plan =
-            subscription.plan ||
-            "Premium";
+        /* =====================================================
+           USERNAME
+        ===================================================== */
+
+        const username =
+            String(
+                account.username || ""
+            ).trim();
 
 
-        const startedAt =
-            subscription.started_at ||
-            subscription.start_date ||
-            null;
+        document.getElementById(
+            "username"
+        ).textContent =
+            username || "User";
 
 
-        const expiresAt =
-            subscription.expires_at ||
-            subscription.end_date ||
-            null;
+        document.getElementById(
+            "accountUsername"
+        ).textContent =
+            username || "—";
 
 
-        let progress = 0;
+        /* =====================================================
+           AVATAR
+        ===================================================== */
+
+        document.getElementById(
+            "avatar"
+        ).textContent =
+            username
+                ? username
+                    .charAt(0)
+                    .toUpperCase()
+                : "?";
 
 
-        if (
-            startedAt &&
-            expiresAt
-        ) {
+        /* =====================================================
+           ACCOUNT ID
+        ===================================================== */
 
-            const start =
-                new Date(
-                    startedAt
-                ).getTime();
-
-            const end =
-                new Date(
-                    expiresAt
-                ).getTime();
-
-            const now =
-                Date.now();
+        document.getElementById(
+            "accountId"
+        ).textContent =
+            account.id || "—";
 
 
-            if (
-                end > start
-            ) {
+        /* =====================================================
+           BALANCE
+        ===================================================== */
 
-                progress =
-                    (
-                        (now - start) /
-                        (end - start)
-                    ) * 100;
-
-                progress =
-                    Math.max(
-                        0,
-                        Math.min(
-                            100,
-                            progress
-                        )
-                    );
-
-            }
-
-        }
+        const balance =
+            Number(
+                account.balance || 0
+            );
 
 
-        box.innerHTML = `
-
-            <div class="subscription-name">
-
-                <span>
-                    Тариф
-                </span>
-
-                <strong>
-                    ${escapeHtml(plan)}
-                </strong>
-
-            </div>
+        const formattedBalance =
+            balance.toLocaleString(
+                "ru-RU"
+            ) + " ₽";
 
 
-            <div class="progress">
-
-                <div
-                    class="progress-bar"
-                    style="width:${progress}%"
-                ></div>
-
-            </div>
+        document.getElementById(
+            "balance"
+        ).textContent =
+            formattedBalance;
 
 
-            <div class="subscription-info">
-
-                <div class="subscription-item">
-
-                    <span>
-                        Оформлена
-                    </span>
-
-                    <strong>
-                        ${
-                            startedAt
-                                ? escapeHtml(
-                                    new Date(
-                                        startedAt
-                                    ).toLocaleDateString(
-                                        "ru-RU"
-                                    )
-                                )
-                                : "—"
-                        }
-                    </strong>
-
-                </div>
+        document.getElementById(
+            "accountBalance"
+        ).textContent =
+            formattedBalance;
 
 
-                <div class="subscription-item">
-
-                    <span>
-                        До
-                    </span>
-
-                    <strong>
-                        ${
-                            expiresAt
-                                ? escapeHtml(
-                                    new Date(
-                                        expiresAt
-                                    ).toLocaleDateString(
-                                        "ru-RU"
-                                    )
-                                )
-                                : "—"
-                        }
-                    </strong>
-
-                </div>
-
-
-                <div class="subscription-item">
-
-                    <span>
-                        Статус
-                    </span>
-
-                    <strong>
-                        Активна
-                    </strong>
-
-                </div>
-
-            </div>
-        `;
-    }
-
-
-    /* =====================================================
-       STATUS
-    ===================================================== */
-
-    function renderStatus(
-        account
-    ) {
-
-        /*
-          НИКАКОГО PREMIUM USER
-          ПО УМОЛЧАНИЮ НЕТ.
-
-          Premium появляется только если
-          backend реально передал premium === true.
-        */
-
-        const isPremium =
-            account?.premium === true;
-
+        /* =====================================================
+           STATUS
+        ===================================================== */
 
         const status =
-            isPremium
+            account.premium === true
                 ? "Premium User"
                 : "User";
 
@@ -1220,29 +1190,455 @@
             status;
 
 
+        /* =====================================================
+           CURRENT CONFIG
+        ===================================================== */
+
+        loadCurrentConfig();
+
+
+        /* =====================================================
+           SUBSCRIPTION
+        ===================================================== */
+
+        renderSubscription(
+            account
+        );
+
+
+        /* =====================================================
+           SHOW PAGE
+        ===================================================== */
+
+        loading.style.display =
+            "none";
+
+        page.style.display =
+            "block";
+
+
+    } catch (error) {
+
+        console.error(
+            "PROFILE ERROR:",
+            error
+        );
+
+
+        loading.style.display =
+            "none";
+
+
+        errorScreen.style.display =
+            "flex";
+
+
         document.getElementById(
-            "accountStatus"
+            "errorText"
         ).textContent =
-            status;
+            error.message ||
+            "Не удалось загрузить профиль.";
+    }
+}
+
+
+/* =========================================================
+   CURRENT CONFIG
+========================================================= */
+
+function loadCurrentConfig() {
+
+    /*
+     * Пока отдельный API конфигурации
+     * не подключен, читаем текущий конфиг
+     * из localStorage.
+     */
+
+    const keys = [
+        "currentConfig",
+        "loadedConfig",
+        "meant_current_config",
+        "current_config"
+    ];
+
+
+    let raw = null;
+
+
+    for (
+        const key of keys
+    ) {
+
+        const value =
+            localStorage.getItem(
+                key
+            );
+
+
+        if (value) {
+
+            raw = value;
+
+            break;
+        }
     }
 
 
-    /* =====================================================
-       LOAD ACCOUNT
-    ===================================================== */
+    if (!raw) {
 
-    async function loadProfile() {
+        setConfig(
+            "Не загружен"
+        );
 
-        try {
+        return;
+    }
 
-            const response =
+
+    let name =
+        raw;
+
+
+    try {
+
+        const parsed =
+            JSON.parse(
+                raw
+            );
+
+
+        if (
+            parsed &&
+            typeof parsed === "object"
+        ) {
+
+            name =
+                parsed.name ||
+                parsed.configName ||
+                parsed.title ||
+                "Текущий конфиг";
+        }
+
+    } catch {
+        // обычная строка
+    }
+
+
+    setConfig(
+        name
+    );
+}
+
+
+function setConfig(
+    name
+) {
+
+    document.getElementById(
+        "currentConfig"
+    ).textContent =
+        name;
+
+
+    document.getElementById(
+        "accountConfig"
+    ).textContent =
+        name;
+}
+
+
+/* =========================================================
+   SUBSCRIPTION
+========================================================= */
+
+function renderSubscription(
+    account
+) {
+
+    const status =
+        document.getElementById(
+            "subscriptionStatus"
+        );
+
+
+    const box =
+        document.getElementById(
+            "subscriptionBox"
+        );
+
+
+    const subscription =
+        account.subscription;
+
+
+    /*
+     * Если сервер не передал
+     * подписку — её нет.
+     */
+
+    if (
+        !subscription ||
+        subscription.active !== true
+    ) {
+
+        status.textContent =
+            "• НЕТ АКТИВНОЙ";
+
+
+        status.className =
+            "subscription-status inactive";
+
+
+        box.innerHTML = `
+            <div class="no-subscription">
+                У аккаунта нет активной
+                Premium-подписки.
+            </div>
+        `;
+
+
+        return;
+    }
+
+
+    status.textContent =
+        "• АКТИВНА";
+
+
+    status.className =
+        "subscription-status active";
+
+
+    const plan =
+        subscription.plan ||
+        "Premium";
+
+
+    const startedAt =
+        subscription.started_at ||
+        subscription.start_date ||
+        null;
+
+
+    const expiresAt =
+        subscription.expires_at ||
+        subscription.end_date ||
+        null;
+
+
+    let progress = 0;
+
+
+    if (
+        startedAt &&
+        expiresAt
+    ) {
+
+        const start =
+            new Date(
+                startedAt
+            ).getTime();
+
+
+        const end =
+            new Date(
+                expiresAt
+            ).getTime();
+
+
+        const now =
+            Date.now();
+
+
+        if (
+            end > start
+        ) {
+
+            progress =
+                (
+                    (now - start) /
+                    (end - start)
+                ) * 100;
+
+
+            progress =
+                Math.max(
+                    0,
+                    Math.min(
+                        100,
+                        progress
+                    )
+                );
+        }
+    }
+
+
+    box.innerHTML = `
+
+        <div class="subscription-name">
+
+            <span>
+                Тариф
+            </span>
+
+            <strong>
+                ${escapeHtml(plan)}
+            </strong>
+
+        </div>
+
+
+        <div class="progress">
+
+            <div
+                class="progress-bar"
+                style="width:${progress}%"
+            ></div>
+
+        </div>
+
+
+        <div class="subscription-info">
+
+            <div class="subscription-item">
+
+                <span>
+                    Оформлена
+                </span>
+
+                <strong>
+                    ${
+                        startedAt
+                            ? formatDate(
+                                startedAt
+                            )
+                            : "—"
+                    }
+                </strong>
+
+            </div>
+
+
+            <div class="subscription-item">
+
+                <span>
+                    До
+                </span>
+
+                <strong>
+                    ${
+                        expiresAt
+                            ? formatDate(
+                                expiresAt
+                            )
+                            : "—"
+                    }
+                </strong>
+
+            </div>
+
+
+            <div class="subscription-item">
+
+                <span>
+                    Статус
+                </span>
+
+                <strong>
+                    Активна
+                </strong>
+
+            </div>
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   DATE
+========================================================= */
+
+function formatDate(
+    value
+) {
+
+    const date =
+        new Date(
+            value
+        );
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return "—";
+    }
+
+
+    return date.toLocaleDateString(
+        "ru-RU"
+    );
+}
+
+
+/* =========================================================
+   ESCAPE
+========================================================= */
+
+function escapeHtml(
+    value
+) {
+
+    return String(
+        value ?? ""
+    )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+document
+    .getElementById(
+        "logoutButton"
+    )
+    .addEventListener(
+        "click",
+        async () => {
+
+            try {
+
                 await fetch(
-                    API_BASE +
-                    "/api/auth/me",
+                    "/api/auth/logout",
                     {
-                        method: "GET",
+                        method: "POST",
 
-                        credentials: "include",
+                        credentials:
+                            "include",
 
                         headers: {
                             "Accept":
@@ -1251,223 +1647,26 @@
                     }
                 );
 
+            } catch (error) {
 
-            const data =
-                await response.json();
-
-
-            /*
-              Пользователь не авторизован.
-            */
-
-            if (
-                !response.ok ||
-                data?.authenticated !== true
-            ) {
-
-                throw new Error(
-                    data?.error ||
-                    "Вы не авторизованы"
+                console.error(
+                    "LOGOUT ERROR:",
+                    error
                 );
-
             }
 
 
-            const account =
-                data.account;
-
-
-            if (!account) {
-
-                throw new Error(
-                    "Сервер не вернул данные аккаунта"
-                );
-
-            }
-
-
-            /*
-              USERNAME
-            */
-
-            const username =
-                String(
-                    account.username ||
-                    ""
-                ).trim();
-
-
-            /*
-              ID
-            */
-
-            const accountId =
-                String(
-                    account.id ||
-                    ""
-                );
-
-
-            /*
-              Ник
-            */
-
-            document.getElementById(
-                "username"
-            ).textContent =
-                username || "User";
-
-
-            document.getElementById(
-                "accountUsername"
-            ).textContent =
-                username || "—";
-
-
-            /*
-              ID
-            */
-
-            document.getElementById(
-                "accountId"
-            ).textContent =
-                accountId || "—";
-
-
-            /*
-              АВАТАР
-            */
-
-            document.getElementById(
-                "avatar"
-            ).textContent =
-                getInitial(
-                    username
-                );
-
-
-            /*
-              BALANCE
-            */
-
-            document.getElementById(
-                "balance"
-            ).textContent =
-                formatBalance(
-                    account.balance
-                );
-
-
-            /*
-              STATUS
-            */
-
-            renderStatus(
-                account
-            );
-
-
-            /*
-              SUBSCRIPTION
-
-              Здесь принципиально важно:
-              если backend не передал subscription,
-              никакие 3 дня/30 дней/90 дней
-              НЕ создаются.
-            */
-
-            renderSubscription(
-                account
-            );
-
-
-            /*
-              Показываем страницу.
-            */
-
-            document.getElementById(
-                "loading"
-            ).style.display =
-                "none";
-
-
-            document.getElementById(
-                "page"
-            ).style.display =
-                "block";
-
-
-        } catch (error) {
-
-            console.error(
-                "Profile error:",
-                error
-            );
-
-
-            document.getElementById(
-                "loading"
-            ).style.display =
-                "none";
-
-
-            document.getElementById(
-                "errorScreen"
-            ).style.display =
-                "flex";
-
-
-            document.getElementById(
-                "errorText"
-            ).textContent =
-                error?.message ||
-                "Не удалось загрузить аккаунт.";
+            window.location.href =
+                "/login.html";
         }
-    }
+    );
 
 
-    /* =====================================================
-       LOGOUT
-    ===================================================== */
+/* =========================================================
+   START
+========================================================= */
 
-    document
-        .getElementById(
-            "logoutButton"
-        )
-        .addEventListener(
-            "click",
-            async () => {
-
-                try {
-
-                    await fetch(
-                        API_BASE +
-                        "/api/auth/logout",
-                        {
-                            method: "POST",
-                            credentials: "include"
-                        }
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        error
-                    );
-
-                }
-
-                window.location.href =
-                    "/login.html";
-            }
-        );
-
-
-    /* =====================================================
-       START
-    ===================================================== */
-
-    loadProfile();
+loadProfile();
 
 </script>
 
