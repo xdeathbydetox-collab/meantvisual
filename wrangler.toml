@@ -1,5 +1,5 @@
 name = "meant-shop"
-main = "worker.js"
+main = "src/worker.js"
 compatibility_date = "2026-08-20"
 
 [assets]
