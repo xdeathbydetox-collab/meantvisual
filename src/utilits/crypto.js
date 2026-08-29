@@ -30,10 +30,16 @@ function bytesToBase64(bytes) {
 function base64ToBytes(value) {
   const binary = atob(value);
 
-  const bytes = new Uint8Array(binary.length);
+  const bytes =
+    new Uint8Array(binary.length);
 
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
+  for (
+    let i = 0;
+    i < binary.length;
+    i++
+  ) {
+    bytes[i] =
+      binary.charCodeAt(i);
   }
 
   return bytes;
@@ -45,7 +51,9 @@ function base64ToBytes(value) {
 
 export async function sha256Base64(value) {
   const data =
-    new TextEncoder().encode(String(value));
+    new TextEncoder().encode(
+      String(value)
+    );
 
   const hash =
     await crypto.subtle.digest(
@@ -63,7 +71,8 @@ export async function sha256Base64(value) {
 ========================================================= */
 
 async function hashPassword(password) {
-  const salt = randomBytes(16);
+  const salt =
+    randomBytes(16);
 
   const key =
     await crypto.subtle.importKey(
@@ -81,7 +90,8 @@ async function hashPassword(password) {
       {
         name: "PBKDF2",
         salt,
-        iterations: PBKDF2_ITERATIONS,
+        iterations:
+          PBKDF2_ITERATIONS,
         hash: "SHA-256"
       },
       key,
@@ -89,13 +99,15 @@ async function hashPassword(password) {
     );
 
   return {
-    hash: bytesToBase64(
-      new Uint8Array(bits)
-    ),
+    hash:
+      bytesToBase64(
+        new Uint8Array(bits)
+      ),
 
-    salt: bytesToBase64(
-      salt
-    )
+    salt:
+      bytesToBase64(
+        salt
+      )
   };
 }
 
@@ -103,9 +115,26 @@ async function hashPassword(password) {
    CREATE PASSWORD HASH
 ========================================================= */
 
-export async function createPasswordHash(password) {
+export async function createPasswordHash(
+  password
+) {
+  if (
+    typeof password !== "string"
+  ) {
+    password =
+      String(password || "");
+  }
+
+  if (!password) {
+    throw new Error(
+      "Пароль не может быть пустым"
+    );
+  }
+
   const result =
-    await hashPassword(password);
+    await hashPassword(
+      password
+    );
 
   return (
     result.salt +
@@ -123,6 +152,14 @@ export async function verifyPassword(
   stored
 ) {
   try {
+    if (
+      typeof password !==
+      "string"
+    ) {
+      password =
+        String(password || "");
+    }
+
     if (!stored) {
       return false;
     }
@@ -130,21 +167,27 @@ export async function verifyPassword(
     const parts =
       String(stored).split("$");
 
-    if (parts.length !== 2) {
+    if (
+      parts.length !== 2
+    ) {
       return false;
     }
 
     const salt =
-      base64ToBytes(parts[0]);
+      base64ToBytes(
+        parts[0]
+      );
 
     const expected =
-      base64ToBytes(parts[1]);
+      base64ToBytes(
+        parts[1]
+      );
 
     const key =
       await crypto.subtle.importKey(
         "raw",
         new TextEncoder().encode(
-          String(password)
+          password
         ),
         "PBKDF2",
         false,
@@ -156,7 +199,8 @@ export async function verifyPassword(
         {
           name: "PBKDF2",
           salt,
-          iterations: PBKDF2_ITERATIONS,
+          iterations:
+            PBKDF2_ITERATIONS,
           hash: "SHA-256"
         },
         key,
@@ -173,6 +217,8 @@ export async function verifyPassword(
       return false;
     }
 
+    /* Constant-time comparison */
+
     let difference = 0;
 
     for (
@@ -185,7 +231,9 @@ export async function verifyPassword(
         expected[i];
     }
 
-    return difference === 0;
+    return (
+      difference === 0
+    );
 
   } catch {
     return false;
@@ -193,7 +241,7 @@ export async function verifyPassword(
 }
 
 /* =========================================================
-   TOKEN
+   RANDOM TOKEN
 ========================================================= */
 
 export function createToken() {
