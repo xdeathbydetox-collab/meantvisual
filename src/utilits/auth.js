@@ -1,6 +1,9 @@
 import {
   createPasswordHash,
-  verifyPassword,
+  verifyPassword
+} from "./crypto.js";
+
+import {
   createSession,
   getSessionAccount,
   deleteSession
@@ -21,15 +24,20 @@ function normalizeEmail(value) {
 }
 
 function normalizeUsername(value) {
-  return String(value || "").trim();
+  return String(value || "")
+    .trim();
 }
 
 function validEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+    email
+  );
 }
 
 function validUsername(username) {
-  return /^[a-zA-Z0-9_.-]{3,24}$/.test(username);
+  return /^[a-zA-Z0-9_.-]{3,24}$/.test(
+    username
+  );
 }
 
 async function readJson(request) {
@@ -45,8 +53,12 @@ async function readJson(request) {
    POST /api/auth/register
 ========================================================= */
 
-export async function register(request, env) {
-  const body = await readJson(request);
+export async function register(
+  request,
+  env
+) {
+  const body =
+    await readJson(request);
 
   if (!body) {
     return json({
@@ -54,17 +66,20 @@ export async function register(request, env) {
     }, 400);
   }
 
-  const username = normalizeUsername(
-    body.username
-  );
+  const username =
+    normalizeUsername(
+      body.username
+    );
 
-  const email = normalizeEmail(
-    body.email
-  );
+  const email =
+    normalizeEmail(
+      body.email
+    );
 
-  const password = String(
-    body.password || ""
-  );
+  const password =
+    String(
+      body.password || ""
+    );
 
   /* -------------------------
      VALIDATION
@@ -72,7 +87,8 @@ export async function register(request, env) {
 
   if (!username) {
     return json({
-      error: "Введите никнейм"
+      error:
+        "Введите никнейм"
     }, 400);
   }
 
@@ -85,19 +101,22 @@ export async function register(request, env) {
 
   if (!email) {
     return json({
-      error: "Введите email"
+      error:
+        "Введите email"
     }, 400);
   }
 
   if (!validEmail(email)) {
     return json({
-      error: "Некорректный email"
+      error:
+        "Некорректный email"
     }, 400);
   }
 
   if (!password) {
     return json({
-      error: "Введите пароль"
+      error:
+        "Введите пароль"
     }, 400);
   }
 
@@ -117,7 +136,8 @@ export async function register(request, env) {
       .prepare(`
         SELECT id
         FROM accounts
-        WHERE LOWER(username) = LOWER(?)
+        WHERE LOWER(username) =
+              LOWER(?)
         LIMIT 1
       `)
       .bind(username)
@@ -125,7 +145,8 @@ export async function register(request, env) {
 
   if (existingUsername) {
     return json({
-      error: "Этот никнейм уже занят"
+      error:
+        "Этот никнейм уже занят"
     }, 409);
   }
 
@@ -138,7 +159,8 @@ export async function register(request, env) {
       .prepare(`
         SELECT id
         FROM accounts
-        WHERE LOWER(email) = LOWER(?)
+        WHERE LOWER(email) =
+              LOWER(?)
         LIMIT 1
       `)
       .bind(email)
@@ -146,21 +168,25 @@ export async function register(request, env) {
 
   if (existingEmail) {
     return json({
-      error: "Этот email уже используется"
+      error:
+        "Этот email уже используется"
     }, 409);
   }
 
   /* -------------------------
-     CREATE ACCOUNT
+     ACCOUNT
   ------------------------- */
 
   const accountId =
     crypto.randomUUID();
 
   const passwordHash =
-    await createPasswordHash(password);
+    await createPasswordHash(
+      password
+    );
 
   try {
+
     await env.DB
       .prepare(`
         INSERT INTO accounts
@@ -234,7 +260,7 @@ export async function register(request, env) {
   }
 
   /* -------------------------
-     CREATE SESSION
+     SESSION
   ------------------------- */
 
   const session =
@@ -267,37 +293,19 @@ export async function register(request, env) {
    POST /api/auth/login
 ========================================================= */
 
-export async function login(request, env) {
-  const body = await readJson(request);
+export async function login(
+  request,
+  env
+) {
+  const body =
+    await readJson(request);
 
   if (!body) {
     return json({
-      error: "Неверный JSON"
+      error:
+        "Неверный JSON"
     }, 400);
   }
-
-  /*
-    Можно отправлять:
-
-    {
-      "login": "nickname",
-      "password": "12345678"
-    }
-
-    или
-
-    {
-      "username": "nickname",
-      "password": "12345678"
-    }
-
-    или
-
-    {
-      "email": "mail@example.com",
-      "password": "12345678"
-    }
-  */
 
   const loginValue =
     String(
@@ -312,7 +320,10 @@ export async function login(request, env) {
       body.password || ""
     );
 
-  if (!loginValue || !password) {
+  if (
+    !loginValue ||
+    !password
+  ) {
     return json({
       error:
         "Введите логин/email и пароль"
@@ -332,16 +343,20 @@ export async function login(request, env) {
           accounts.email,
           accounts.balance,
           credentials.password_hash
+
         FROM accounts
+
         INNER JOIN credentials
           ON credentials.account_id =
              accounts.id
+
         WHERE
           LOWER(accounts.username) =
             LOWER(?)
           OR
           LOWER(accounts.email) =
             LOWER(?)
+
         LIMIT 1
       `)
       .bind(
@@ -358,7 +373,7 @@ export async function login(request, env) {
   }
 
   /* -------------------------
-     VERIFY PASSWORD
+     PASSWORD
   ------------------------- */
 
   const valid =
@@ -375,7 +390,7 @@ export async function login(request, env) {
   }
 
   /* -------------------------
-     CREATE SESSION
+     SESSION
   ------------------------- */
 
   const session =
@@ -390,8 +405,10 @@ export async function login(request, env) {
 
       account: {
         id: account.id,
-        username: account.username,
-        email: account.email,
+        username:
+          account.username,
+        email:
+          account.email,
         balance:
           Number(
             account.balance || 0
@@ -411,7 +428,10 @@ export async function login(request, env) {
    GET /api/auth/me
 ========================================================= */
 
-export async function me(request, env) {
+export async function me(
+  request,
+  env
+) {
   const account =
     await getSessionAccount(
       request,
@@ -429,8 +449,10 @@ export async function me(request, env) {
 
     account: {
       id: account.id,
-      username: account.username,
-      email: account.email,
+      username:
+        account.username,
+      email:
+        account.email,
       balance:
         Number(
           account.balance || 0
@@ -444,24 +466,14 @@ export async function me(request, env) {
    POST /api/auth/logout
 ========================================================= */
 
-export async function logout(request, env) {
-  const account =
-    await getSessionAccount(
-      request,
-      env
-    );
-
-  /*
-    Даже если сессия уже отсутствует,
-    logout всё равно успешный.
-  */
-
-  if (account) {
-    await deleteSession(
-      request,
-      env
-    );
-  }
+export async function logout(
+  request,
+  env
+) {
+  await deleteSession(
+    request,
+    env
+  );
 
   return json(
     {
