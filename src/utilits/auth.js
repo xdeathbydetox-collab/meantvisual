@@ -1,29 +1,18 @@
 import {
   createPasswordHash,
-  verifyPassword
-} from "./crypto.js";
-
-import {
+  verifyPassword,
   createSession,
   getSessionAccount,
-  deleteSession,
-  cookieHeader,
-  clearCookieHeader
+  deleteSession
 } from "./session.js";
 
-import { json } from "./response.js";
+import {
+  json
+} from "./response.js";
 
 /* =========================================================
    HELPERS
 ========================================================= */
-
-async function readJson(request) {
-  try {
-    return await request.json();
-  } catch {
-    return null;
-  }
-}
 
 function normalizeEmail(value) {
   return String(value || "")
@@ -32,8 +21,7 @@ function normalizeEmail(value) {
 }
 
 function normalizeUsername(value) {
-  return String(value || "")
-    .trim();
+  return String(value || "").trim();
 }
 
 function validEmail(email) {
@@ -44,8 +32,17 @@ function validUsername(username) {
   return /^[a-zA-Z0-9_.-]{3,24}$/.test(username);
 }
 
+async function readJson(request) {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
 /* =========================================================
    REGISTER
+   POST /api/auth/register
 ========================================================= */
 
 export async function register(request, env) {
@@ -57,14 +54,21 @@ export async function register(request, env) {
     }, 400);
   }
 
-  const username =
-    normalizeUsername(body.username);
+  const username = normalizeUsername(
+    body.username
+  );
 
-  const email =
-    normalizeEmail(body.email);
+  const email = normalizeEmail(
+    body.email
+  );
 
-  const password =
-    String(body.password || "");
+  const password = String(
+    body.password || ""
+  );
+
+  /* -------------------------
+     VALIDATION
+  ------------------------- */
 
   if (!username) {
     return json({
@@ -104,9 +108,9 @@ export async function register(request, env) {
     }, 400);
   }
 
-  /* =======================================================
+  /* -------------------------
      CHECK USERNAME
-  ======================================================= */
+  ------------------------- */
 
   const existingUsername =
     await env.DB
@@ -125,9 +129,9 @@ export async function register(request, env) {
     }, 409);
   }
 
-  /* =======================================================
+  /* -------------------------
      CHECK EMAIL
-  ======================================================= */
+  ------------------------- */
 
   const existingEmail =
     await env.DB
@@ -146,9 +150,9 @@ export async function register(request, env) {
     }, 409);
   }
 
-  /* =======================================================
+  /* -------------------------
      CREATE ACCOUNT
-  ======================================================= */
+  ------------------------- */
 
   const accountId =
     crypto.randomUUID();
@@ -192,6 +196,8 @@ export async function register(request, env) {
 
   } catch (error) {
 
+    /* rollback */
+
     try {
       await env.DB
         .prepare(`
@@ -212,16 +218,24 @@ export async function register(request, env) {
         .run();
     } catch {}
 
+    console.error(
+      "REGISTER ERROR:",
+      error
+    );
+
     return json({
       error:
         "Ошибка базы данных: " +
-        (error?.message || String(error))
+        (
+          error?.message ||
+          String(error)
+        )
     }, 500);
   }
 
-  /* =======================================================
+  /* -------------------------
      CREATE SESSION
-  ======================================================= */
+  ------------------------- */
 
   const session =
     await createSession(
@@ -240,16 +254,17 @@ export async function register(request, env) {
         balance: 0
       }
     },
-    200,
+    201,
     {
       "Set-Cookie":
-        cookieHeader(session.token)
+        session.cookie
     }
   );
 }
 
 /* =========================================================
    LOGIN
+   POST /api/auth/login
 ========================================================= */
 
 export async function login(request, env) {
@@ -261,16 +276,41 @@ export async function login(request, env) {
     }, 400);
   }
 
+  /*
+    Можно отправлять:
+
+    {
+      "login": "nickname",
+      "password": "12345678"
+    }
+
+    или
+
+    {
+      "username": "nickname",
+      "password": "12345678"
+    }
+
+    или
+
+    {
+      "email": "mail@example.com",
+      "password": "12345678"
+    }
+  */
+
   const loginValue =
     String(
-      body.login ||
-      body.username ||
-      body.email ||
+      body.login ??
+      body.username ??
+      body.email ??
       ""
     ).trim();
 
   const password =
-    String(body.password || "");
+    String(
+      body.password || ""
+    );
 
   if (!loginValue || !password) {
     return json({
@@ -279,9 +319,9 @@ export async function login(request, env) {
     }, 400);
   }
 
-  /* =======================================================
+  /* -------------------------
      FIND ACCOUNT
-  ======================================================= */
+  ------------------------- */
 
   const account =
     await env.DB
@@ -292,20 +332,16 @@ export async function login(request, env) {
           accounts.email,
           accounts.balance,
           credentials.password_hash
-
         FROM accounts
-
         INNER JOIN credentials
           ON credentials.account_id =
              accounts.id
-
         WHERE
           LOWER(accounts.username) =
             LOWER(?)
           OR
           LOWER(accounts.email) =
             LOWER(?)
-
         LIMIT 1
       `)
       .bind(
@@ -321,9 +357,9 @@ export async function login(request, env) {
     }, 401);
   }
 
-  /* =======================================================
+  /* -------------------------
      VERIFY PASSWORD
-  ======================================================= */
+  ------------------------- */
 
   const valid =
     await verifyPassword(
@@ -338,9 +374,9 @@ export async function login(request, env) {
     }, 401);
   }
 
-  /* =======================================================
+  /* -------------------------
      CREATE SESSION
-  ======================================================= */
+  ------------------------- */
 
   const session =
     await createSession(
@@ -357,19 +393,22 @@ export async function login(request, env) {
         username: account.username,
         email: account.email,
         balance:
-          Number(account.balance || 0)
+          Number(
+            account.balance || 0
+          )
       }
     },
     200,
     {
       "Set-Cookie":
-        cookieHeader(session.token)
+        session.cookie
     }
   );
 }
 
 /* =========================================================
-   CURRENT USER
+   ME
+   GET /api/auth/me
 ========================================================= */
 
 export async function me(request, env) {
@@ -393,20 +432,36 @@ export async function me(request, env) {
       username: account.username,
       email: account.email,
       balance:
-        Number(account.balance || 0)
+        Number(
+          account.balance || 0
+        )
     }
   });
 }
 
 /* =========================================================
    LOGOUT
+   POST /api/auth/logout
 ========================================================= */
 
 export async function logout(request, env) {
-  await deleteSession(
-    request,
-    env
-  );
+  const account =
+    await getSessionAccount(
+      request,
+      env
+    );
+
+  /*
+    Даже если сессия уже отсутствует,
+    logout всё равно успешный.
+  */
+
+  if (account) {
+    await deleteSession(
+      request,
+      env
+    );
+  }
 
   return json(
     {
@@ -415,7 +470,7 @@ export async function logout(request, env) {
     200,
     {
       "Set-Cookie":
-        clearCookieHeader()
+        "meant_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
     }
   );
 }
