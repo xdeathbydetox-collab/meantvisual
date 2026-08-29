@@ -1,32 +1,78 @@
-import { getSessionAccount } from "./session.js";
-import { json } from "./response.js";
+import {
+  createPasswordHash,
+  verifyPassword
+} from "./crypto.js";
+
+import {
+  createSession,
+  getSessionAccount,
+  deleteSession
+} from "./session.js";
+
+import {
+  json
+} from "./response.js";
+
 
 /* =========================================================
    PERMISSIONS
 ========================================================= */
 
-export function parsePermissions(value) {
-  if (!value) {
-    return [];
-  }
+export const ADMIN_PERMISSIONS = [
+  "configs",
+  "new_admins",
+  "titles",
+  "promocodes",
+  "keys",
+  "current_admins"
+];
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function normalizeUsername(value) {
+  return String(value || "").trim();
+}
+
+function validUsername(username) {
+  return /^[a-zA-Z0-9_.-]{3,24}$/.test(username);
+}
+
+function parsePermissions(value) {
+  if (!value) return [];
 
   try {
-    const parsed = JSON.parse(value);
+    const parsed =
+      typeof value === "string"
+        ? JSON.parse(value)
+        : value;
 
-    return Array.isArray(parsed)
-      ? parsed
-      : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+
+    return parsed.filter(
+      permission =>
+        ADMIN_PERMISSIONS.includes(permission)
+    );
+
   } catch {
     return [];
   }
 }
 
-export function hasPermission(admin, permission) {
+function isOwner(admin) {
+  return admin?.role === "OWNER";
+}
+
+function hasPermission(admin, permission) {
+
   if (!admin) {
     return false;
   }
 
-  // OWNER имеет все права
   if (admin.role === "OWNER") {
     return true;
   }
@@ -37,52 +83,50 @@ export function hasPermission(admin, permission) {
   );
 }
 
+
 /* =========================================================
    CURRENT ADMIN
 ========================================================= */
 
-export async function getCurrentAdmin(request, env) {
-  const account = await getSessionAccount(
-    request,
-    env
-  );
+export async function getCurrentAdmin(
+  request,
+  env
+) {
+
+  const account =
+    await getSessionAccount(
+      request,
+      env
+    );
 
   if (!account) {
     return null;
   }
 
-  const admin = await env.DB
-    .prepare(`
-      SELECT
-        a.id,
-        a.account_id,
-        a.role,
-        a.permissions,
-        a.active,
-        a.must_change_password,
-        a.email_verified,
-        a.created_at,
-
-        accounts.username,
-        accounts.email
-
-      FROM administrators a
-
-      INNER JOIN accounts
-        ON accounts.id = a.account_id
-
-      WHERE a.account_id = ?
-
-      LIMIT 1
-    `)
-    .bind(account.id)
-    .first();
+  const admin =
+    await env.DB
+      .prepare(`
+        SELECT
+          administrators.id,
+          administrators.account_id,
+          administrators.role,
+          administrators.permissions,
+          administrators.active,
+          administrators.approved,
+          administrators.must_change_password,
+          administrators.created_at,
+          accounts.username
+        FROM administrators
+        INNER JOIN accounts
+          ON accounts.id =
+             administrators.account_id
+        WHERE administrators.account_id = ?
+        LIMIT 1
+      `)
+      .bind(account.id)
+      .first();
 
   if (!admin) {
-    return null;
-  }
-
-  if (Number(admin.active) !== 1) {
     return null;
   }
 
@@ -95,19 +139,18 @@ export async function getCurrentAdmin(request, env) {
       ),
 
     active:
-      Number(admin.active) === 1,
+      Number(admin.active || 0) === 1,
+
+    approved:
+      Number(admin.approved || 0) === 1,
 
     must_change_password:
       Number(
         admin.must_change_password || 0
-      ) === 1,
-
-    email_verified:
-      Number(
-        admin.email_verified || 0
       ) === 1
   };
 }
+
 
 /* =========================================================
    REQUIRE ADMIN
@@ -117,6 +160,7 @@ export async function requireAdmin(
   request,
   env
 ) {
+
   const admin =
     await getCurrentAdmin(
       request,
@@ -135,10 +179,201 @@ export async function requireAdmin(
     };
   }
 
+  if (!admin.active) {
+    return {
+      error: json(
+        {
+          success: false,
+          error: "Администратор отключён"
+        },
+        403
+      )
+    };
+  }
+
+  if (!admin.approved) {
+    return {
+      error: json(
+        {
+          success: false,
+          error: "Аккаунт администратора ещё не одобрен OWNER"
+        },
+        403
+      )
+    };
+  }
+
   return {
     admin
   };
 }
+
+
+/* =========================================================
+   ADMIN LOGIN
+========================================================= */
+
+export async function adminLogin(
+  request,
+  env
+) {
+
+  let body;
+
+  try {
+    body =
+      await request.json();
+  } catch {
+    return json(
+      {
+        success: false,
+        error: "Неверный JSON"
+      },
+      400
+    );
+  }
+
+  const username =
+    normalizeUsername(
+      body.username ??
+      body.login
+    );
+
+  const password =
+    String(
+      body.password || ""
+    );
+
+  if (!username || !password) {
+    return json(
+      {
+        success: false,
+        error: "Введите ник и пароль"
+      },
+      400
+    );
+  }
+
+  const admin =
+    await env.DB
+      .prepare(`
+        SELECT
+          administrators.id AS admin_id,
+          administrators.account_id,
+          administrators.role,
+          administrators.permissions,
+          administrators.active,
+          administrators.approved,
+          administrators.must_change_password,
+          accounts.username,
+          credentials.password_hash
+        FROM administrators
+        INNER JOIN accounts
+          ON accounts.id =
+             administrators.account_id
+        INNER JOIN credentials
+          ON credentials.account_id =
+             accounts.id
+        WHERE LOWER(accounts.username) =
+              LOWER(?)
+        LIMIT 1
+      `)
+      .bind(username)
+      .first();
+
+  if (!admin) {
+    return json(
+      {
+        success: false,
+        error: "Неверный ник или пароль"
+      },
+      401
+    );
+  }
+
+  if (
+    Number(admin.active || 0) !== 1
+  ) {
+    return json(
+      {
+        success: false,
+        error: "Администратор отключён"
+      },
+      403
+    );
+  }
+
+  if (
+    Number(admin.approved || 0) !== 1
+  ) {
+    return json(
+      {
+        success: false,
+        error: "Ваш аккаунт ещё не одобрен OWNER"
+      },
+      403
+    );
+  }
+
+  const valid =
+    await verifyPassword(
+      password,
+      admin.password_hash
+    );
+
+  if (!valid) {
+    return json(
+      {
+        success: false,
+        error: "Неверный ник или пароль"
+      },
+      401
+    );
+  }
+
+  const session =
+    await createSession(
+      env,
+      admin.account_id
+    );
+
+  return json(
+    {
+      success: true,
+
+      admin: {
+        id: admin.admin_id,
+
+        account_id:
+          admin.account_id,
+
+        username:
+          admin.username,
+
+        role:
+          admin.role,
+
+        permissions:
+          parsePermissions(
+            admin.permissions
+          ),
+
+        must_change_password:
+          Number(
+            admin.must_change_password || 0
+          ) === 1
+      }
+    },
+
+    200,
+
+    {
+      "Set-Cookie":
+        session.cookie
+    }
+  );
+}
+
 
 /* =========================================================
    ADMIN ME
@@ -148,6 +383,7 @@ export async function adminMe(
   request,
   env
 ) {
+
   const result =
     await requireAdmin(
       request,
@@ -158,7 +394,8 @@ export async function adminMe(
     return result.error;
   }
 
-  const admin = result.admin;
+  const admin =
+    result.admin;
 
   return json({
     success: true,
@@ -172,9 +409,6 @@ export async function adminMe(
       username:
         admin.username,
 
-      email:
-        admin.email,
-
       role:
         admin.role,
 
@@ -184,11 +418,11 @@ export async function adminMe(
       active:
         admin.active,
 
+      approved:
+        admin.approved,
+
       must_change_password:
         admin.must_change_password,
-
-      email_verified:
-        admin.email_verified,
 
       created_at:
         admin.created_at
@@ -196,306 +430,43 @@ export async function adminMe(
   });
 }
 
+
 /* =========================================================
-   ADMIN STATISTICS
+   ADMIN LOGOUT
 ========================================================= */
 
-export async function adminStats(
+export async function adminLogout(
   request,
   env
 ) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
 
-  if (result.error) {
-    return result.error;
-  }
+  await deleteSession(
+    request,
+    env
+  );
 
-  const admin = result.admin;
-
-  if (
-    !hasPermission(
-      admin,
-      "dashboard.view"
-    )
-  ) {
-    return json(
-      {
-        success: false,
-        error: "Недостаточно прав"
-      },
-      403
-    );
-  }
-
-  const accounts =
-    await env.DB
-      .prepare(`
-        SELECT COUNT(*) AS count
-        FROM accounts
-      `)
-      .first();
-
-  const administrators =
-    await env.DB
-      .prepare(`
-        SELECT COUNT(*) AS count
-        FROM administrators
-        WHERE active = 1
-      `)
-      .first();
-
-  const transactions =
-    await env.DB
-      .prepare(`
-        SELECT COUNT(*) AS count
-        FROM transactions
-      `)
-      .first();
-
-  const subscriptions =
-    await env.DB
-      .prepare(`
-        SELECT COUNT(*) AS count
-        FROM entitlements
-        WHERE status = 'active'
-      `)
-      .first();
-
-  const revenue =
-    await env.DB
-      .prepare(`
-        SELECT
-          COALESCE(
-            SUM(
-              CASE
-                WHEN amount > 0
-                THEN amount
-                ELSE 0
-              END
-            ),
-            0
-          ) AS total
-        FROM transactions
-      `)
-      .first();
-
-  return json({
-    success: true,
-
-    statistics: {
-      accounts:
-        Number(
-          accounts?.count || 0
-        ),
-
-      administrators:
-        Number(
-          administrators?.count || 0
-        ),
-
-      transactions:
-        Number(
-          transactions?.count || 0
-        ),
-
-      subscriptions:
-        Number(
-          subscriptions?.count || 0
-        ),
-
-      revenue:
-        Number(
-          revenue?.total || 0
-        )
+  return json(
+    {
+      success: true
+    },
+    200,
+    {
+      "Set-Cookie":
+        "meant_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
     }
-  });
+  );
 }
 
-/* =========================================================
-   ADMIN ACCOUNTS
-========================================================= */
-
-export async function adminAccounts(
-  request,
-  env
-) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
-
-  if (result.error) {
-    return result.error;
-  }
-
-  const admin = result.admin;
-
-  if (
-    !hasPermission(
-      admin,
-      "accounts.view"
-    )
-  ) {
-    return json(
-      {
-        success: false,
-        error: "Недостаточно прав"
-      },
-      403
-    );
-  }
-
-  const rows =
-    await env.DB
-      .prepare(`
-        SELECT
-          id,
-          username,
-          email,
-          balance,
-          created_at,
-          updated_at
-        FROM accounts
-        ORDER BY created_at DESC
-        LIMIT 500
-      `)
-      .all();
-
-  return json({
-    success: true,
-
-    accounts:
-      rows.results || []
-  });
-}
 
 /* =========================================================
-   ADMINISTRATORS LIST
-========================================================= */
-
-export async function adminAdministrators(
-  request,
-  env
-) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
-
-  if (result.error) {
-    return result.error;
-  }
-
-  const admin = result.admin;
-
-  if (
-    !hasPermission(
-      admin,
-      "admins.view"
-    )
-  ) {
-    return json(
-      {
-        success: false,
-        error: "Недостаточно прав"
-      },
-      403
-    );
-  }
-
-  const rows =
-    await env.DB
-      .prepare(`
-        SELECT
-          administrators.id,
-          administrators.account_id,
-          administrators.role,
-          administrators.permissions,
-          administrators.active,
-          administrators.must_change_password,
-          administrators.email_verified,
-          administrators.created_at,
-
-          accounts.username,
-          accounts.email
-
-        FROM administrators
-
-        INNER JOIN accounts
-          ON accounts.id =
-             administrators.account_id
-
-        ORDER BY
-          administrators.created_at DESC
-
-        LIMIT 500
-      `)
-      .all();
-
-  const administrators =
-    (rows.results || []).map(
-      item => ({
-        id: item.id,
-
-        account_id:
-          item.account_id,
-
-        username:
-          item.username,
-
-        email:
-          item.email,
-
-        role:
-          item.role,
-
-        permissions:
-          parsePermissions(
-            item.permissions
-          ),
-
-        active:
-          Number(
-            item.active || 0
-          ) === 1,
-
-        must_change_password:
-          Number(
-            item.must_change_password ||
-            0
-          ) === 1,
-
-        email_verified:
-          Number(
-            item.email_verified ||
-            0
-          ) === 1,
-
-        created_at:
-          item.created_at
-      })
-    );
-
-  return json({
-    success: true,
-    administrators
-  });
-}
-
-/* =========================================================
-   CREATE ADMINISTRATOR
+   CREATE ADMIN
 ========================================================= */
 
 export async function createAdministrator(
   request,
   env
 ) {
+
   const result =
     await requireAdmin(
       request,
@@ -506,10 +477,10 @@ export async function createAdministrator(
     return result.error;
   }
 
-  const creator = result.admin;
+  const creator =
+    result.admin;
 
-  // Только OWNER
-  if (creator.role !== "OWNER") {
+  if (!isOwner(creator)) {
     return json(
       {
         success: false,
@@ -521,31 +492,12 @@ export async function createAdministrator(
   }
 
   const body =
-    await request.json().catch(
-      () => null
-    );
-
-  if (!body) {
-    return json(
-      {
-        success: false,
-        error: "Неверный JSON"
-      },
-      400
-    );
-  }
+    await request.json();
 
   const username =
-    String(
-      body.username || ""
-    ).trim();
-
-  const email =
-    String(
-      body.email || ""
-    )
-      .trim()
-      .toLowerCase();
+    normalizeUsername(
+      body.username
+    );
 
   const password =
     String(
@@ -558,49 +510,32 @@ export async function createAdministrator(
     ).toUpperCase();
 
   let permissions =
-    body.permissions;
-
-  if (
-    !Array.isArray(
-      permissions
+    Array.isArray(
+      body.permissions
     )
-  ) {
-    permissions = [];
-  }
+      ? body.permissions
+      : [];
 
-  if (
-    !/^[a-zA-Z0-9_.-]{3,24}$/.test(
-      username
-    )
-  ) {
+  permissions =
+    permissions.filter(
+      permission =>
+        ADMIN_PERMISSIONS.includes(
+          permission
+        )
+    );
+
+  if (!validUsername(username)) {
     return json(
       {
         success: false,
         error:
-          "Некорректный никнейм"
+          "Ник должен содержать 3-24 символа"
       },
       400
     );
   }
 
-  if (
-    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-      email
-    )
-  ) {
-    return json(
-      {
-        success: false,
-        error:
-          "Некорректный email"
-      },
-      400
-    );
-  }
-
-  if (
-    password.length < 8
-  ) {
+  if (password.length < 8) {
     return json(
       {
         success: false,
@@ -611,28 +546,23 @@ export async function createAdministrator(
     );
   }
 
-  const allowedRoles = [
-    "ADMIN",
-    "MODERATOR",
-    "SUPPORT"
-  ];
-
   if (
-    !allowedRoles.includes(
-      role
-    )
+    ![
+      "ADMIN",
+      "MODERATOR",
+      "SUPPORT"
+    ].includes(role)
   ) {
     return json(
       {
         success: false,
-        error:
-          "Недопустимая роль"
+        error: "Недопустимая роль"
       },
       400
     );
   }
 
-  const usernameExists =
+  const exists =
     await env.DB
       .prepare(`
         SELECT id
@@ -644,34 +574,12 @@ export async function createAdministrator(
       .bind(username)
       .first();
 
-  if (usernameExists) {
+  if (exists) {
     return json(
       {
         success: false,
         error:
-          "Этот никнейм уже занят"
-      },
-      409
-    );
-  }
-
-  const emailExists =
-    await env.DB
-      .prepare(`
-        SELECT id
-        FROM accounts
-        WHERE LOWER(email) = ?
-        LIMIT 1
-      `)
-      .bind(email)
-      .first();
-
-  if (emailExists) {
-    return json(
-      {
-        success: false,
-        error:
-          "Этот email уже используется"
+          "Этот ник уже занят"
       },
       409
     );
@@ -683,37 +591,29 @@ export async function createAdministrator(
   const adminId =
     crypto.randomUUID();
 
-  // Импортируем функцию только здесь,
-  // чтобы admin.js не дублировал crypto
-  const {
-    createPasswordHash
-  } = await import(
-    "./session.js"
-  );
-
   const passwordHash =
     await createPasswordHash(
       password
     );
 
   try {
+
     await env.DB
       .prepare(`
         INSERT INTO accounts
         (
           id,
           username,
-          email,
           balance
         )
-        VALUES (?, ?, ?, 0)
+        VALUES (?, ?, 0)
       `)
       .bind(
         accountId,
-        username,
-        email
+        username
       )
       .run();
+
 
     await env.DB
       .prepare(`
@@ -730,6 +630,7 @@ export async function createAdministrator(
       )
       .run();
 
+
     await env.DB
       .prepare(`
         INSERT INTO administrators
@@ -739,10 +640,10 @@ export async function createAdministrator(
           role,
           permissions,
           active,
-          must_change_password,
-          email_verified
+          approved,
+          must_change_password
         )
-        VALUES (?, ?, ?, ?, 1, 1, 0)
+        VALUES (?, ?, ?, ?, 1, 0, 1)
       `)
       .bind(
         adminId,
@@ -790,7 +691,7 @@ export async function createAdministrator(
       {
         success: false,
         error:
-          "Не удалось создать администратора: " +
+          "Ошибка создания администратора: " +
           (
             error?.message ||
             String(error)
@@ -806,37 +707,29 @@ export async function createAdministrator(
 
       administrator: {
         id: adminId,
-
-        account_id:
-          accountId,
-
+        account_id: accountId,
         username,
-
-        email,
-
         role,
-
         permissions,
-
-        must_change_password:
-          true,
-
-        email_verified:
-          false
+        active: true,
+        approved: false,
+        must_change_password: true
       }
     },
     201
   );
 }
 
+
 /* =========================================================
-   UPDATE ADMINISTRATOR
+   APPROVE ADMIN
 ========================================================= */
 
-export async function updateAdministrator(
+export async function approveAdministrator(
   request,
   env
 ) {
+
   const result =
     await requireAdmin(
       request,
@@ -847,40 +740,26 @@ export async function updateAdministrator(
     return result.error;
   }
 
-  const creator = result.admin;
-
-  if (creator.role !== "OWNER") {
+  if (!isOwner(result.admin)) {
     return json(
       {
         success: false,
         error:
-          "Только OWNER может изменять администраторов"
+          "Только OWNER может одобрять администраторов"
       },
       403
     );
   }
 
   const body =
-    await request.json().catch(
-      () => null
-    );
+    await request.json();
 
-  if (!body) {
-    return json(
-      {
-        success: false,
-        error: "Неверный JSON"
-      },
-      400
-    );
-  }
-
-  const adminId =
+  const id =
     String(
       body.id || ""
     );
 
-  if (!adminId) {
+  if (!id) {
     return json(
       {
         success: false,
@@ -894,16 +773,12 @@ export async function updateAdministrator(
   const target =
     await env.DB
       .prepare(`
-        SELECT
-          id,
-          account_id,
-          role,
-          active
+        SELECT id, role
         FROM administrators
         WHERE id = ?
         LIMIT 1
       `)
-      .bind(adminId)
+      .bind(id)
       .first();
 
   if (!target) {
@@ -916,376 +791,34 @@ export async function updateAdministrator(
       404
     );
   }
-
-  if (
-    target.role === "OWNER"
-  ) {
-    return json(
-      {
-        success: false,
-        error:
-          "Нельзя изменить OWNER"
-      },
-      403
-    );
-  }
-
-  if (
-    body.role !== undefined
-  ) {
-    const role =
-      String(
-        body.role
-      ).toUpperCase();
-
-    if (
-      ![
-        "ADMIN",
-        "MODERATOR",
-        "SUPPORT"
-      ].includes(role)
-    ) {
-      return json(
-        {
-          success: false,
-          error:
-            "Недопустимая роль"
-        },
-        400
-      );
-    }
-
-    await env.DB
-      .prepare(`
-        UPDATE administrators
-        SET role = ?
-        WHERE id = ?
-      `)
-      .bind(
-        role,
-        adminId
-      )
-      .run();
-  }
-
-  if (
-    body.permissions !==
-    undefined
-  ) {
-    if (
-      !Array.isArray(
-        body.permissions
-      )
-    ) {
-      return json(
-        {
-          success: false,
-          error:
-            "permissions должен быть массивом"
-        },
-        400
-      );
-    }
-
-    await env.DB
-      .prepare(`
-        UPDATE administrators
-        SET permissions = ?
-        WHERE id = ?
-      `)
-      .bind(
-        JSON.stringify(
-          body.permissions
-        ),
-        adminId
-      )
-      .run();
-  }
-
-  if (
-    body.active !==
-    undefined
-  ) {
-    await env.DB
-      .prepare(`
-        UPDATE administrators
-        SET active = ?
-        WHERE id = ?
-      `)
-      .bind(
-        body.active ? 1 : 0,
-        adminId
-      )
-      .run();
-  }
-
-  return json({
-    success: true
-  });
-}
-
-/* =========================================================
-   DELETE ADMINISTRATOR
-========================================================= */
-
-export async function deleteAdministrator(
-  request,
-  env
-) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
-
-  if (result.error) {
-    return result.error;
-  }
-
-  const creator = result.admin;
-
-  if (creator.role !== "OWNER") {
-    return json(
-      {
-        success: false,
-        error:
-          "Только OWNER может удалять администраторов"
-      },
-      403
-    );
-  }
-
-  const body =
-    await request.json().catch(
-      () => null
-    );
-
-  if (!body) {
-    return json(
-      {
-        success: false,
-        error: "Неверный JSON"
-      },
-      400
-    );
-  }
-
-  const adminId =
-    String(
-      body.id || ""
-    );
-
-  if (!adminId) {
-    return json(
-      {
-        success: false,
-        error:
-          "Не указан ID администратора"
-      },
-      400
-    );
-  }
-
-  const target =
-    await env.DB
-      .prepare(`
-        SELECT
-          id,
-          account_id,
-          role
-        FROM administrators
-        WHERE id = ?
-        LIMIT 1
-      `)
-      .bind(adminId)
-      .first();
-
-  if (!target) {
-    return json(
-      {
-        success: false,
-        error:
-          "Администратор не найден"
-      },
-      404
-    );
-  }
-
-  if (
-    target.role === "OWNER"
-  ) {
-    return json(
-      {
-        success: false,
-        error:
-          "OWNER нельзя удалить"
-      },
-      403
-    );
-  }
-
-  await env.DB
-    .prepare(`
-      DELETE FROM sessions
-      WHERE account_id = ?
-    `)
-    .bind(
-      target.account_id
-    )
-    .run();
-
-  await env.DB
-    .prepare(`
-      DELETE FROM administrators
-      WHERE id = ?
-    `)
-    .bind(adminId)
-    .run();
-
-  await env.DB
-    .prepare(`
-      DELETE FROM credentials
-      WHERE account_id = ?
-    `)
-    .bind(
-      target.account_id
-    )
-    .run();
-
-  await env.DB
-    .prepare(`
-      DELETE FROM accounts
-      WHERE id = ?
-    `)
-    .bind(
-      target.account_id
-    )
-    .run();
-
-  return json({
-    success: true,
-
-    message:
-      "Администратор удалён"
-  });
-}
-
-/* =========================================================
-   CHANGE ADMIN PASSWORD
-========================================================= */
-
-export async function adminChangePassword(
-  request,
-  env
-) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
-
-  if (result.error) {
-    return result.error;
-  }
-
-  const admin = result.admin;
-
-  const body =
-    await request.json().catch(
-      () => null
-    );
-
-  if (!body) {
-    return json(
-      {
-        success: false,
-        error: "Неверный JSON"
-      },
-      400
-    );
-  }
-
-  const newPassword =
-    String(
-      body.password ||
-      body.new_password ||
-      ""
-    );
-
-  if (!newPassword) {
-    return json(
-      {
-        success: false,
-        error:
-          "Введите новый пароль"
-      },
-      400
-    );
-  }
-
-  if (
-    newPassword.length < 8
-  ) {
-    return json(
-      {
-        success: false,
-        error:
-          "Пароль должен содержать минимум 8 символов"
-      },
-      400
-    );
-  }
-
-  const {
-    createPasswordHash
-  } = await import(
-    "./session.js"
-  );
-
-  const passwordHash =
-    await createPasswordHash(
-      newPassword
-    );
-
-  await env.DB
-    .prepare(`
-      UPDATE credentials
-      SET
-        password_hash = ?,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE account_id = ?
-    `)
-    .bind(
-      passwordHash,
-      admin.account_id
-    )
-    .run();
 
   await env.DB
     .prepare(`
       UPDATE administrators
-      SET must_change_password = 0
+      SET approved = 1,
+          active = 1
       WHERE id = ?
     `)
-    .bind(admin.id)
+    .bind(id)
     .run();
 
   return json({
     success: true,
-
     message:
-      "Пароль успешно изменён"
+      "Администратор одобрен"
   });
 }
 
+
 /* =========================================================
-   PRODUCTS
+   UPDATE PERMISSIONS
 ========================================================= */
 
-export async function adminProducts(
+export async function updateAdministratorPermissions(
   request,
   env
 ) {
+
   const result =
     await requireAdmin(
       request,
@@ -1296,58 +829,114 @@ export async function adminProducts(
     return result.error;
   }
 
-  const admin = result.admin;
-
-  if (
-    !hasPermission(
-      admin,
-      "products.view"
-    )
-  ) {
+  if (!isOwner(result.admin)) {
     return json(
       {
         success: false,
         error:
-          "Недостаточно прав"
+          "Только OWNER может изменять права"
       },
       403
     );
   }
 
-  try {
-    const rows =
-      await env.DB
-        .prepare(`
-          SELECT *
-          FROM products
-          ORDER BY created_at DESC
-          LIMIT 500
-        `)
-        .all();
+  const body =
+    await request.json();
 
-    return json({
-      success: true,
+  const id =
+    String(
+      body.id || ""
+    );
 
-      products:
-        rows.results || []
-    });
+  let permissions =
+    Array.isArray(
+      body.permissions
+    )
+      ? body.permissions
+      : [];
 
-  } catch {
-    return json({
-      success: true,
-      products: []
-    });
+  permissions =
+    permissions.filter(
+      permission =>
+        ADMIN_PERMISSIONS.includes(
+          permission
+        )
+    );
+
+  if (!id) {
+    return json(
+      {
+        success: false,
+        error:
+          "Не указан ID администратора"
+      },
+      400
+    );
   }
+
+  const target =
+    await env.DB
+      .prepare(`
+        SELECT role
+        FROM administrators
+        WHERE id = ?
+        LIMIT 1
+      `)
+      .bind(id)
+      .first();
+
+  if (!target) {
+    return json(
+      {
+        success: false,
+        error:
+          "Администратор не найден"
+      },
+      404
+    );
+  }
+
+  if (target.role === "OWNER") {
+    return json(
+      {
+        success: false,
+        error:
+          "Права OWNER нельзя изменить"
+      },
+      403
+    );
+  }
+
+  await env.DB
+    .prepare(`
+      UPDATE administrators
+      SET permissions = ?
+      WHERE id = ?
+    `)
+    .bind(
+      JSON.stringify(
+        permissions
+      ),
+      id
+    )
+    .run();
+
+  return json({
+    success: true,
+    permissions
+  });
 }
 
+
 /* =========================================================
-   TRANSACTIONS
+   LIST ADMINISTRATORS
 ========================================================= */
 
-export async function adminTransactions(
+export async function listAdministrators(
   request,
   env
 ) {
+
   const result =
     await requireAdmin(
       request,
@@ -1358,12 +947,10 @@ export async function adminTransactions(
     return result.error;
   }
 
-  const admin = result.admin;
-
   if (
     !hasPermission(
-      admin,
-      "transactions.view"
+      result.admin,
+      "current_admins"
     )
   ) {
     return json(
@@ -1380,218 +967,60 @@ export async function adminTransactions(
     await env.DB
       .prepare(`
         SELECT
-          transactions.*,
+          administrators.id,
+          administrators.account_id,
+          administrators.role,
+          administrators.permissions,
+          administrators.active,
+          administrators.approved,
+          administrators.must_change_password,
+          administrators.created_at,
           accounts.username
-
-        FROM transactions
-
-        LEFT JOIN accounts
+        FROM administrators
+        INNER JOIN accounts
           ON accounts.id =
-             transactions.account_id
-
-        ORDER BY
-          transactions.created_at DESC
-
-        LIMIT 500
+             administrators.account_id
+        ORDER BY administrators.created_at DESC
       `)
       .all();
 
   return json({
     success: true,
 
-    transactions:
-      rows.results || []
+    administrators:
+      (rows.results || []).map(
+        admin => ({
+          ...admin,
+
+          permissions:
+            parsePermissions(
+              admin.permissions
+            ),
+
+          active:
+            Number(
+              admin.active || 0
+            ) === 1,
+
+          approved:
+            Number(
+              admin.approved || 0
+            ) === 1,
+
+          must_change_password:
+            Number(
+              admin.must_change_password || 0
+            ) === 1
+        })
+      )
   });
 }
 
-/* =========================================================
-   SUBSCRIPTIONS
-========================================================= */
-
-export async function adminSubscriptions(
-  request,
-  env
-) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
-
-  if (result.error) {
-    return result.error;
-  }
-
-  const admin = result.admin;
-
-  if (
-    !hasPermission(
-      admin,
-      "subscriptions.view"
-    )
-  ) {
-    return json(
-      {
-        success: false,
-        error:
-          "Недостаточно прав"
-      },
-      403
-    );
-  }
-
-  const rows =
-    await env.DB
-      .prepare(`
-        SELECT
-          entitlements.*,
-          accounts.username,
-          accounts.email
-
-        FROM entitlements
-
-        LEFT JOIN accounts
-          ON accounts.id =
-             entitlements.account_id
-
-        ORDER BY
-          entitlements.created_at DESC
-
-        LIMIT 500
-      `)
-      .all();
-
-  return json({
-    success: true,
-
-    subscriptions:
-      rows.results || []
-  });
-}
 
 /* =========================================================
-   LOGS
+   CHECK PERMISSION
 ========================================================= */
 
-export async function adminLogs(
-  request,
-  env
-) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
-
-  if (result.error) {
-    return result.error;
-  }
-
-  const admin = result.admin;
-
-  if (
-    !hasPermission(
-      admin,
-      "logs.view"
-    )
-  ) {
-    return json(
-      {
-        success: false,
-        error:
-          "Недостаточно прав"
-      },
-      403
-    );
-  }
-
-  try {
-    const rows =
-      await env.DB
-        .prepare(`
-          SELECT *
-          FROM admin_logs
-          ORDER BY created_at DESC
-          LIMIT 500
-        `)
-        .all();
-
-    return json({
-      success: true,
-
-      logs:
-        rows.results || []
-    });
-
-  } catch {
-    return json({
-      success: true,
-      logs: []
-    });
-  }
-}
-
-/* =========================================================
-   SETTINGS
-========================================================= */
-
-export async function adminSettings(
-  request,
-  env
-) {
-  const result =
-    await requireAdmin(
-      request,
-      env
-    );
-
-  if (result.error) {
-    return result.error;
-  }
-
-  const admin = result.admin;
-
-  if (
-    !hasPermission(
-      admin,
-      "settings.view"
-    )
-  ) {
-    return json(
-      {
-        success: false,
-        error:
-          "Недостаточно прав"
-      },
-      403
-    );
-  }
-
-  return json({
-    success: true,
-
-    settings: {
-      tebex:
-        Boolean(
-          env.TEBEX_PUBLIC_TOKEN
-        ),
-
-      tebex_packages: {
-        "30-days":
-          Boolean(
-            env.TEBEX_PACKAGE_30_DAYS
-          ),
-
-        "90-days":
-          Boolean(
-            env.TEBEX_PACKAGE_90_DAYS
-          ),
-
-        forever:
-          Boolean(
-            env.TEBEX_PACKAGE_FOREVER
-          )
-      }
-    }
-  });
-}
+export {
+  hasPermission
+};
