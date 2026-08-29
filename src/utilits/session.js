@@ -1,15 +1,8 @@
-/* =========================================================
-   SESSION.JS
-   MEANT SHOP
-========================================================= */
-
 const SESSION_DAYS = 30;
-
-const PBKDF2_ITERATIONS = 100000;
-const HASH_BYTES = 32;
+const SESSION_COOKIE_NAME = "meant_session";
 
 /* =========================================================
-   RANDOM
+   TOKEN
 ========================================================= */
 
 function randomBytes(length) {
@@ -19,10 +12,6 @@ function randomBytes(length) {
 
   return bytes;
 }
-
-/* =========================================================
-   BASE64
-========================================================= */
 
 function bytesToBase64(bytes) {
   let binary = "";
@@ -34,29 +23,20 @@ function bytesToBase64(bytes) {
   return btoa(binary);
 }
 
-function base64ToBytes(value) {
-  const binary = atob(value);
-
-  const bytes =
-    new Uint8Array(binary.length);
-
-  for (
-    let i = 0;
-    i < binary.length;
-    i++
-  ) {
-    bytes[i] =
-      binary.charCodeAt(i);
-  }
-
-  return bytes;
+function createToken() {
+  return bytesToBase64(
+    randomBytes(32)
+  )
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
 }
 
 /* =========================================================
    SHA-256
 ========================================================= */
 
-export async function sha256Base64(value) {
+async function sha256Base64(value) {
   const data =
     new TextEncoder().encode(
       String(value)
@@ -74,179 +54,12 @@ export async function sha256Base64(value) {
 }
 
 /* =========================================================
-   PASSWORD HASH
-========================================================= */
-
-async function hashPassword(password) {
-  const salt =
-    randomBytes(16);
-
-  const key =
-    await crypto.subtle.importKey(
-      "raw",
-      new TextEncoder().encode(
-        String(password)
-      ),
-      "PBKDF2",
-      false,
-      ["deriveBits"]
-    );
-
-  const bits =
-    await crypto.subtle.deriveBits(
-      {
-        name: "PBKDF2",
-        salt,
-        iterations:
-          PBKDF2_ITERATIONS,
-        hash: "SHA-256"
-      },
-      key,
-      HASH_BYTES * 8
-    );
-
-  return {
-    hash:
-      bytesToBase64(
-        new Uint8Array(bits)
-      ),
-
-    salt:
-      bytesToBase64(
-        salt
-      )
-  };
-}
-
-/* =========================================================
-   CREATE PASSWORD HASH
-========================================================= */
-
-export async function createPasswordHash(
-  password
-) {
-  const result =
-    await hashPassword(
-      password
-    );
-
-  return (
-    result.salt +
-    "$" +
-    result.hash
-  );
-}
-
-/* =========================================================
-   VERIFY PASSWORD
-========================================================= */
-
-export async function verifyPassword(
-  password,
-  stored
-) {
-  try {
-    if (!stored) {
-      return false;
-    }
-
-    const parts =
-      String(stored).split("$");
-
-    if (
-      parts.length !== 2
-    ) {
-      return false;
-    }
-
-    const salt =
-      base64ToBytes(
-        parts[0]
-      );
-
-    const expected =
-      base64ToBytes(
-        parts[1]
-      );
-
-    const key =
-      await crypto.subtle.importKey(
-        "raw",
-        new TextEncoder().encode(
-          String(password)
-        ),
-        "PBKDF2",
-        false,
-        ["deriveBits"]
-      );
-
-    const bits =
-      await crypto.subtle.deriveBits(
-        {
-          name: "PBKDF2",
-          salt,
-          iterations:
-            PBKDF2_ITERATIONS,
-          hash: "SHA-256"
-        },
-        key,
-        HASH_BYTES * 8
-      );
-
-    const actual =
-      new Uint8Array(bits);
-
-    if (
-      actual.length !==
-      expected.length
-    ) {
-      return false;
-    }
-
-    let difference = 0;
-
-    for (
-      let i = 0;
-      i < actual.length;
-      i++
-    ) {
-      difference |=
-        actual[i] ^
-        expected[i];
-    }
-
-    return difference === 0;
-
-  } catch {
-    return false;
-  }
-}
-
-/* =========================================================
-   TOKEN
-========================================================= */
-
-export function createToken() {
-  return bytesToBase64(
-    randomBytes(32)
-  )
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-}
-
-/* =========================================================
    COOKIE
 ========================================================= */
 
-export function getCookie(
-  request,
-  name
-) {
+function getCookie(request, name) {
   const cookie =
-    request.headers.get(
-      "Cookie"
-    );
+    request.headers.get("Cookie");
 
   if (!cookie) {
     return null;
@@ -264,41 +77,45 @@ export function getCookie(
         name + "="
       )
     ) {
-      return decodeURIComponent(
+      const value =
         item.substring(
           name.length + 1
-        )
-      );
+        );
+
+      try {
+        return decodeURIComponent(
+          value
+        );
+      } catch {
+        return value;
+      }
     }
   }
 
   return null;
 }
 
-/* =========================================================
-   SESSION COOKIE
-========================================================= */
+function createCookie(token) {
+  const maxAge =
+    SESSION_DAYS *
+    24 *
+    60 *
+    60;
 
-export function cookieHeader(
-  token
-) {
   return (
-    "meant_session=" +
+    SESSION_COOKIE_NAME +
+    "=" +
     encodeURIComponent(token) +
     "; Path=/; Max-Age=" +
-    (
-      SESSION_DAYS *
-      24 *
-      60 *
-      60
-    ) +
+    maxAge +
     "; HttpOnly; Secure; SameSite=Lax"
   );
 }
 
-export function clearCookieHeader() {
+export function clearSessionCookie() {
   return (
-    "meant_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
+    SESSION_COOKIE_NAME +
+    "=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
   );
 }
 
@@ -310,10 +127,7 @@ export async function createSession(
   env,
   accountId
 ) {
-  if (
-    !env ||
-    !env.DB
-  ) {
+  if (!env || !env.DB) {
     throw new Error(
       "DB binding не найден"
     );
@@ -321,7 +135,7 @@ export async function createSession(
 
   if (!accountId) {
     throw new Error(
-      "Не указан accountId"
+      "accountId не указан"
     );
   }
 
@@ -366,13 +180,94 @@ export async function createSession(
     .run();
 
   return {
-    id:
-      sessionId,
-
+    id: sessionId,
     token,
-
-    expires
+    expires,
+    cookie: createCookie(token)
   };
+}
+
+/* =========================================================
+   GET SESSION TOKEN
+========================================================= */
+
+export function getSessionToken(request) {
+  return getCookie(
+    request,
+    SESSION_COOKIE_NAME
+  );
+}
+
+/* =========================================================
+   GET SESSION
+========================================================= */
+
+export async function getSession(
+  request,
+  env
+) {
+  const token =
+    getSessionToken(request);
+
+  if (!token) {
+    return null;
+  }
+
+  if (!env || !env.DB) {
+    throw new Error(
+      "DB binding не найден"
+    );
+  }
+
+  const tokenHash =
+    await sha256Base64(
+      token
+    );
+
+  const session =
+    await env.DB
+      .prepare(`
+        SELECT
+          id,
+          account_id,
+          token_hash,
+          expires_at,
+          created_at
+        FROM sessions
+        WHERE token_hash = ?
+        LIMIT 1
+      `)
+      .bind(tokenHash)
+      .first();
+
+  if (!session) {
+    return null;
+  }
+
+  /* -------------------------
+     CHECK EXPIRATION
+  ------------------------- */
+
+  if (
+    !session.expires_at ||
+    new Date(
+      session.expires_at
+    ).getTime() <= Date.now()
+  ) {
+    await env.DB
+      .prepare(`
+        DELETE FROM sessions
+        WHERE id = ?
+      `)
+      .bind(
+        session.id
+      )
+      .run();
+
+    return null;
+  }
+
+  return session;
 }
 
 /* =========================================================
@@ -384,13 +279,16 @@ export async function getSessionAccount(
   env
 ) {
   const token =
-    getCookie(
-      request,
-      "meant_session"
-    );
+    getSessionToken(request);
 
   if (!token) {
     return null;
+  }
+
+  if (!env || !env.DB) {
+    throw new Error(
+      "DB binding не найден"
+    );
   }
 
   const tokenHash =
@@ -408,7 +306,7 @@ export async function getSessionAccount(
           accounts.balance,
 
           sessions.id AS session_id,
-          sessions.expires_at
+          sessions.expires_at AS session_expires_at
 
         FROM sessions
 
@@ -416,44 +314,56 @@ export async function getSessionAccount(
           ON accounts.id =
              sessions.account_id
 
-        WHERE sessions.token_hash = ?
+        WHERE
+          sessions.token_hash = ?
 
         LIMIT 1
       `)
-      .bind(
-        tokenHash
-      )
+      .bind(tokenHash)
       .first();
 
   if (!row) {
     return null;
   }
 
-  /* =======================================================
-     SESSION EXPIRED
-  ======================================================= */
+  /* -------------------------
+     CHECK SESSION EXPIRATION
+  ------------------------- */
 
   if (
-    !row.expires_at ||
+    !row.session_expires_at ||
     new Date(
-      row.expires_at
-    ).getTime() <=
-      Date.now()
+      row.session_expires_at
+    ).getTime() <= Date.now()
   ) {
     await env.DB
       .prepare(`
         DELETE FROM sessions
-        WHERE token_hash = ?
+        WHERE id = ?
       `)
       .bind(
-        tokenHash
+        row.session_id
       )
       .run();
 
     return null;
   }
 
-  return row;
+  return {
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    balance:
+      Number(
+        row.balance || 0
+      ),
+
+    session_id:
+      row.session_id,
+
+    session_expires_at:
+      row.session_expires_at
+  };
 }
 
 /* =========================================================
@@ -465,13 +375,16 @@ export async function deleteSession(
   env
 ) {
   const token =
-    getCookie(
-      request,
-      "meant_session"
-    );
+    getSessionToken(request);
 
   if (!token) {
     return false;
+  }
+
+  if (!env || !env.DB) {
+    throw new Error(
+      "DB binding не найден"
+    );
   }
 
   const tokenHash =
@@ -479,24 +392,66 @@ export async function deleteSession(
       token
     );
 
-  await env.DB
-    .prepare(`
-      DELETE FROM sessions
-      WHERE token_hash = ?
-    `)
-    .bind(
-      tokenHash
-    )
-    .run();
+  const result =
+    await env.DB
+      .prepare(`
+        DELETE FROM sessions
+        WHERE token_hash = ?
+      `)
+      .bind(tokenHash)
+      .run();
 
-  return true;
+  return (
+    Number(
+      result?.meta?.changes || 0
+    ) > 0
+  );
+}
+
+/* =========================================================
+   DELETE SESSION BY TOKEN
+========================================================= */
+
+export async function deleteSessionByToken(
+  env,
+  token
+) {
+  if (!token) {
+    return false;
+  }
+
+  if (!env || !env.DB) {
+    throw new Error(
+      "DB binding не найден"
+    );
+  }
+
+  const tokenHash =
+    await sha256Base64(
+      token
+    );
+
+  const result =
+    await env.DB
+      .prepare(`
+        DELETE FROM sessions
+        WHERE token_hash = ?
+      `)
+      .bind(tokenHash)
+      .run();
+
+  return (
+    Number(
+      result?.meta?.changes || 0
+    ) > 0
+  );
 }
 
 /* =========================================================
    DELETE ALL ACCOUNT SESSIONS
 ========================================================= */
 
-export async function deleteAccountSessions(
+export async function deleteAllSessions(
   env,
   accountId
 ) {
@@ -504,15 +459,50 @@ export async function deleteAccountSessions(
     return false;
   }
 
-  await env.DB
-    .prepare(`
-      DELETE FROM sessions
-      WHERE account_id = ?
-    `)
-    .bind(
-      accountId
-    )
-    .run();
+  if (!env || !env.DB) {
+    throw new Error(
+      "DB binding не найден"
+    );
+  }
 
-  return true;
+  const result =
+    await env.DB
+      .prepare(`
+        DELETE FROM sessions
+        WHERE account_id = ?
+      `)
+      .bind(accountId)
+      .run();
+
+  return (
+    Number(
+      result?.meta?.changes || 0
+    ) > 0
+  );
+}
+
+/* =========================================================
+   CLEAN EXPIRED SESSIONS
+========================================================= */
+
+export async function cleanExpiredSessions(
+  env
+) {
+  if (!env || !env.DB) {
+    throw new Error(
+      "DB binding не найден"
+    );
+  }
+
+  const result =
+    await env.DB
+      .prepare(`
+        DELETE FROM sessions
+        WHERE expires_at <= CURRENT_TIMESTAMP
+      `)
+      .run();
+
+  return Number(
+    result?.meta?.changes || 0
+  );
 }
