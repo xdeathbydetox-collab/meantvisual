@@ -70,3 +70,12 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
 
 CREATE INDEX IF NOT EXISTS idx_admin_sessions_admin
 ON admin_sessions(admin_id);
+CREATE TABLE IF NOT EXISTS admin_access (
+  account_id TEXT PRIMARY KEY,
+  enabled INTEGER NOT NULL DEFAULT 1,
+  granted_by TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_access_enabled
+ON admin_access(enabled);
