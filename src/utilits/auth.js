@@ -1,6 +1,7 @@
 /* =========================================================
    AUTH.JS — MEANT SHOP
-   Регистрация и вход БЕЗ EMAIL
+   Первоначальная версия
+   Регистрация / вход БЕЗ EMAIL
 ========================================================= */
 
 
@@ -8,33 +9,54 @@
    SETTINGS
 ========================================================= */
 
+const SESSION_DAYS = 30;
+
 const PBKDF2_ITERATIONS = 100000;
-const HASH_BYTES = 32;
+
+const COOKIE_NAME = "meant_session";
 
 
 /* =========================================================
-   RESPONSE
+   BASE64
 ========================================================= */
 
-function json(data, status = 200) {
+function b64(bytes) {
 
-    return new Response(
-        JSON.stringify(data),
-        {
-            status,
+    let s = "";
 
-            headers: {
-                "Content-Type":
-                    "application/json; charset=utf-8",
+    for (const b of bytes) {
 
-                "Access-Control-Allow-Origin":
-                    "*",
+        s += String.fromCharCode(b);
 
-                "Access-Control-Allow-Credentials":
-                    "true"
-            }
-        }
-    );
+    }
+
+    return btoa(s);
+
+}
+
+
+function fromB64(s) {
+
+    const raw = atob(s);
+
+    const out =
+        new Uint8Array(
+            raw.length
+        );
+
+    for (
+        let i = 0;
+        i < raw.length;
+        i++
+    ) {
+
+        out[i] =
+            raw.charCodeAt(i);
+
+    }
+
+    return out;
+
 }
 
 
@@ -42,194 +64,21 @@ function json(data, status = 200) {
    RANDOM ID
 ========================================================= */
 
-function generateAccountId() {
-
-    return crypto.randomUUID();
-
-}
-
-
-/* =========================================================
-   NORMALIZE USERNAME
-========================================================= */
-
-function normalizeUsername(username) {
-
-    return String(
-        username ?? ""
-    )
-        .trim();
-
-}
-
-
-/* =========================================================
-   USERNAME VALIDATION
-========================================================= */
-
-function validUsername(username) {
-
-    /*
-     * Разрешаем:
-     * латиницу
-     * цифры
-     * _
-     * -
-     *
-     * От 3 до 24 символов.
-     */
-
-    return /^[a-zA-Z0-9_-]{3,24}$/
-        .test(username);
-
-}
-
-
-/* =========================================================
-   PASSWORD HASH
-========================================================= */
-
-async function hashPassword(password) {
-
-    const encoder =
-        new TextEncoder();
-
-
-    const salt =
-        crypto.getRandomValues(
-            new Uint8Array(16)
-        );
-
-
-    const key =
-        await crypto.subtle.importKey(
-            "raw",
-            encoder.encode(password),
-            {
-                name: "PBKDF2"
-            },
-            false,
-            [
-                "deriveBits"
-            ]
-        );
-
-
-    const bits =
-        await crypto.subtle.deriveBits(
-            {
-                name: "PBKDF2",
-
-                salt,
-
-                iterations:
-                    PBKDF2_ITERATIONS,
-
-                hash:
-                    "SHA-256"
-            },
-
-            key,
-
-            HASH_BYTES * 8
-        );
-
-
-    return {
-
-        hash:
-            bytesToHex(
-                new Uint8Array(bits)
-            ),
-
-        salt:
-            bytesToHex(
-                salt
-            )
-
-    };
-
-}
-
-
-/* =========================================================
-   PASSWORD VERIFY
-========================================================= */
-
-async function verifyPassword(
-    password,
-    storedHash,
-    storedSalt
+function randomId(
+    bytes = 32
 ) {
 
-    const encoder =
-        new TextEncoder();
-
-
-    const salt =
-        hexToBytes(
-            storedSalt
+    const a =
+        new Uint8Array(
+            bytes
         );
 
+    crypto.getRandomValues(a);
 
-    const key =
-        await crypto.subtle.importKey(
-            "raw",
-            encoder.encode(password),
-            {
-                name: "PBKDF2"
-            },
-            false,
-            [
-                "deriveBits"
-            ]
-        );
-
-
-    const bits =
-        await crypto.subtle.deriveBits(
-            {
-                name: "PBKDF2",
-
-                salt,
-
-                iterations:
-                    PBKDF2_ITERATIONS,
-
-                hash:
-                    "SHA-256"
-            },
-
-            key,
-
-            HASH_BYTES * 8
-        );
-
-
-    const hash =
-        bytesToHex(
-            new Uint8Array(bits)
-        );
-
-
-    return hash === storedHash;
-
-}
-
-
-/* =========================================================
-   HEX HELPERS
-========================================================= */
-
-function bytesToHex(
-    bytes
-) {
-
-    return Array
-        .from(bytes)
+    return [...a]
         .map(
-            byte =>
-                byte
+            x =>
+                x
                     .toString(16)
                     .padStart(2, "0")
         )
@@ -238,35 +87,220 @@ function bytesToHex(
 }
 
 
-function hexToBytes(
-    hex
+/* =========================================================
+   SHA-256
+========================================================= */
+
+async function digestHex(
+    text
 ) {
 
-    const bytes =
-        new Uint8Array(
-            hex.length / 2
+    const data =
+        new TextEncoder()
+            .encode(text);
+
+
+    const digest =
+        await crypto.subtle.digest(
+            "SHA-256",
+            data
         );
 
 
-    for (
-        let i = 0;
-        i < hex.length;
-        i += 2
+    return [
+        ...new Uint8Array(
+            digest
+        )
+    ]
+        .map(
+            b =>
+                b
+                    .toString(16)
+                    .padStart(2, "0")
+        )
+        .join("");
+
+}
+
+
+/* =========================================================
+   PASSWORD HASH
+========================================================= */
+
+async function passwordHash(
+    password,
+    saltB64 = null
+) {
+
+    const salt =
+        saltB64
+            ? fromB64(saltB64)
+            : crypto.getRandomValues(
+                new Uint8Array(16)
+            );
+
+
+    const key =
+        await crypto.subtle.importKey(
+            "raw",
+            new TextEncoder().encode(
+                password
+            ),
+            "PBKDF2",
+            false,
+            [
+                "deriveBits"
+            ]
+        );
+
+
+    const bits =
+        await crypto.subtle.deriveBits(
+            {
+                name: "PBKDF2",
+
+                salt,
+
+                iterations:
+                    PBKDF2_ITERATIONS,
+
+                hash:
+                    "SHA-256"
+            },
+
+            key,
+
+            256
+        );
+
+
+    return {
+
+        salt:
+            b64(salt),
+
+        hash:
+            b64(
+                new Uint8Array(
+                    bits
+                )
+            )
+
+    };
+
+}
+
+
+/* =========================================================
+   SAFE EQUAL
+========================================================= */
+
+function safeEqual(
+    a,
+    b
+) {
+
+    if (
+        !a ||
+        !b ||
+        a.length !== b.length
     ) {
 
-        bytes[i / 2] =
-            parseInt(
-                hex.substring(
-                    i,
-                    i + 2
-                ),
-                16
-            );
+        return false;
 
     }
 
 
-    return bytes;
+    let result = 0;
+
+
+    for (
+        let i = 0;
+        i < a.length;
+        i++
+    ) {
+
+        result |=
+            a.charCodeAt(i) ^
+            b.charCodeAt(i);
+
+    }
+
+
+    return result === 0;
+
+}
+
+
+/* =========================================================
+   VERIFY PASSWORD
+========================================================= */
+
+async function verifyPassword(
+    password,
+    stored
+) {
+
+    const parts =
+        String(
+            stored || ""
+        ).split("$");
+
+
+    const scheme =
+        parts[0];
+
+    const iterations =
+        Number(parts[1]);
+
+    const salt =
+        parts[2];
+
+    const hash =
+        parts[3];
+
+
+    if (
+        scheme !==
+            "pbkdf2-sha256"
+    ) {
+
+        return false;
+
+    }
+
+
+    if (
+        iterations !==
+            PBKDF2_ITERATIONS
+    ) {
+
+        return false;
+
+    }
+
+
+    if (
+        !salt ||
+        !hash
+    ) {
+
+        return false;
+
+    }
+
+
+    const calculated =
+        await passwordHash(
+            password,
+            salt
+        );
+
+
+    return safeEqual(
+        calculated.hash,
+        hash
+    );
 
 }
 
@@ -275,37 +309,69 @@ function hexToBytes(
    COOKIE
 ========================================================= */
 
+function cookie(
+    name,
+    value,
+    maxAge
+) {
+
+    return [
+        `${name}=${value}`,
+        `Max-Age=${maxAge}`,
+        "Path=/",
+        "HttpOnly",
+        "Secure",
+        "SameSite=Lax"
+    ].join("; ");
+
+}
+
+
+/* =========================================================
+   CLEAR COOKIE
+========================================================= */
+
+function clearCookie(
+    name
+) {
+
+    return [
+        `${name}=`,
+        "Max-Age=0",
+        "Path=/",
+        "HttpOnly",
+        "Secure",
+        "SameSite=Lax"
+    ].join("; ");
+
+}
+
+
+/* =========================================================
+   GET COOKIE
+========================================================= */
+
 function getCookie(
     request,
     name
 ) {
 
-    const cookieHeader =
+    const raw =
         request.headers.get(
             "Cookie"
-        );
-
-
-    if (!cookieHeader) {
-        return null;
-    }
-
-
-    const cookies =
-        cookieHeader
-            .split(";");
+        ) || "";
 
 
     for (
-        const cookie
-        of cookies
+        const part
+        of raw.split(";")
     ) {
 
         const [
             key,
-            ...rest
+            ...value
         ] =
-            cookie
+            part
                 .trim()
                 .split("=");
 
@@ -314,7 +380,7 @@ function getCookie(
             key === name
         ) {
 
-            return rest.join("=");
+            return value.join("=");
 
         }
 
@@ -327,92 +393,219 @@ function getCookie(
 
 
 /* =========================================================
-   SESSION ID
+   JSON RESPONSE
 ========================================================= */
 
-function generateSessionId() {
-
-    return crypto.randomUUID();
-
-}
-
-
-/* =========================================================
-   SET SESSION COOKIE
-========================================================= */
-
-function sessionCookie(
-    sessionId
+async function authResponse(
+    data,
+    status = 200,
+    extraHeaders = {}
 ) {
 
-    return [
-        `session=${sessionId}`,
-        "Path=/",
-        "HttpOnly",
-        "SameSite=Lax",
-        "Secure",
-        "Max-Age=2592000"
-    ].join("; ");
+    const headers =
+        new Headers({
+
+            "content-type":
+                "application/json;charset=UTF-8",
+
+            "cache-control":
+                "no-store",
+
+            ...extraHeaders
+
+        });
+
+
+    return new Response(
+        JSON.stringify(data),
+        {
+            status,
+            headers
+        }
+    );
 
 }
 
 
 /* =========================================================
-   CLEAR SESSION COOKIE
+   CURRENT ACCOUNT
 ========================================================= */
 
-function clearSessionCookie() {
+async function currentAccount(
+    env,
+    request
+) {
 
-    return [
-        "session=",
-        "Path=/",
-        "HttpOnly",
-        "SameSite=Lax",
-        "Secure",
-        "Max-Age=0"
-    ].join("; ");
+    const token =
+        getCookie(
+            request,
+            COOKIE_NAME
+        );
+
+
+    if (!token) {
+
+        return null;
+
+    }
+
+
+    /*
+     * В БД хранится только SHA-256
+     * от токена сессии.
+     */
+
+    const tokenHash =
+        await digestHex(
+            token
+        );
+
+
+    const row =
+        await env.DB
+            .prepare(`
+                SELECT
+                    a.id,
+                    a.username,
+                    a.balance,
+                    a.created_at,
+                    a.updated_at,
+                    s.expires_at
+                FROM sessions s
+                JOIN accounts a
+                    ON a.id = s.account_id
+                WHERE s.token_hash = ?
+                  AND s.expires_at > CURRENT_TIMESTAMP
+                LIMIT 1
+            `)
+            .bind(
+                tokenHash
+            )
+            .first();
+
+
+    return row || null;
 
 }
 
 
 /* =========================================================
-   REGISTER
+   CREATE SESSION
 ========================================================= */
 
-export async function register(
+async function createSession(
+    env,
+    accountId
+) {
+
+    /*
+     * Сам токен отдаём браузеру.
+     * В БД сохраняем только его SHA-256.
+     */
+
+    const token =
+        randomId(32);
+
+
+    const tokenHash =
+        await digestHex(
+            token
+        );
+
+
+    const expires =
+        new Date(
+            Date.now() +
+            SESSION_DAYS *
+            86400000
+        ).toISOString();
+
+
+    /*
+     * Удаляем старую сессию
+     * пользователя и просроченные сессии.
+     */
+
+    await env.DB
+        .prepare(`
+            DELETE FROM sessions
+            WHERE account_id = ?
+               OR expires_at <= CURRENT_TIMESTAMP
+        `)
+        .bind(
+            accountId
+        )
+        .run();
+
+
+    /*
+     * Создаём новую сессию.
+     */
+
+    await env.DB
+        .prepare(`
+            INSERT INTO sessions (
+                id,
+                account_id,
+                token_hash,
+                expires_at
+            )
+            VALUES (
+                ?,
+                ?,
+                ?,
+                ?
+            )
+        `)
+        .bind(
+            randomId(16),
+            accountId,
+            tokenHash,
+            expires
+        )
+        .run();
+
+
+    return token;
+
+}
+
+
+/* =========================================================
+   AUTH API
+========================================================= */
+
+export async function authApi(
+    env,
     request,
-    env
+    url
 ) {
 
-    try {
 
-        const body =
-            await request.json();
+    /* =====================================================
+       REGISTER
+    ===================================================== */
 
+    if (
+        url.pathname ===
+            "/api/auth/register" &&
+        request.method === "POST"
+    ) {
 
-        const username =
-            normalizeUsername(
-                body.username
-            );
-
-
-        const password =
-            String(
-                body.password ?? ""
-            );
+        let body;
 
 
-        /* -------------------------------------------------
-           USERNAME
-        ------------------------------------------------- */
+        try {
 
-        if (!username) {
+            body =
+                await request.json();
 
-            return json(
+        } catch {
+
+            return authResponse(
                 {
-                    success: false,
                     error:
-                        "Введите никнейм"
+                        "Некорректный JSON"
                 },
                 400
             );
@@ -420,14 +613,31 @@ export async function register(
         }
 
 
-        if (!validUsername(username)) {
+        const username =
+            String(
+                body.username || ""
+            ).trim();
 
-            return json(
+
+        const password =
+            String(
+                body.password || ""
+            );
+
+
+        /* -------------------------------------------------
+           USERNAME
+        ------------------------------------------------- */
+
+        if (
+            !/^[A-Za-zА-Яа-яЁё0-9_]{3,24}$/
+                .test(username)
+        ) {
+
+            return authResponse(
                 {
-                    success: false,
-
                     error:
-                        "Никнейм должен содержать от 3 до 24 символов: латинские буквы, цифры, _ или -"
+                        "Никнейм: 3–24 символа, только буквы, цифры и _"
                 },
                 400
             );
@@ -439,41 +649,15 @@ export async function register(
            PASSWORD
         ------------------------------------------------- */
 
-        if (!password) {
+        if (
+            password.length < 8 ||
+            password.length > 128
+        ) {
 
-            return json(
+            return authResponse(
                 {
-                    success: false,
                     error:
-                        "Введите пароль"
-                },
-                400
-            );
-
-        }
-
-
-        if (password.length < 8) {
-
-            return json(
-                {
-                    success: false,
-                    error:
-                        "Пароль должен быть не короче 8 символов"
-                },
-                400
-            );
-
-        }
-
-
-        if (password.length > 128) {
-
-            return json(
-                {
-                    success: false,
-                    error:
-                        "Пароль слишком длинный"
+                        "Пароль должен содержать от 8 до 128 символов"
                 },
                 400
             );
@@ -485,26 +669,27 @@ export async function register(
            CHECK USERNAME
         ------------------------------------------------- */
 
-        const existing =
+        const exists =
             await env.DB
                 .prepare(`
                     SELECT id
                     FROM accounts
-                    WHERE LOWER(username) =
-                          LOWER(?)
+                    WHERE lower(username)
+                        = lower(?)
                     LIMIT 1
                 `)
-                .bind(username)
+                .bind(
+                    username
+                )
                 .first();
 
 
-        if (existing) {
+        if (exists) {
 
-            return json(
+            return authResponse(
                 {
-                    success: false,
                     error:
-                        "Этот никнейм уже занят"
+                        "Такой никнейм уже занят"
                 },
                 409
             );
@@ -513,21 +698,30 @@ export async function register(
 
 
         /* -------------------------------------------------
-           HASH PASSWORD
-        ------------------------------------------------- */
-
-        const passwordData =
-            await hashPassword(
-                password
-            );
-
-
-        /* -------------------------------------------------
            ACCOUNT ID
         ------------------------------------------------- */
 
         const accountId =
-            generateAccountId();
+            randomId(16);
+
+
+        /* -------------------------------------------------
+           PASSWORD HASH
+        ------------------------------------------------- */
+
+        const passwordData =
+            await passwordHash(
+                password
+            );
+
+
+        const storedPassword =
+            [
+                "pbkdf2-sha256",
+                PBKDF2_ITERATIONS,
+                passwordData.salt,
+                passwordData.hash
+            ].join("$");
 
 
         /* -------------------------------------------------
@@ -539,72 +733,68 @@ export async function register(
                 INSERT INTO accounts (
                     id,
                     username,
-                    password_hash,
-                    password_salt,
-                    balance,
-                    created_at,
-                    updated_at
+                    balance
                 )
                 VALUES (
                     ?,
                     ?,
-                    ?,
-                    ?,
-                    0,
-                    datetime('now'),
-                    datetime('now')
+                    0
                 )
             `)
             .bind(
                 accountId,
-                username,
-                passwordData.hash,
-                passwordData.salt
+                username
             )
             .run();
 
 
         /* -------------------------------------------------
-           SESSION
+           CREATE CREDENTIALS
         ------------------------------------------------- */
-
-        const sessionId =
-            generateSessionId();
-
 
         await env.DB
             .prepare(`
-                INSERT INTO sessions (
-                    id,
+                INSERT INTO credentials (
                     account_id,
-                    created_at,
-                    expires_at
+                    password_hash
                 )
                 VALUES (
                     ?,
-                    ?,
-                    datetime('now'),
-                    datetime('now', '+30 days')
+                    ?
                 )
             `)
             .bind(
-                sessionId,
-                accountId
+                accountId,
+                storedPassword
             )
             .run();
+
+
+        /* -------------------------------------------------
+           CREATE SESSION
+        ------------------------------------------------- */
+
+        const token =
+            await createSession(
+                env,
+                accountId
+            );
 
 
         /* -------------------------------------------------
            RESPONSE
         ------------------------------------------------- */
 
-        return json(
-            {
-                success: true,
+        return authResponse(
 
-                authenticated: true,
+            {
+                ok: true,
+
+                authenticated:
+                    true,
 
                 account: {
+
                     id:
                         accountId,
 
@@ -613,74 +803,75 @@ export async function register(
 
                     balance:
                         0
+
                 }
+
             },
+
             201,
+
             {
-                "Set-Cookie":
-                    sessionCookie(
-                        sessionId
+                "set-cookie":
+                    cookie(
+                        COOKIE_NAME,
+                        token,
+                        SESSION_DAYS *
+                            86400
                     )
             }
-        );
 
-
-    } catch (error) {
-
-        console.error(
-            "REGISTER ERROR:",
-            error
-        );
-
-
-        return json(
-            {
-                success: false,
-
-                error:
-                    error?.message ||
-                    "Ошибка регистрации"
-            },
-            500
         );
 
     }
 
-}
+
+    /* =====================================================
+       LOGIN
+    ===================================================== */
+
+    if (
+        url.pathname ===
+            "/api/auth/login" &&
+        request.method === "POST"
+    ) {
+
+        let body;
 
 
-/* =========================================================
-   LOGIN
-========================================================= */
+        try {
 
-export async function login(
-    request,
-    env
-) {
+            body =
+                await request.json();
 
-    try {
+        } catch {
 
-        const body =
-            await request.json();
+            return authResponse(
+                {
+                    error:
+                        "Некорректный JSON"
+                },
+                400
+            );
+
+        }
 
 
         const username =
-            normalizeUsername(
-                body.username
-            );
+            String(
+                body.username || ""
+            ).trim();
 
 
         const password =
             String(
-                body.password ?? ""
+                body.password || ""
             );
 
 
         if (!username) {
 
-            return json(
+            return authResponse(
                 {
-                    success: false,
                     error:
                         "Введите никнейм"
                 },
@@ -692,9 +883,8 @@ export async function login(
 
         if (!password) {
 
-            return json(
+            return authResponse(
                 {
-                    success: false,
                     error:
                         "Введите пароль"
                 },
@@ -705,59 +895,46 @@ export async function login(
 
 
         /* -------------------------------------------------
-           FIND ACCOUNT
+           FIND ACCOUNT + CREDENTIALS
         ------------------------------------------------- */
 
         const account =
             await env.DB
                 .prepare(`
                     SELECT
-                        id,
-                        username,
-                        password_hash,
-                        password_salt,
-                        balance,
-                        created_at
-                    FROM accounts
-                    WHERE LOWER(username) =
-                          LOWER(?)
+                        a.id,
+                        a.username,
+                        a.balance,
+                        a.created_at,
+                        a.updated_at,
+                        c.password_hash
+                    FROM accounts a
+                    JOIN credentials c
+                        ON c.account_id = a.id
+                    WHERE lower(a.username)
+                        = lower(?)
                     LIMIT 1
                 `)
-                .bind(username)
+                .bind(
+                    username
+                )
                 .first();
 
 
-        if (!account) {
-
-            return json(
-                {
-                    success: false,
-                    error:
-                        "Неверный никнейм или пароль"
-                },
-                401
-            );
-
-        }
-
-
         /* -------------------------------------------------
-           VERIFY PASSWORD
+           VERIFY
         ------------------------------------------------- */
 
-        const valid =
-            await verifyPassword(
+        if (
+            !account ||
+            !await verifyPassword(
                 password,
-                account.password_hash,
-                account.password_salt
-            );
+                account.password_hash
+            )
+        ) {
 
-
-        if (!valid) {
-
-            return json(
+            return authResponse(
                 {
-                    success: false,
                     error:
                         "Неверный никнейм или пароль"
                 },
@@ -768,46 +945,30 @@ export async function login(
 
 
         /* -------------------------------------------------
-           SESSION
+           CREATE SESSION
         ------------------------------------------------- */
 
-        const sessionId =
-            generateSessionId();
-
-
-        await env.DB
-            .prepare(`
-                INSERT INTO sessions (
-                    id,
-                    account_id,
-                    created_at,
-                    expires_at
-                )
-                VALUES (
-                    ?,
-                    ?,
-                    datetime('now'),
-                    datetime('now', '+30 days')
-                )
-            `)
-            .bind(
-                sessionId,
+        const token =
+            await createSession(
+                env,
                 account.id
-            )
-            .run();
+            );
 
 
         /* -------------------------------------------------
            RESPONSE
         ------------------------------------------------- */
 
-        return json(
-            {
-                success: true,
+        return authResponse(
 
-                authenticated: true,
+            {
+                ok: true,
+
+                authenticated:
+                    true,
 
                 account: {
+
                     id:
                         account.id,
 
@@ -821,213 +982,65 @@ export async function login(
 
                     created_at:
                         account.created_at
+
                 }
+
             },
+
             200,
+
             {
-                "Set-Cookie":
-                    sessionCookie(
-                        sessionId
+                "set-cookie":
+                    cookie(
+                        COOKIE_NAME,
+                        token,
+                        SESSION_DAYS *
+                            86400
                     )
             }
-        );
 
-
-    } catch (error) {
-
-        console.error(
-            "LOGIN ERROR:",
-            error
-        );
-
-
-        return json(
-            {
-                success: false,
-
-                error:
-                    error?.message ||
-                    "Ошибка входа"
-            },
-            500
         );
 
     }
 
-}
 
+    /* =====================================================
+       ME
+    ===================================================== */
 
-/* =========================================================
-   ME
-========================================================= */
-
-export async function me(
-    request,
-    env
-) {
-
-    try {
-
-        const sessionId =
-            getCookie(
-                request,
-                "session"
-            );
-
-
-        if (!sessionId) {
-
-            return json(
-                {
-                    success: false,
-
-                    authenticated:
-                        false,
-
-                    error:
-                        "Не авторизован"
-                },
-                401
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           FIND SESSION
-        ------------------------------------------------- */
-
-        const session =
-            await env.DB
-                .prepare(`
-                    SELECT
-                        s.id,
-                        s.account_id,
-                        s.expires_at
-                    FROM sessions s
-                    WHERE s.id = ?
-                    LIMIT 1
-                `)
-                .bind(
-                    sessionId
-                )
-                .first();
-
-
-        if (!session) {
-
-            return json(
-                {
-                    success: false,
-
-                    authenticated:
-                        false,
-
-                    error:
-                        "Сессия недействительна"
-                },
-                401
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           CHECK SESSION EXPIRATION
-        ------------------------------------------------- */
-
-        const expiresAt =
-            new Date(
-                session.expires_at
-            ).getTime();
-
-
-        if (
-            Number.isFinite(
-                expiresAt
-            ) &&
-            expiresAt <= Date.now()
-        ) {
-
-            await env.DB
-                .prepare(`
-                    DELETE FROM sessions
-                    WHERE id = ?
-                `)
-                .bind(
-                    sessionId
-                )
-                .run();
-
-
-            return json(
-                {
-                    success: false,
-
-                    authenticated:
-                        false,
-
-                    error:
-                        "Сессия истекла"
-                },
-                401
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           FIND ACCOUNT
-        ------------------------------------------------- */
+    if (
+        url.pathname ===
+            "/api/auth/me" &&
+        request.method === "GET"
+    ) {
 
         const account =
-            await env.DB
-                .prepare(`
-                    SELECT
-                        id,
-                        username,
-                        balance,
-                        created_at,
-                        updated_at
-                    FROM accounts
-                    WHERE id = ?
-                    LIMIT 1
-                `)
-                .bind(
-                    session.account_id
-                )
-                .first();
+            await currentAccount(
+                env,
+                request
+            );
 
 
         if (!account) {
 
-            return json(
+            return authResponse(
                 {
-                    success: false,
-
                     authenticated:
-                        false,
-
-                    error:
-                        "Аккаунт не найден"
+                        false
                 },
-                404
+                401
             );
 
         }
 
 
-        /* -------------------------------------------------
-           RESPONSE
-        ------------------------------------------------- */
-
-        return json(
+        return authResponse(
             {
-                success: true,
-
-                authenticated: true,
+                authenticated:
+                    true,
 
                 account: {
+
                     id:
                         account.id,
 
@@ -1043,107 +1056,81 @@ export async function me(
                         account.created_at,
 
                     updated_at:
-                        account.updated_at
+                        account.updated_at,
+
+                    expires_at:
+                        account.expires_at
+
                 }
+
             }
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "ME ERROR:",
-            error
-        );
-
-
-        return json(
-            {
-                success: false,
-
-                authenticated:
-                    false,
-
-                error:
-                    error?.message ||
-                    "Не удалось получить аккаунт"
-            },
-            500
         );
 
     }
 
-}
 
+    /* =====================================================
+       LOGOUT
+    ===================================================== */
 
-/* =========================================================
-   LOGOUT
-========================================================= */
+    if (
+        url.pathname ===
+            "/api/auth/logout" &&
+        request.method === "POST"
+    ) {
 
-export async function logout(
-    request,
-    env
-) {
-
-    try {
-
-        const sessionId =
+        const token =
             getCookie(
                 request,
-                "session"
+                COOKIE_NAME
             );
 
 
-        if (sessionId) {
+        if (token) {
+
+            const tokenHash =
+                await digestHex(
+                    token
+                );
+
 
             await env.DB
                 .prepare(`
                     DELETE FROM sessions
-                    WHERE id = ?
+                    WHERE token_hash = ?
                 `)
                 .bind(
-                    sessionId
+                    tokenHash
                 )
                 .run();
 
         }
 
 
-        return json(
+        return authResponse(
+
             {
-                success: true
+                ok: true
             },
+
             200,
+
             {
-                "Set-Cookie":
-                    clearSessionCookie()
+                "set-cookie":
+                    clearCookie(
+                        COOKIE_NAME
+                    )
             }
-        );
 
-
-    } catch (error) {
-
-        console.error(
-            "LOGOUT ERROR:",
-            error
-        );
-
-
-        return json(
-            {
-                success: false,
-
-                error:
-                    error?.message ||
-                    "Ошибка выхода"
-            },
-            500,
-            {
-                "Set-Cookie":
-                    clearSessionCookie()
-            }
         );
 
     }
+
+
+    /* =====================================================
+       NO AUTH ROUTE
+    ===================================================== */
+
+    return null;
 
 }
