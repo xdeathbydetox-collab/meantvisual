@@ -1,524 +1,282 @@
-/* =========================================================
-   AUTH.JS — MEANT SHOP
-   Авторизация БЕЗ EMAIL
-========================================================= */
+/* AUTH.JS — MEANT SHOP
+   D1 schema: accounts + credentials + sessions
+   Registration/login by username and password only.
+*/
 
 const PBKDF2_ITERATIONS = 100000;
 const HASH_BYTES = 32;
-const SESSION_DAYS = 30;
+const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
-
-/* =========================================================
-   RESPONSE
-========================================================= */
-
-function json(data, status = 200, extraHeaders = {}) {
-
-    return new Response(
-        JSON.stringify(data),
-        {
-            status,
-
-            headers: {
-                "Content-Type":
-                    "application/json; charset=utf-8",
-
-                "Access-Control-Allow-Origin":
-                    "*",
-
-                "Access-Control-Allow-Credentials":
-                    "true",
-
-                ...extraHeaders
-            }
+function json(data, status = 200, headers = {}) {
+    return new Response(JSON.stringify(data), {
+        status,
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Credentials": "true",
+            ...headers
         }
-    );
-
+    });
 }
 
-
-/* =========================================================
-   ACCOUNT ID
-========================================================= */
-
-function generateAccountId() {
-
-    return crypto.randomUUID();
-
+function normalizeUsername(value) {
+    return String(value ?? "").trim();
 }
 
-
-/* =========================================================
-   SESSION TOKEN
-========================================================= */
-
-function generateSessionToken() {
-
-    return (
-        crypto.randomUUID() +
-        "-" +
-        crypto.randomUUID()
-    );
-
+function validUsername(value) {
+    return /^[a-zA-Z0-9_-]{3,24}$/.test(value);
 }
-
-
-/* =========================================================
-   USERNAME
-========================================================= */
-
-function normalizeUsername(username) {
-
-    return String(
-        username ?? ""
-    ).trim();
-
-}
-
-
-function validUsername(username) {
-
-    return /^[a-zA-Z0-9_-]{3,24}$/
-        .test(username);
-
-}
-
-
-/* =========================================================
-   PASSWORD
-========================================================= */
-
-function normalizePassword(password) {
-
-    return String(
-        password ?? ""
-    ).replace(
-        /[\u200B-\u200D\uFEFF]/g,
-        ""
-    );
-
-}
-
-
-/* =========================================================
-   HEX
-========================================================= */
 
 function bytesToHex(bytes) {
-
     return Array
         .from(bytes)
-        .map(
-            byte =>
-                byte
-                    .toString(16)
-                    .padStart(2, "0")
-        )
+        .map(b => b.toString(16).padStart(2, "0"))
         .join("");
-
 }
-
 
 function hexToBytes(hex) {
-
-    if (
-        !hex ||
-        hex.length % 2 !== 0
-    ) {
-
-        throw new Error(
-            "Invalid hex string"
-        );
-
+    if (!hex || hex.length % 2) {
+        throw new Error("Некорректный salt");
     }
 
+    const out = new Uint8Array(hex.length / 2);
 
-    const bytes =
-        new Uint8Array(
-            hex.length / 2
+    for (let i = 0; i < hex.length; i += 2) {
+        out[i / 2] = parseInt(
+            hex.slice(i, i + 2),
+            16
         );
-
-
-    for (
-        let i = 0;
-        i < hex.length;
-        i += 2
-    ) {
-
-        bytes[i / 2] =
-            parseInt(
-                hex.substring(
-                    i,
-                    i + 2
-                ),
-                16
-            );
-
     }
 
-
-    return bytes;
-
+    return out;
 }
 
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
 
-/* =========================================================
-   SHA-256
-========================================================= */
-
-async function sha256(value) {
-
-    const data =
-        new TextEncoder()
-            .encode(
-                String(value)
-            );
-
-
-    const hash =
-        await crypto.subtle.digest(
-            "SHA-256",
-            data
-        );
-
-
-    return bytesToHex(
-        new Uint8Array(hash)
+    const salt = crypto.getRandomValues(
+        new Uint8Array(16)
     );
 
-}
+    const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        {
+            name: "PBKDF2"
+        },
+        false,
+        [
+            "deriveBits"
+        ]
+    );
 
+    const bits = await crypto.subtle.deriveBits(
+        {
+            name: "PBKDF2",
+            salt,
+            iterations: PBKDF2_ITERATIONS,
+            hash: "SHA-256"
+        },
+        key,
+        HASH_BYTES * 8
+    );
 
-/* =========================================================
-   PASSWORD HASH
-========================================================= */
-
-async function hashPassword(
-    password
-) {
-
-    const encoder =
-        new TextEncoder();
-
-
-    const salt =
-        crypto.getRandomValues(
-            new Uint8Array(16)
-        );
-
-
-    const key =
-        await crypto.subtle.importKey(
-            "raw",
-            encoder.encode(password),
-            {
-                name: "PBKDF2"
-            },
-            false,
-            [
-                "deriveBits"
-            ]
-        );
-
-
-    const bits =
-        await crypto.subtle.deriveBits(
-            {
-                name: "PBKDF2",
-
-                salt,
-
-                iterations:
-                    PBKDF2_ITERATIONS,
-
-                hash:
-                    "SHA-256"
-            },
-
-            key,
-
-            HASH_BYTES * 8
-        );
-
-
-    return [
-        PBKDF2_ITERATIONS,
-        bytesToHex(salt),
-        bytesToHex(
+    return {
+        hash: bytesToHex(
             new Uint8Array(bits)
+        ),
+
+        salt: bytesToHex(
+            salt
         )
-    ].join("$");
-
+    };
 }
-
-
-/* =========================================================
-   PASSWORD VERIFY
-========================================================= */
 
 async function verifyPassword(
     password,
-    storedPassword
+    storedHash,
+    storedSalt
 ) {
-
-    try {
-
-        const parts =
-            String(
-                storedPassword || ""
-            ).split("$");
-
-
-        if (
-            parts.length !== 3
-        ) {
-
-            return false;
-
-        }
-
-
-        const iterations =
-            Number(parts[0]);
-
-
-        const saltHex =
-            parts[1];
-
-
-        const storedHash =
-            parts[2];
-
-
-        if (
-            !Number.isFinite(iterations) ||
-            !saltHex ||
-            !storedHash
-        ) {
-
-            return false;
-
-        }
-
-
-        const key =
-            await crypto.subtle.importKey(
-                "raw",
-
-                new TextEncoder()
-                    .encode(password),
-
-                {
-                    name: "PBKDF2"
-                },
-
-                false,
-
-                [
-                    "deriveBits"
-                ]
-            );
-
-
-        const bits =
-            await crypto.subtle.deriveBits(
-                {
-                    name: "PBKDF2",
-
-                    salt:
-                        hexToBytes(
-                            saltHex
-                        ),
-
-                    iterations,
-
-                    hash:
-                        "SHA-256"
-                },
-
-                key,
-
-                HASH_BYTES * 8
-            );
-
-
-        const hash =
-            bytesToHex(
-                new Uint8Array(bits)
-            );
-
-
-        return timingSafeEqual(
-            hash,
-            storedHash
-        );
-
-    } catch (error) {
-
-        console.error(
-            "PASSWORD VERIFY ERROR:",
-            error
-        );
-
-
+    if (!storedHash || !storedSalt) {
         return false;
-
     }
 
+    const encoder = new TextEncoder();
+
+    const key = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        {
+            name: "PBKDF2"
+        },
+        false,
+        [
+            "deriveBits"
+        ]
+    );
+
+    const bits = await crypto.subtle.deriveBits(
+        {
+            name: "PBKDF2",
+            salt: hexToBytes(storedSalt),
+            iterations: PBKDF2_ITERATIONS,
+            hash: "SHA-256"
+        },
+        key,
+        HASH_BYTES * 8
+    );
+
+    return (
+        bytesToHex(
+            new Uint8Array(bits)
+        ) === storedHash
+    );
 }
 
+async function hashSessionToken(token) {
+    const digest = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(token)
+    );
 
-/* =========================================================
-   CONSTANT-TIME COMPARE
-========================================================= */
-
-function timingSafeEqual(
-    a,
-    b
-) {
-
-    a = String(a);
-    b = String(b);
-
-
-    if (
-        a.length !== b.length
-    ) {
-
-        return false;
-
-    }
-
-
-    let result = 0;
-
-
-    for (
-        let i = 0;
-        i < a.length;
-        i++
-    ) {
-
-        result |=
-            a.charCodeAt(i) ^
-            b.charCodeAt(i);
-
-    }
-
-
-    return result === 0;
-
+    return bytesToHex(
+        new Uint8Array(digest)
+    );
 }
 
+function generateToken() {
+    return bytesToHex(
+        crypto.getRandomValues(
+            new Uint8Array(32)
+        )
+    );
+}
 
-/* =========================================================
-   COOKIE
-========================================================= */
+function getCookie(request, name) {
+    const header = request.headers.get("Cookie");
 
-function getCookie(
-    request,
-    name
-) {
-
-    const cookieHeader =
-        request.headers.get(
-            "Cookie"
-        );
-
-
-    if (!cookieHeader) {
-
+    if (!header) {
         return null;
-
     }
 
+    for (const part of header.split(";")) {
+        const trimmed = part.trim();
+        const index = trimmed.indexOf("=");
 
-    for (
-        const cookie
-        of cookieHeader.split(";")
-    ) {
-
-        const index =
-            cookie.indexOf("=");
-
-
-        if (
-            index === -1
-        ) {
-
+        if (index < 0) {
             continue;
-
         }
 
+        const key = trimmed.slice(0, index);
 
-        const key =
-            cookie
-                .slice(
-                    0,
-                    index
-                )
-                .trim();
-
-
-        const value =
-            cookie
-                .slice(
-                    index + 1
-                )
-                .trim();
-
-
-        if (
-            key === name
-        ) {
-
-            return value;
-
+        if (key === name) {
+            return decodeURIComponent(
+                trimmed.slice(index + 1)
+            );
         }
-
     }
-
 
     return null;
-
 }
 
-
-/* =========================================================
-   SESSION COOKIE
-========================================================= */
-
-function sessionCookie(
-    token
-) {
-
+function sessionCookie(token) {
     return [
-        `session=${token}`,
+        `session=${encodeURIComponent(token)}`,
         "Path=/",
         "HttpOnly",
-        "Secure",
         "SameSite=Lax",
-        `Max-Age=${SESSION_DAYS * 24 * 60 * 60}`
+        "Secure",
+        `Max-Age=${SESSION_MAX_AGE}`
     ].join("; ");
-
 }
 
-
-/* =========================================================
-   CLEAR SESSION COOKIE
-========================================================= */
-
 function clearSessionCookie() {
-
     return [
         "session=",
         "Path=/",
         "HttpOnly",
-        "Secure",
         "SameSite=Lax",
+        "Secure",
         "Max-Age=0"
     ].join("; ");
-    /* =========================================================
+}
+
+async function createSession(accountId, env) {
+    const token = generateToken();
+
+    const tokenHash =
+        await hashSessionToken(token);
+
+    await env.DB
+        .prepare(`
+            INSERT INTO sessions (
+                id,
+                account_id,
+                token_hash,
+                expires_at,
+                created_at
+            )
+            VALUES (
+                ?,
+                ?,
+                ?,
+                datetime('now', '+30 days'),
+                datetime('now')
+            )
+        `)
+        .bind(
+            crypto.randomUUID(),
+            accountId,
+            tokenHash
+        )
+        .run();
+
+    return token;
+}
+
+async function currentAccount(
+    request,
+    env
+) {
+    const token =
+        getCookie(
+            request,
+            "session"
+        );
+
+    if (!token) {
+        return null;
+    }
+
+    const tokenHash =
+        await hashSessionToken(
+            token
+        );
+
+    return await env.DB
+        .prepare(`
+            SELECT
+                a.id,
+                a.username,
+                a.balance,
+                a.created_at,
+                a.updated_at
+            FROM sessions s
+            JOIN accounts a
+                ON a.id = s.account_id
+            WHERE
+                s.token_hash = ?
+                AND s.expires_at > datetime('now')
+            LIMIT 1
+        `)
+        .bind(
+            tokenHash
+        )
+        .first();
+}
+
+
+/* =========================================================
    REGISTER
 ========================================================= */
 
@@ -526,118 +284,80 @@ export async function register(
     request,
     env
 ) {
-
     try {
-
         const body =
             await request.json();
 
-
         const username =
             normalizeUsername(
-                body?.username
+                body.username
             );
-
 
         const password =
-            normalizePassword(
-                body?.password
+            String(
+                body.password ?? ""
             );
 
-
-        /* -------------------------------------------------
-           USERNAME
-        ------------------------------------------------- */
-
         if (!username) {
-
             return json(
                 {
                     success: false,
-
-                    error:
-                        "Введите никнейм"
+                    error: "Введите никнейм"
                 },
                 400
             );
-
         }
 
-
         if (!validUsername(username)) {
-
             return json(
                 {
                     success: false,
-
                     error:
                         "Никнейм должен содержать от 3 до 24 символов: латинские буквы, цифры, _ или -"
                 },
                 400
             );
-
         }
 
-
-        /* -------------------------------------------------
-           PASSWORD
-        ------------------------------------------------- */
-
         if (!password) {
-
             return json(
                 {
                     success: false,
-
-                    error:
-                        "Введите пароль"
+                    error: "Введите пароль"
                 },
                 400
             );
-
         }
 
-
         if (password.length < 8) {
-
             return json(
                 {
                     success: false,
-
                     error:
                         "Пароль должен быть не короче 8 символов"
                 },
                 400
             );
-
         }
 
-
         if (password.length > 128) {
-
             return json(
                 {
                     success: false,
-
                     error:
                         "Пароль слишком длинный"
                 },
                 400
             );
-
         }
-
-
-        /* -------------------------------------------------
-           CHECK USERNAME
-        ------------------------------------------------- */
 
         const existing =
             await env.DB
                 .prepare(`
                     SELECT id
                     FROM accounts
-                    WHERE LOWER(username) = LOWER(?)
+                    WHERE LOWER(username) =
+                          LOWER(?)
                     LIMIT 1
                 `)
                 .bind(
@@ -645,45 +365,36 @@ export async function register(
                 )
                 .first();
 
-
         if (existing) {
-
             return json(
                 {
                     success: false,
-
                     error:
                         "Этот никнейм уже занят"
                 },
                 409
             );
-
         }
 
-
-        /* -------------------------------------------------
-           ACCOUNT
-        ------------------------------------------------- */
-
         const accountId =
-            generateAccountId();
+            crypto.randomUUID();
 
+        const pass =
+            await hashPassword(
+                password
+            );
 
         await env.DB
             .prepare(`
                 INSERT INTO accounts (
                     id,
                     username,
-                    balance,
-                    created_at,
-                    updated_at
+                    balance
                 )
                 VALUES (
                     ?,
                     ?,
-                    0,
-                    CURRENT_TIMESTAMP,
-                    CURRENT_TIMESTAMP
+                    0
                 )
             `)
             .bind(
@@ -692,85 +403,57 @@ export async function register(
             )
             .run();
 
+        try {
+            /*
+             * В первоначальной D1-схеме
+             * credentials содержит:
+             *
+             * account_id
+             * password_hash
+             *
+             * Поэтому hash и salt
+             * сохраняем вместе:
+             *
+             * hash:salt
+             */
 
-        /* -------------------------------------------------
-           PASSWORD
-        ------------------------------------------------- */
-
-        const passwordHash =
-            await hashPassword(
-                password
-            );
-
-
-        await env.DB
-            .prepare(`
-                INSERT INTO credentials (
-                    account_id,
-                    password_hash,
-                    created_at,
-                    updated_at
+            await env.DB
+                .prepare(`
+                    INSERT INTO credentials (
+                        account_id,
+                        password_hash
+                    )
+                    VALUES (
+                        ?,
+                        ?
+                    )
+                `)
+                .bind(
+                    accountId,
+                    `${pass.hash}:${pass.salt}`
                 )
-                VALUES (
-                    ?,
-                    ?,
-                    CURRENT_TIMESTAMP,
-                    CURRENT_TIMESTAMP
+                .run();
+
+        } catch (error) {
+
+            await env.DB
+                .prepare(`
+                    DELETE FROM accounts
+                    WHERE id = ?
+                `)
+                .bind(
+                    accountId
                 )
-            `)
-            .bind(
-                accountId,
-                passwordHash
-            )
-            .run();
+                .run();
 
-
-        /* -------------------------------------------------
-           SESSION
-        ------------------------------------------------- */
+            throw error;
+        }
 
         const token =
-            generateSessionToken();
-
-
-        const tokenHash =
-            await sha256(
-                token
-            );
-
-
-        const sessionId =
-            crypto.randomUUID();
-
-
-        await env.DB
-            .prepare(`
-                INSERT INTO sessions (
-                    id,
-                    account_id,
-                    token_hash,
-                    expires_at,
-                    created_at
-                )
-                VALUES (
-                    ?,
-                    ?,
-                    ?,
-                    datetime('now', '+30 days'),
-                    CURRENT_TIMESTAMP
-                )
-            `)
-            .bind(
-                sessionId,
+            await createSession(
                 accountId,
-                tokenHash
-            )
-            .run();
-
-
-        /* -------------------------------------------------
-           RESPONSE
-        ------------------------------------------------- */
+                env
+            );
 
         return json(
             {
@@ -798,14 +481,12 @@ export async function register(
             }
         );
 
-
     } catch (error) {
 
         console.error(
             "REGISTER ERROR:",
             error
         );
-
 
         return json(
             {
@@ -817,9 +498,7 @@ export async function register(
             },
             500
         );
-
     }
-
 }
 
 
@@ -831,58 +510,42 @@ export async function login(
     request,
     env
 ) {
-
     try {
 
         const body =
             await request.json();
 
-
         const username =
             normalizeUsername(
-                body?.username
+                body.username
             );
-
 
         const password =
-            normalizePassword(
-                body?.password
+            String(
+                body.password ?? ""
             );
 
-
         if (!username) {
-
             return json(
                 {
                     success: false,
-
                     error:
                         "Введите никнейм"
                 },
                 400
             );
-
         }
 
-
         if (!password) {
-
             return json(
                 {
                     success: false,
-
                     error:
                         "Введите пароль"
                 },
                 400
             );
-
         }
-
-
-        /* -------------------------------------------------
-           FIND ACCOUNT + CREDENTIALS
-        ------------------------------------------------- */
 
         const account =
             await env.DB
@@ -895,9 +558,11 @@ export async function login(
                         a.updated_at,
                         c.password_hash
                     FROM accounts a
-                    LEFT JOIN credentials c
+                    JOIN credentials c
                         ON c.account_id = a.id
-                    WHERE LOWER(a.username) = LOWER(?)
+                    WHERE
+                        LOWER(a.username) =
+                        LOWER(?)
                     LIMIT 1
                 `)
                 .bind(
@@ -905,97 +570,70 @@ export async function login(
                 )
                 .first();
 
-
-        if (
-            !account ||
-            !account.password_hash
-        ) {
-
+        if (!account) {
             return json(
                 {
                     success: false,
-
                     error:
                         "Неверный никнейм или пароль"
                 },
                 401
             );
-
         }
 
+        const stored =
+            String(
+                account.password_hash || ""
+            );
 
-        /* -------------------------------------------------
-           VERIFY
-        ------------------------------------------------- */
+        const separator =
+            stored.indexOf(":");
+
+        if (separator < 0) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Данные пароля аккаунта повреждены"
+                },
+                500
+            );
+        }
+
+        const storedHash =
+            stored.slice(
+                0,
+                separator
+            );
+
+        const storedSalt =
+            stored.slice(
+                separator + 1
+            );
 
         const valid =
             await verifyPassword(
                 password,
-                account.password_hash
+                storedHash,
+                storedSalt
             );
 
-
         if (!valid) {
-
             return json(
                 {
                     success: false,
-
                     error:
                         "Неверный никнейм или пароль"
                 },
                 401
             );
-
         }
 
-
-        /* -------------------------------------------------
-           SESSION
-        ------------------------------------------------- */
-
         const token =
-            generateSessionToken();
-
-
-        const tokenHash =
-            await sha256(
-                token
-            );
-
-
-        const sessionId =
-            crypto.randomUUID();
-
-
-        await env.DB
-            .prepare(`
-                INSERT INTO sessions (
-                    id,
-                    account_id,
-                    token_hash,
-                    expires_at,
-                    created_at
-                )
-                VALUES (
-                    ?,
-                    ?,
-                    ?,
-                    datetime('now', '+30 days'),
-                    CURRENT_TIMESTAMP
-                )
-            `)
-            .bind(
-                sessionId,
+            await createSession(
                 account.id,
-                tokenHash
-            )
-            .run();
-
-
-        /* -------------------------------------------------
-           RESPONSE
-        ------------------------------------------------- */
+                env
+            );
 
         return json(
             {
@@ -1031,14 +669,12 @@ export async function login(
             }
         );
 
-
     } catch (error) {
 
         console.error(
             "LOGIN ERROR:",
             error
         );
-
 
         return json(
             {
@@ -1050,12 +686,10 @@ export async function login(
             },
             500
         );
-
     }
-
 }
 
-}
+
 /* =========================================================
    ME
 ========================================================= */
@@ -1064,18 +698,15 @@ export async function me(
     request,
     env
 ) {
-
     try {
 
-        const token =
-            getCookie(
+        const account =
+            await currentAccount(
                 request,
-                "session"
+                env
             );
 
-
-        if (!token) {
-
+        if (!account) {
             return json(
                 {
                     success: false,
@@ -1088,256 +719,7 @@ export async function me(
                 },
                 401
             );
-
         }
-
-
-        const tokenHash =
-            await sha256(
-                token
-            );
-
-
-        /* -------------------------------------------------
-           SESSION
-        ------------------------------------------------- */
-
-        const session =
-            await env.DB
-                .prepare(`
-                    SELECT
-                        id,
-                        account_id,
-                        expires_at
-                    FROM sessions
-                    WHERE token_hash = ?
-                    LIMIT 1
-                `)
-                .bind(
-                    tokenHash
-                )
-                .first();
-
-
-        if (!session) {
-
-            return json(
-                {
-                    success: false,
-
-                    authenticated:
-                        false,
-
-                    error:
-                        "Сессия недействительна"
-                },
-                401
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           EXPIRATION
-        ------------------------------------------------- */
-
-        const expiresAt =
-            String(
-                session.expires_at || ""
-            ).replace(
-                " ",
-                "T"
-            );
-
-
-        const expiresTime =
-            new Date(
-                expiresAt.endsWith("Z")
-                    ? expiresAt
-                    : expiresAt + "Z"
-            ).getTime();
-
-
-        if (
-            Number.isFinite(
-                expiresTime
-            ) &&
-            expiresTime <= Date.now()
-        ) {
-
-            await env.DB
-                .prepare(`
-                    DELETE FROM sessions
-                    WHERE id = ?
-                `)
-                .bind(
-                    session.id
-                )
-                .run();
-
-
-            return json(
-                {
-                    success: false,
-
-                    authenticated:
-                        false,
-
-                    error:
-                        "Сессия истекла"
-                },
-                401,
-                {
-                    "Set-Cookie":
-                        clearSessionCookie()
-                }
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           ACCOUNT
-        ------------------------------------------------- */
-
-        const account =
-            await env.DB
-                .prepare(`
-                    SELECT
-                        id,
-                        username,
-                        balance,
-                        created_at,
-                        updated_at
-                    FROM accounts
-                    WHERE id = ?
-                    LIMIT 1
-                `)
-                .bind(
-                    session.account_id
-                )
-                .first();
-
-
-        if (!account) {
-
-            await env.DB
-                .prepare(`
-                    DELETE FROM sessions
-                    WHERE id = ?
-                `)
-                .bind(
-                    session.id
-                )
-                .run();
-
-
-            return json(
-                {
-                    success: false,
-
-                    authenticated:
-                        false,
-
-                    error:
-                        "Аккаунт не найден"
-                },
-                404,
-                {
-                    "Set-Cookie":
-                        clearSessionCookie()
-                }
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           SUBSCRIPTION
-        ------------------------------------------------- */
-
-        let subscription = null;
-
-
-        try {
-
-            const entitlement =
-                await env.DB
-                    .prepare(`
-                        SELECT
-                            id,
-                            product_id,
-                            product_name,
-                            expires_at,
-                            status,
-                            tebex_transaction_id,
-                            created_at
-                        FROM entitlements
-                        WHERE account_id = ?
-                          AND status = 'active'
-                          AND (
-                              expires_at IS NULL
-                              OR expires_at = ''
-                              OR datetime(expires_at)
-                                 > datetime('now')
-                          )
-                        ORDER BY
-                            CASE
-                                WHEN expires_at IS NULL
-                                THEN 1
-                                ELSE 0
-                            END DESC,
-                            datetime(created_at) DESC
-                        LIMIT 1
-                    `)
-                    .bind(
-                        account.id
-                    )
-                    .first();
-
-
-            if (entitlement) {
-
-                subscription = {
-
-                    active:
-                        true,
-
-                    plan:
-                        entitlement.product_name,
-
-                    product_id:
-                        entitlement.product_id,
-
-                    started_at:
-                        entitlement.created_at,
-
-                    expires_at:
-                        entitlement.expires_at,
-
-                    status:
-                        entitlement.status,
-
-                    tebex_transaction_id:
-                        entitlement.tebex_transaction_id
-
-                };
-
-            }
-
-        } catch (error) {
-
-            console.error(
-                "ENTITLEMENT ERROR:",
-                error
-            );
-
-        }
-
-
-        /* -------------------------------------------------
-           RESPONSE
-        ------------------------------------------------- */
 
         return json(
             {
@@ -1347,7 +729,6 @@ export async function me(
                     true,
 
                 account: {
-
                     id:
                         account.id,
 
@@ -1363,18 +744,10 @@ export async function me(
                         account.created_at,
 
                     updated_at:
-                        account.updated_at,
-
-                    premium:
-                        subscription !== null,
-
-                    subscription:
-                        subscription
-
+                        account.updated_at
                 }
             }
         );
-
 
     } catch (error) {
 
@@ -1382,7 +755,6 @@ export async function me(
             "ME ERROR:",
             error
         );
-
 
         return json(
             {
@@ -1397,9 +769,7 @@ export async function me(
             },
             500
         );
-
     }
-
 }
 
 
@@ -1411,7 +781,6 @@ export async function logout(
     request,
     env
 ) {
-
     try {
 
         const token =
@@ -1420,14 +789,12 @@ export async function logout(
                 "session"
             );
 
-
         if (token) {
 
             const tokenHash =
-                await sha256(
+                await hashSessionToken(
                     token
                 );
-
 
             await env.DB
                 .prepare(`
@@ -1438,13 +805,14 @@ export async function logout(
                     tokenHash
                 )
                 .run();
-
         }
-
 
         return json(
             {
-                success: true
+                success: true,
+
+                authenticated:
+                    false
             },
             200,
             {
@@ -1453,14 +821,12 @@ export async function logout(
             }
         );
 
-
     } catch (error) {
 
         console.error(
             "LOGOUT ERROR:",
             error
         );
-
 
         return json(
             {
@@ -1476,7 +842,5 @@ export async function logout(
                     clearSessionCookie()
             }
         );
-
     }
-
 }
