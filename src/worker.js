@@ -6,10 +6,10 @@ import {
 } from "./utilits/auth.js";
 
 import {
-    adminRegister,
-    adminLogin,
+    registerAdmin,
+    loginAdmin,
     adminMe,
-    adminLogout
+    logoutAdmin
 } from "./utilits/admin.js";
 
 
@@ -37,15 +37,20 @@ export default {
                     "Access-Control-Allow-Methods":
                         "GET,POST,PUT,DELETE,OPTIONS",
                     "Access-Control-Allow-Headers":
-                        "Content-Type"
+                        "Content-Type",
+                    "Access-Control-Allow-Credentials":
+                        "true"
                 }
             });
+
         }
 
 
         /* =====================================================
            ОБЫЧНАЯ АВТОРИЗАЦИЯ
            auth.js
+
+           ЭТА СИСТЕМА НЕ МЕНЯЕТСЯ
         ===================================================== */
 
         if (
@@ -57,6 +62,7 @@ export default {
                 request,
                 env
             );
+
         }
 
 
@@ -69,6 +75,7 @@ export default {
                 request,
                 env
             );
+
         }
 
 
@@ -81,6 +88,7 @@ export default {
                 request,
                 env
             );
+
         }
 
 
@@ -93,12 +101,15 @@ export default {
                 request,
                 env
             );
+
         }
 
 
         /* =====================================================
            АДМИНСКАЯ АВТОРИЗАЦИЯ
            admin.js
+
+           ОТДЕЛЬНАЯ СИСТЕМА
         ===================================================== */
 
         if (
@@ -106,10 +117,11 @@ export default {
             method === "POST"
         ) {
 
-            return adminRegister(
+            return registerAdmin(
                 request,
                 env
             );
+
         }
 
 
@@ -118,10 +130,11 @@ export default {
             method === "POST"
         ) {
 
-            return adminLogin(
+            return loginAdmin(
                 request,
                 env
             );
+
         }
 
 
@@ -134,6 +147,7 @@ export default {
                 request,
                 env
             );
+
         }
 
 
@@ -142,10 +156,11 @@ export default {
             method === "POST"
         ) {
 
-            return adminLogout(
+            return logoutAdmin(
                 request,
                 env
             );
+
         }
 
 
@@ -163,9 +178,17 @@ export default {
 
                 headers: {
                     "Content-Type":
-                        "application/json; charset=utf-8"
+                        "application/json; charset=utf-8",
+
+                    "Access-Control-Allow-Origin":
+                        "*",
+
+                    "Access-Control-Allow-Credentials":
+                        "true"
                 }
             }
         );
+
     }
+
 };
