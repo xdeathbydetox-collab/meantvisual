@@ -1,0 +1,2759 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>MEANT SHOP — Admin Panel</title>
+
+<style>
+:root{
+    --bg:#070707;
+    --card:#111;
+    --card2:#161616;
+    --line:#292929;
+    --yellow:#ffd21a;
+    --yellow2:#ffb900;
+    --text:#f7f7f7;
+    --muted:#909090;
+    --danger:#ff4d4d;
+    --green:#55d98b;
+}
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    background:
+        radial-gradient(
+            circle at 50% -10%,
+            #2b2400 0,
+            #0b0b0b 34%,
+            #050505 75%
+        );
+    color:var(--text);
+    font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+}
+
+button,
+input,
+select{
+    font:inherit;
+}
+
+button{
+    cursor:pointer;
+}
+
+.hidden{
+    display:none!important;
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+.login-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+}
+
+.login-card{
+    width:100%;
+    max-width:440px;
+    background:
+        linear-gradient(
+            180deg,
+            #151515,
+            #0c0c0c
+        );
+    border:1px solid var(--line);
+    border-radius:28px;
+    padding:30px;
+    box-shadow:0 30px 100px #000b;
+}
+
+.logo{
+    text-align:center;
+    font-size:20px;
+    font-weight:950;
+    letter-spacing:.08em;
+}
+
+.logo b{
+    color:var(--yellow);
+}
+
+.login-eyebrow{
+    margin-top:45px;
+    text-align:center;
+    color:var(--yellow);
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.2em;
+}
+
+.login-title{
+    margin:12px 0 8px;
+    text-align:center;
+    font-size:40px;
+    line-height:1;
+}
+
+.login-subtitle{
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.5;
+    margin-bottom:28px;
+}
+
+.field{
+    margin-bottom:15px;
+}
+
+.field label{
+    display:block;
+    margin-bottom:7px;
+    color:#777;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+.field input,
+.field select{
+    width:100%;
+    padding:14px;
+    border-radius:13px;
+    border:1px solid #303030;
+    outline:none;
+    background:#0c0c0c;
+    color:#fff;
+}
+
+.field input:focus,
+.field select:focus{
+    border-color:var(--yellow);
+}
+
+.primary{
+    width:100%;
+    padding:15px;
+    border:0;
+    border-radius:14px;
+    background:var(--yellow);
+    color:#050505;
+    font-weight:950;
+}
+
+.primary:hover{
+    background:var(--yellow2);
+}
+
+.primary:disabled{
+    opacity:.55;
+    cursor:not-allowed;
+}
+
+.error{
+    min-height:20px;
+    margin-top:13px;
+    text-align:center;
+    color:#ff7373;
+    font-size:12px;
+}
+
+
+/* =========================================================
+   ADMIN APP
+========================================================= */
+
+.app{
+    min-height:100vh;
+}
+
+.header{
+    position:sticky;
+    top:0;
+    z-index:20;
+
+    height:72px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    padding:0 28px;
+
+    background:#101010eF;
+    backdrop-filter:blur(15px);
+
+    border-bottom:1px solid var(--line);
+}
+
+.header-left{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.header-logo{
+    font-size:19px;
+    font-weight:950;
+    letter-spacing:.08em;
+}
+
+.header-logo b{
+    color:var(--yellow);
+}
+
+.admin-badge{
+    padding:7px 11px;
+    border-radius:10px;
+    border:1px solid #3a3300;
+    background:#1d1a08;
+    color:var(--yellow);
+    font-size:11px;
+    font-weight:900;
+}
+
+.header-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.admin-name{
+    color:#aaa;
+    font-size:13px;
+}
+
+.logout{
+    padding:9px 14px;
+    border-radius:11px;
+    border:1px solid #383838;
+    background:#171717;
+    color:#ddd;
+    font-weight:800;
+}
+
+.logout:hover{
+    border-color:var(--danger);
+    color:#fff;
+}
+
+
+/* =========================================================
+   LAYOUT
+========================================================= */
+
+.layout{
+    display:flex;
+    min-height:calc(100vh - 72px);
+}
+
+.sidebar{
+    width:245px;
+    flex-shrink:0;
+    padding:22px 15px;
+    border-right:1px solid var(--line);
+    background:#0b0b0b;
+}
+
+.sidebar-title{
+    margin:5px 10px 12px;
+    color:#555;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.15em;
+    text-transform:uppercase;
+}
+
+.nav-btn{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:11px;
+
+    padding:12px 13px;
+    margin-bottom:6px;
+
+    border:1px solid transparent;
+    border-radius:12px;
+
+    background:transparent;
+    color:#999;
+
+    text-align:left;
+    font-weight:800;
+}
+
+.nav-btn:hover{
+    background:#141414;
+    color:#fff;
+}
+
+.nav-btn.active{
+    background:#1d1a08;
+    border-color:#514500;
+    color:var(--yellow);
+}
+
+.content{
+    flex:1;
+    min-width:0;
+    padding:30px;
+}
+
+.section{
+    display:none;
+}
+
+.section.active{
+    display:block;
+}
+
+
+/* =========================================================
+   PAGE HEAD
+========================================================= */
+
+.page-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:20px;
+    margin-bottom:25px;
+}
+
+.page-title{
+    margin:0;
+    font-size:32px;
+    font-weight:950;
+}
+
+.page-description{
+    margin-top:7px;
+    color:var(--muted);
+    font-size:13px;
+}
+
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.grid{
+    display:grid;
+    grid-template-columns:
+        repeat(
+            4,
+            minmax(0,1fr)
+        );
+    gap:15px;
+}
+
+.stat{
+    padding:20px;
+    border:1px solid var(--line);
+    border-radius:18px;
+    background:linear-gradient(
+        180deg,
+        #151515,
+        #101010
+    );
+}
+
+.stat-label{
+    color:#777;
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+}
+
+.stat-value{
+    margin-top:8px;
+    font-size:28px;
+    font-weight:950;
+}
+
+.panel{
+    margin-top:20px;
+    overflow:hidden;
+
+    border:1px solid var(--line);
+    border-radius:18px;
+
+    background:#101010;
+}
+
+.panel-head{
+    padding:17px 19px;
+    border-bottom:1px solid var(--line);
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.panel-title{
+    font-size:14px;
+    font-weight:900;
+}
+
+.refresh{
+    padding:8px 12px;
+    border-radius:10px;
+    border:1px solid #333;
+    background:#181818;
+    color:#aaa;
+    font-size:12px;
+    font-weight:800;
+}
+
+.refresh:hover{
+    color:#fff;
+    border-color:#555;
+}
+
+
+/* =========================================================
+   TABLE
+========================================================= */
+
+.table-wrap{
+    width:100%;
+    overflow-x:auto;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:700px;
+}
+
+th,
+td{
+    padding:13px 16px;
+    border-bottom:1px solid #222;
+    text-align:left;
+    font-size:12px;
+}
+
+th{
+    color:#666;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+
+td{
+    color:#ddd;
+}
+
+tr:last-child td{
+    border-bottom:0;
+}
+
+.role{
+    display:inline-block;
+    padding:5px 8px;
+    border-radius:8px;
+    background:#1d1a08;
+    color:var(--yellow);
+    font-size:10px;
+    font-weight:900;
+}
+
+.role.admin{
+    color:#9ca3ff;
+    background:#14152a;
+}
+
+.status{
+    display:inline-block;
+    padding:5px 8px;
+    border-radius:8px;
+    background:#102219;
+    color:var(--green);
+    font-size:10px;
+    font-weight:900;
+}
+
+
+/* =========================================================
+   EMPTY / LOADING
+========================================================= */
+
+.empty{
+    padding:35px;
+    text-align:center;
+    color:#666;
+    font-size:13px;
+}
+
+.loading{
+    padding:35px;
+    text-align:center;
+    color:#777;
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal{
+    position:fixed;
+    inset:0;
+    z-index:100;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:20px;
+
+    background:#000b;
+    backdrop-filter:blur(7px);
+}
+
+.modal-card{
+    width:100%;
+    max-width:460px;
+
+    padding:25px;
+
+    border:1px solid var(--line);
+    border-radius:22px;
+
+    background:#111;
+    box-shadow:0 30px 100px #000;
+}
+
+.modal-title{
+    margin:0 0 20px;
+    font-size:22px;
+    font-weight:950;
+}
+
+.modal-actions{
+    display:flex;
+    gap:10px;
+    margin-top:20px;
+}
+
+.modal-actions button{
+    flex:1;
+    padding:12px;
+    border-radius:12px;
+    font-weight:900;
+}
+
+.cancel{
+    border:1px solid #333;
+    background:#171717;
+    color:#aaa;
+}
+
+.cancel:hover{
+    color:#fff;
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast{
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    z-index:200;
+
+    max-width:350px;
+
+    padding:13px 16px;
+
+    border:1px solid #333;
+    border-radius:13px;
+
+    background:#151515;
+    color:#fff;
+
+    box-shadow:0 15px 50px #000;
+
+    font-size:12px;
+}
+
+.toast.success{
+    border-color:#275c3d;
+}
+
+.toast.error{
+    border-color:#6b2929;
+    color:#ff9b9b;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media(max-width:1000px){
+
+    .grid{
+        grid-template-columns:
+            repeat(
+                2,
+                minmax(0,1fr)
+            );
+    }
+
+}
+
+@media(max-width:700px){
+
+    .header{
+        padding:0 15px;
+    }
+
+    .admin-name{
+        display:none;
+    }
+
+    .layout{
+        display:block;
+    }
+
+    .sidebar{
+        width:100%;
+        border-right:0;
+        border-bottom:1px solid var(--line);
+        padding:10px;
+        display:flex;
+        overflow-x:auto;
+        gap:6px;
+    }
+
+    .sidebar-title{
+        display:none;
+    }
+
+    .nav-btn{
+        width:auto;
+        flex-shrink:0;
+        margin:0;
+    }
+
+    .content{
+        padding:20px 15px;
+    }
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+    .page-head{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .page-title{
+        font-size:27px;
+    }
+
+}
+</style>
+</head>
+
+<body>
+
+
+<!-- =======================================================
+     LOGIN
+======================================================= -->
+
+<div id="loginPage" class="login-page">
+
+    <div class="login-card">
+
+        <div class="logo">
+            MEANT <b>ADMIN</b>
+        </div>
+
+        <div class="login-eyebrow">
+            ADMINISTRATION
+        </div>
+
+        <h1 class="login-title">
+            ВХОД
+        </h1>
+
+        <div class="login-subtitle">
+            Войдите в панель управления MEANT SHOP.
+        </div>
+
+        <form id="loginForm">
+
+            <div class="field">
+
+                <label>
+                    Логин администратора
+                </label>
+
+                <input
+                    id="loginUsername"
+                    type="text"
+                    autocomplete="username"
+                    minlength="3"
+                    maxlength="32"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Пароль
+                </label>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                >
+
+            </div>
+
+
+            <button
+                id="loginButton"
+                class="primary"
+                type="submit"
+            >
+                Войти
+            </button>
+
+        </form>
+
+        <div
+            id="loginError"
+            class="error"
+        ></div>
+
+    </div>
+
+</div>
+
+
+<!-- =======================================================
+     ADMIN APP
+======================================================= -->
+
+<div
+    id="adminApp"
+    class="app hidden"
+>
+
+    <header class="header">
+
+        <div class="header-left">
+
+            <div class="header-logo">
+                MEANT <b>ADMIN</b>
+            </div>
+
+            <div
+                id="headerRole"
+                class="admin-badge"
+            >
+                ADMIN
+            </div>
+
+        </div>
+
+
+        <div class="header-right">
+
+            <div
+                id="headerName"
+                class="admin-name"
+            >
+                —
+            </div>
+
+            <button
+                id="logoutButton"
+                class="logout"
+            >
+                Выйти
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <div class="layout">
+
+
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-title">
+                Панель
+            </div>
+
+            <button
+                class="nav-btn active"
+                data-section="dashboard"
+            >
+                ◈
+                Главная
+            </button>
+
+            <button
+                class="nav-btn"
+                data-section="accounts"
+            >
+                ◉
+                Пользователи
+            </button>
+
+            <button
+                class="nav-btn"
+                data-section="administrators"
+            >
+                ◆
+                Администраторы
+            </button>
+
+            <button
+                class="nav-btn"
+                data-section="transactions"
+            >
+                ₽
+                Транзакции
+            </button>
+
+            <button
+                class="nav-btn"
+                data-section="subscriptions"
+            >
+                ★
+                Подписки
+            </button>
+
+            <button
+                class="nav-btn"
+                data-section="products"
+            >
+                ▣
+                Товары
+            </button>
+
+            <button
+                class="nav-btn"
+                data-section="logs"
+            >
+                ≡
+                Логи
+            </button>
+
+            <button
+                class="nav-btn"
+                data-section="settings"
+            >
+                ⚙
+                Настройки
+            </button>
+
+        </aside>
+
+
+        <!-- =================================================
+             CONTENT
+        ================================================== -->
+
+        <main class="content">
+
+
+            <!-- =============================================
+                 DASHBOARD
+            ============================================== -->
+
+            <section
+                id="section-dashboard"
+                class="section active"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Панель управления
+                        </h1>
+
+                        <div class="page-description">
+                            Обзор MEANT SHOP
+                        </div>
+                    </div>
+
+                    <button
+                        class="refresh"
+                        onclick="loadDashboard()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+
+                <div class="grid">
+
+                    <div class="stat">
+                        <div class="stat-label">
+                            Пользователи
+                        </div>
+
+                        <div
+                            id="statAccounts"
+                            class="stat-value"
+                        >
+                            —
+                        </div>
+                    </div>
+
+
+                    <div class="stat">
+                        <div class="stat-label">
+                            Администраторы
+                        </div>
+
+                        <div
+                            id="statAdmins"
+                            class="stat-value"
+                        >
+                            —
+                        </div>
+                    </div>
+
+
+                    <div class="stat">
+                        <div class="stat-label">
+                            Транзакции
+                        </div>
+
+                        <div
+                            id="statTransactions"
+                            class="stat-value"
+                        >
+                            —
+                        </div>
+                    </div>
+
+
+                    <div class="stat">
+                        <div class="stat-label">
+                            Подписки
+                        </div>
+
+                        <div
+                            id="statSubscriptions"
+                            class="stat-value"
+                        >
+                            —
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="panel-head">
+
+                        <div class="panel-title">
+                            Система
+                        </div>
+
+                    </div>
+
+                    <div class="empty">
+                        Панель администратора MEANT SHOP готова.
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 ACCOUNTS
+            ============================================== -->
+
+            <section
+                id="section-accounts"
+                class="section"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Пользователи
+                        </h1>
+
+                        <div class="page-description">
+                            Обычные аккаунты MEANT SHOP
+                        </div>
+                    </div>
+
+                    <button
+                        class="refresh"
+                        onclick="loadAccounts()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div
+                        id="accountsContent"
+                        class="loading"
+                    >
+                        Загрузка...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 ADMINISTRATORS
+            ============================================== -->
+
+            <section
+                id="section-administrators"
+                class="section"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Администраторы
+                        </h1>
+
+                        <div class="page-description">
+                            Управление администраторами
+                        </div>
+                    </div>
+
+                    <button
+                        id="createAdminButton"
+                        class="refresh"
+                    >
+                        + Добавить
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div
+                        id="administratorsContent"
+                        class="loading"
+                    >
+                        Загрузка...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 TRANSACTIONS
+            ============================================== -->
+
+            <section
+                id="section-transactions"
+                class="section"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Транзакции
+                        </h1>
+
+                        <div class="page-description">
+                            История платежей
+                        </div>
+                    </div>
+
+                    <button
+                        class="refresh"
+                        onclick="loadTransactions()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div
+                        id="transactionsContent"
+                        class="loading"
+                    >
+                        Загрузка...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 SUBSCRIPTIONS
+            ============================================== -->
+
+            <section
+                id="section-subscriptions"
+                class="section"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Подписки
+                        </h1>
+
+                        <div class="page-description">
+                            Активные подписки пользователей
+                        </div>
+                    </div>
+
+                    <button
+                        class="refresh"
+                        onclick="loadSubscriptions()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div
+                        id="subscriptionsContent"
+                        class="loading"
+                    >
+                        Загрузка...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 PRODUCTS
+            ============================================== -->
+
+            <section
+                id="section-products"
+                class="section"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Товары
+                        </h1>
+
+                        <div class="page-description">
+                            Управление товарами магазина
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div
+                        id="productsContent"
+                        class="empty"
+                    >
+                        Раздел товаров будет подключён следующим этапом.
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 LOGS
+            ============================================== -->
+
+            <section
+                id="section-logs"
+                class="section"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Логи
+                        </h1>
+
+                        <div class="page-description">
+                            Системные события
+                        </div>
+                    </div>
+
+                    <button
+                        class="refresh"
+                        onclick="loadLogs()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div
+                        id="logsContent"
+                        class="empty"
+                    >
+                        Логи будут подключены следующим этапом.
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 SETTINGS
+            ============================================== -->
+
+            <section
+                id="section-settings"
+                class="section"
+            >
+
+                <div class="page-head">
+
+                    <div>
+                        <h1 class="page-title">
+                            Настройки
+                        </h1>
+
+                        <div class="page-description">
+                            Настройки панели администратора
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div
+                        id="settingsContent"
+                        class="empty"
+                    >
+                        Настройки будут подключены следующим этапом.
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =======================================================
+     CREATE ADMIN MODAL
+======================================================= -->
+
+<div
+    id="adminModal"
+    class="modal hidden"
+>
+
+    <div class="modal-card">
+
+        <h2 class="modal-title">
+            Новый администратор
+        </h2>
+
+
+        <form id="adminForm">
+
+            <div class="field">
+
+                <label>
+                    Логин
+                </label>
+
+                <input
+                    id="adminUsername"
+                    type="text"
+                    minlength="3"
+                    maxlength="32"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Пароль
+                </label>
+
+                <input
+                    id="adminPassword"
+                    type="password"
+                    minlength="8"
+                    maxlength="128"
+                    required
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Роль
+                </label>
+
+                <select id="adminRole">
+
+                    <option value="ADMIN">
+                        ADMIN
+                    </option>
+
+                    <option value="OWNER">
+                        OWNER
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Ключ регистрации
+                </label>
+
+                <input
+                    id="adminRegisterKey"
+                    type="password"
+                    required
+                >
+
+            </div>
+
+
+            <div
+                id="adminFormError"
+                class="error"
+            ></div>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="cancel"
+                    id="cancelAdmin"
+                >
+                    Отмена
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary"
+                >
+                    Создать
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =======================================================
+     TOAST
+======================================================= -->
+
+<div
+    id="toast"
+    class="toast hidden"
+></div>
+
+
+<script>
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let currentAdmin = null;
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function escapeHtml(value){
+
+    return String(value ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+
+}
+
+
+function showToast(
+    text,
+    type = "success"
+){
+
+    const toast =
+        document.getElementById("toast");
+
+    toast.textContent = text;
+
+    toast.className =
+        "toast " + type;
+
+    clearTimeout(
+        showToast.timer
+    );
+
+    showToast.timer =
+        setTimeout(
+            () => {
+                toast.classList.add(
+                    "hidden"
+                );
+            },
+            3500
+        );
+
+}
+
+
+async function api(
+    url,
+    options = {}
+){
+
+    const response =
+        await fetch(
+            url,
+            {
+                credentials:"include",
+                ...options,
+                headers:{
+                    "Content-Type":
+                        "application/json",
+                    ...(options.headers || {})
+                }
+            }
+        );
+
+    let data = null;
+
+    try{
+        data = await response.json();
+    }catch{
+        data = {};
+    }
+
+    if(!response.ok){
+
+        throw new Error(
+            data.error ||
+            "Ошибка сервера"
+        );
+
+    }
+
+    return data;
+
+}
+
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+document
+    .getElementById("loginForm")
+    .addEventListener(
+        "submit",
+        async function(event){
+
+            event.preventDefault();
+
+            const button =
+                document.getElementById(
+                    "loginButton"
+                );
+
+            const error =
+                document.getElementById(
+                    "loginError"
+                );
+
+            error.textContent = "";
+
+            button.disabled = true;
+            button.textContent = "Вход...";
+
+            try{
+
+                const username =
+                    document
+                        .getElementById(
+                            "loginUsername"
+                        )
+                        .value
+                        .trim();
+
+                const password =
+                    document
+                        .getElementById(
+                            "loginPassword"
+                        )
+                        .value;
+
+
+                const data =
+                    await api(
+                        "/api/admin/login",
+                        {
+                            method:"POST",
+                            body:JSON.stringify({
+                                username,
+                                password
+                            })
+                        }
+                    );
+
+
+                if(
+                    !data.success ||
+                    !data.authenticated
+                ){
+
+                    throw new Error(
+                        data.error ||
+                        "Не удалось войти"
+                    );
+
+                }
+
+
+                await loadAdmin();
+
+
+            }catch(err){
+
+                error.textContent =
+                    err.message ||
+                    "Ошибка входа";
+
+            }finally{
+
+                button.disabled = false;
+                button.textContent = "Войти";
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   CHECK SESSION
+========================================================= */
+
+async function loadAdmin(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/me"
+            );
+
+        if(
+            !data.authenticated ||
+            !data.admin
+        ){
+
+            throw new Error(
+                "Не авторизован"
+            );
+
+        }
+
+
+        currentAdmin =
+            data.admin;
+
+
+        document
+            .getElementById(
+                "loginPage"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "adminApp"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+
+        document
+            .getElementById(
+                "headerName"
+            )
+            .textContent =
+                currentAdmin.username;
+
+
+        document
+            .getElementById(
+                "headerRole"
+            )
+            .textContent =
+                currentAdmin.role;
+
+
+        await loadDashboard();
+
+
+    }catch{
+
+        document
+            .getElementById(
+                "loginPage"
+            )
+            .classList.remove(
+                "hidden"
+            );
+
+        document
+            .getElementById(
+                "adminApp"
+            )
+            .classList.add(
+                "hidden"
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+document
+    .getElementById(
+        "logoutButton"
+    )
+    .addEventListener(
+        "click",
+        async function(){
+
+            try{
+
+                await api(
+                    "/api/admin/logout",
+                    {
+                        method:"POST"
+                    }
+                );
+
+            }catch{}
+
+            currentAdmin = null;
+
+            document
+                .getElementById(
+                    "adminApp"
+                )
+                .classList.add(
+                    "hidden"
+                );
+
+            document
+                .getElementById(
+                    "loginPage"
+                )
+                .classList.remove(
+                    "hidden"
+                );
+
+            document
+                .getElementById(
+                    "loginPassword"
+                )
+                .value = "";
+
+        }
+    );
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+document
+    .querySelectorAll(".nav-btn")
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                function(){
+
+                    const section =
+                        this.dataset.section;
+
+
+                    document
+                        .querySelectorAll(
+                            ".nav-btn"
+                        )
+                        .forEach(
+                            item =>
+                                item.classList
+                                    .remove(
+                                        "active"
+                                    )
+                        );
+
+
+                    this.classList.add(
+                        "active"
+                    );
+
+
+                    document
+                        .querySelectorAll(
+                            ".section"
+                        )
+                        .forEach(
+                            item =>
+                                item.classList
+                                    .remove(
+                                        "active"
+                                    )
+                        );
+
+
+                    const target =
+                        document.getElementById(
+                            "section-" +
+                            section
+                        );
+
+
+                    if(target){
+
+                        target.classList.add(
+                            "active"
+                        );
+
+                    }
+
+
+                    if(section === "dashboard"){
+                        loadDashboard();
+                    }
+
+                    if(section === "accounts"){
+                        loadAccounts();
+                    }
+
+                    if(section === "administrators"){
+                        loadAdministrators();
+                    }
+
+                    if(section === "transactions"){
+                        loadTransactions();
+                    }
+
+                    if(section === "subscriptions"){
+                        loadSubscriptions();
+                    }
+
+                    if(section === "products"){
+                        loadProducts();
+                    }
+
+                    if(section === "logs"){
+                        loadLogs();
+                    }
+
+                    if(section === "settings"){
+                        loadSettings();
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+async function loadDashboard(){
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/stats"
+            );
+
+
+        const stats =
+            data.stats ||
+            data.data ||
+            data;
+
+
+        document
+            .getElementById(
+                "statAccounts"
+            )
+            .textContent =
+                stats.accounts ??
+                stats.users ??
+                0;
+
+
+        document
+            .getElementById(
+                "statAdmins"
+            )
+            .textContent =
+                stats.administrators ??
+                stats.admins ??
+                0;
+
+
+        document
+            .getElementById(
+                "statTransactions"
+            )
+            .textContent =
+                stats.transactions ??
+                0;
+
+
+        document
+            .getElementById(
+                "statSubscriptions"
+            )
+            .textContent =
+                stats.subscriptions ??
+                stats.entitlements ??
+                0;
+
+
+    }catch(err){
+
+        showToast(
+            err.message,
+            "error"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ACCOUNTS
+========================================================= */
+
+async function loadAccounts(){
+
+    const container =
+        document.getElementById(
+            "accountsContent"
+        );
+
+    container.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/accounts"
+            );
+
+
+        const accounts =
+            data.accounts ||
+            data.data ||
+            [];
+
+
+        if(!accounts.length){
+
+            container.innerHTML =
+                '<div class="empty">Пользователей пока нет.</div>';
+
+            return;
+
+        }
+
+
+        container.innerHTML = `
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Никнейм</th>
+                            <th>Баланс</th>
+                            <th>Создан</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        ${accounts.map(account => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(account.id)}
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        ${escapeHtml(account.username)}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(account.balance ?? 0)} ₽
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(account.created_at ?? "—")}
+                                </td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+
+    }catch(err){
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(err.message)}</div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   ADMINISTRATORS
+========================================================= */
+
+async function loadAdministrators(){
+
+    const container =
+        document.getElementById(
+            "administratorsContent"
+        );
+
+    container.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/administrators"
+            );
+
+
+        const admins =
+            data.administrators ||
+            data.admins ||
+            data.data ||
+            [];
+
+
+        if(!admins.length){
+
+            container.innerHTML =
+                '<div class="empty">Администраторов пока нет.</div>';
+
+            return;
+
+        }
+
+
+        container.innerHTML = `
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Логин</th>
+                            <th>Роль</th>
+                            <th>Создан</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        ${admins.map(admin => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(admin.id)}
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        ${escapeHtml(admin.username)}
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    <span class="role ${
+                                        admin.role === "ADMIN"
+                                            ? "admin"
+                                            : ""
+                                    }">
+                                        ${escapeHtml(admin.role)}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(admin.created_at ?? "—")}
+                                </td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+
+    }catch(err){
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(err.message)}</div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   TRANSACTIONS
+========================================================= */
+
+async function loadTransactions(){
+
+    const container =
+        document.getElementById(
+            "transactionsContent"
+        );
+
+    container.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/transactions"
+            );
+
+
+        const rows =
+            data.transactions ||
+            data.data ||
+            [];
+
+
+        if(!rows.length){
+
+            container.innerHTML =
+                '<div class="empty">Транзакций пока нет.</div>';
+
+            return;
+
+        }
+
+
+        container.innerHTML = `
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Account ID</th>
+                            <th>Тип</th>
+                            <th>Сумма</th>
+                            <th>Баланс после</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        ${rows.map(row => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(row.id)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.account_id)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.type)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.amount)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.balance_after)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.created_at)}
+                                </td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+
+    }catch(err){
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(err.message)}</div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   SUBSCRIPTIONS
+========================================================= */
+
+async function loadSubscriptions(){
+
+    const container =
+        document.getElementById(
+            "subscriptionsContent"
+        );
+
+    container.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/subscriptions"
+            );
+
+
+        const rows =
+            data.subscriptions ||
+            data.entitlements ||
+            data.data ||
+            [];
+
+
+        if(!rows.length){
+
+            container.innerHTML =
+                '<div class="empty">Подписок пока нет.</div>';
+
+            return;
+
+        }
+
+
+        container.innerHTML = `
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Account ID</th>
+                            <th>Товар</th>
+                            <th>Статус</th>
+                            <th>Истекает</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        ${rows.map(row => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(row.id)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.account_id)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.product_name)}
+                                </td>
+
+                                <td>
+                                    <span class="status">
+                                        ${escapeHtml(row.status)}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(row.expires_at || "Навсегда")}
+                                </td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+
+    }catch(err){
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(err.message)}</div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+async function loadProducts(){
+
+    const container =
+        document.getElementById(
+            "productsContent"
+        );
+
+    container.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/products"
+            );
+
+        const products =
+            data.products ||
+            data.data ||
+            [];
+
+
+        if(!products.length){
+
+            container.innerHTML =
+                '<div class="empty">Товаров пока нет.</div>';
+
+            return;
+
+        }
+
+
+        container.innerHTML = `
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Цена</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        ${products.map(product => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(product.id)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(product.name || product.product_name)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(product.price ?? "—")}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(product.status ?? "active")}
+                                </td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+    }catch(err){
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(err.message)}</div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   LOGS
+========================================================= */
+
+async function loadLogs(){
+
+    const container =
+        document.getElementById(
+            "logsContent"
+        );
+
+    container.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/logs"
+            );
+
+        const logs =
+            data.logs ||
+            data.data ||
+            [];
+
+
+        if(!logs.length){
+
+            container.innerHTML =
+                '<div class="empty">Логов пока нет.</div>';
+
+            return;
+
+        }
+
+
+        container.innerHTML = `
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Событие</th>
+                            <th>Администратор</th>
+                            <th>Описание</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        ${logs.map(log => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(log.created_at)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(log.action || log.type)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(log.admin_username || "—")}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(log.description || log.message || "—")}
+                                </td>
+
+                            </tr>
+
+                        `).join("")}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        `;
+
+    }catch(err){
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(err.message)}</div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+
+async function loadSettings(){
+
+    const container =
+        document.getElementById(
+            "settingsContent"
+        );
+
+    container.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try{
+
+        const data =
+            await api(
+                "/api/admin/settings"
+            );
+
+        container.innerHTML = `
+            <div style="padding:20px;color:#aaa;font-size:13px">
+                Настройки получены.
+            </div>
+        `;
+
+    }catch(err){
+
+        container.innerHTML =
+            `<div class="empty">${escapeHtml(err.message)}</div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   CREATE ADMIN MODAL
+========================================================= */
+
+document
+    .getElementById(
+        "createAdminButton"
+    )
+    .addEventListener(
+        "click",
+        function(){
+
+            document
+                .getElementById(
+                    "adminModal"
+                )
+                .classList.remove(
+                    "hidden"
+                );
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "cancelAdmin"
+    )
+    .addEventListener(
+        "click",
+        function(){
+
+            document
+                .getElementById(
+                    "adminModal"
+                )
+                .classList.add(
+                    "hidden"
+                );
+
+        }
+    );
+
+
+document
+    .getElementById(
+        "adminForm"
+    )
+    .addEventListener(
+        "submit",
+        async function(event){
+
+            event.preventDefault();
+
+
+            const error =
+                document.getElementById(
+                    "adminFormError"
+                );
+
+            error.textContent = "";
+
+
+            const username =
+                document
+                    .getElementById(
+                        "adminUsername"
+                    )
+                    .value
+                    .trim();
+
+            const password =
+                document
+                    .getElementById(
+                        "adminPassword"
+                    )
+                    .value;
+
+            const role =
+                document
+                    .getElementById(
+                        "adminRole"
+                    )
+                    .value;
+
+            const registerKey =
+                document
+                    .getElementById(
+                        "adminRegisterKey"
+                    )
+                    .value;
+
+
+            try{
+
+                const data =
+                    await api(
+                        "/api/admin/register",
+                        {
+                            method:"POST",
+
+                            body:JSON.stringify({
+
+                                username,
+                                password,
+                                role,
+                                registerKey
+
+                            })
+                        }
+                    );
+
+
+                if(!data.success){
+
+                    throw new Error(
+                        data.error ||
+                        "Не удалось создать администратора"
+                    );
+
+                }
+
+
+                showToast(
+                    "Администратор создан"
+                );
+
+
+                document
+                    .getElementById(
+                        "adminForm"
+                    )
+                    .reset();
+
+
+                document
+                    .getElementById(
+                        "adminModal"
+                    )
+                    .classList.add(
+                        "hidden"
+                    );
+
+
+                loadAdministrators();
+
+
+            }catch(err){
+
+                error.textContent =
+                    err.message;
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   START
+========================================================= */
+
+loadAdmin();
+
+</script>
+
+</body>
+</html>
