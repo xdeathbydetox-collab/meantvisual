@@ -1,505 +1,1149 @@
-import {
-  createPasswordHash,
-  verifyPassword
-} from "./crypto.js";
-
-import {
-  createSession,
-  getSessionAccount,
-  deleteSession
-} from "./session.js";
-
-import {
-  json
-} from "./response.js";
+/* =========================================================
+   AUTH.JS — MEANT SHOP
+   Регистрация и вход БЕЗ EMAIL
+========================================================= */
 
 
 /* =========================================================
-   HELPERS
+   SETTINGS
 ========================================================= */
 
-function normalizeUsername(value) {
-  return String(value || "").trim();
+const PBKDF2_ITERATIONS = 100000;
+const HASH_BYTES = 32;
+
+
+/* =========================================================
+   RESPONSE
+========================================================= */
+
+function json(data, status = 200) {
+
+    return new Response(
+        JSON.stringify(data),
+        {
+            status,
+
+            headers: {
+                "Content-Type":
+                    "application/json; charset=utf-8",
+
+                "Access-Control-Allow-Origin":
+                    "*",
+
+                "Access-Control-Allow-Credentials":
+                    "true"
+            }
+        }
+    );
 }
+
+
+/* =========================================================
+   RANDOM ID
+========================================================= */
+
+function generateAccountId() {
+
+    return crypto.randomUUID();
+
+}
+
+
+/* =========================================================
+   NORMALIZE USERNAME
+========================================================= */
+
+function normalizeUsername(username) {
+
+    return String(
+        username ?? ""
+    )
+        .trim();
+
+}
+
+
+/* =========================================================
+   USERNAME VALIDATION
+========================================================= */
 
 function validUsername(username) {
-  return /^[a-zA-Z0-9_.-]{3,24}$/.test(username);
+
+    /*
+     * Разрешаем:
+     * латиницу
+     * цифры
+     * _
+     * -
+     *
+     * От 3 до 24 символов.
+     */
+
+    return /^[a-zA-Z0-9_-]{3,24}$/
+        .test(username);
+
 }
 
-async function readJson(request) {
-  try {
-    return await request.json();
-  } catch {
+
+/* =========================================================
+   PASSWORD HASH
+========================================================= */
+
+async function hashPassword(password) {
+
+    const encoder =
+        new TextEncoder();
+
+
+    const salt =
+        crypto.getRandomValues(
+            new Uint8Array(16)
+        );
+
+
+    const key =
+        await crypto.subtle.importKey(
+            "raw",
+            encoder.encode(password),
+            {
+                name: "PBKDF2"
+            },
+            false,
+            [
+                "deriveBits"
+            ]
+        );
+
+
+    const bits =
+        await crypto.subtle.deriveBits(
+            {
+                name: "PBKDF2",
+
+                salt,
+
+                iterations:
+                    PBKDF2_ITERATIONS,
+
+                hash:
+                    "SHA-256"
+            },
+
+            key,
+
+            HASH_BYTES * 8
+        );
+
+
+    return {
+
+        hash:
+            bytesToHex(
+                new Uint8Array(bits)
+            ),
+
+        salt:
+            bytesToHex(
+                salt
+            )
+
+    };
+
+}
+
+
+/* =========================================================
+   PASSWORD VERIFY
+========================================================= */
+
+async function verifyPassword(
+    password,
+    storedHash,
+    storedSalt
+) {
+
+    const encoder =
+        new TextEncoder();
+
+
+    const salt =
+        hexToBytes(
+            storedSalt
+        );
+
+
+    const key =
+        await crypto.subtle.importKey(
+            "raw",
+            encoder.encode(password),
+            {
+                name: "PBKDF2"
+            },
+            false,
+            [
+                "deriveBits"
+            ]
+        );
+
+
+    const bits =
+        await crypto.subtle.deriveBits(
+            {
+                name: "PBKDF2",
+
+                salt,
+
+                iterations:
+                    PBKDF2_ITERATIONS,
+
+                hash:
+                    "SHA-256"
+            },
+
+            key,
+
+            HASH_BYTES * 8
+        );
+
+
+    const hash =
+        bytesToHex(
+            new Uint8Array(bits)
+        );
+
+
+    return hash === storedHash;
+
+}
+
+
+/* =========================================================
+   HEX HELPERS
+========================================================= */
+
+function bytesToHex(
+    bytes
+) {
+
+    return Array
+        .from(bytes)
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
+        )
+        .join("");
+
+}
+
+
+function hexToBytes(
+    hex
+) {
+
+    const bytes =
+        new Uint8Array(
+            hex.length / 2
+        );
+
+
+    for (
+        let i = 0;
+        i < hex.length;
+        i += 2
+    ) {
+
+        bytes[i / 2] =
+            parseInt(
+                hex.substring(
+                    i,
+                    i + 2
+                ),
+                16
+            );
+
+    }
+
+
+    return bytes;
+
+}
+
+
+/* =========================================================
+   COOKIE
+========================================================= */
+
+function getCookie(
+    request,
+    name
+) {
+
+    const cookieHeader =
+        request.headers.get(
+            "Cookie"
+        );
+
+
+    if (!cookieHeader) {
+        return null;
+    }
+
+
+    const cookies =
+        cookieHeader
+            .split(";");
+
+
+    for (
+        const cookie
+        of cookies
+    ) {
+
+        const [
+            key,
+            ...rest
+        ] =
+            cookie
+                .trim()
+                .split("=");
+
+
+        if (
+            key === name
+        ) {
+
+            return rest.join("=");
+
+        }
+
+    }
+
+
     return null;
-  }
+
+}
+
+
+/* =========================================================
+   SESSION ID
+========================================================= */
+
+function generateSessionId() {
+
+    return crypto.randomUUID();
+
+}
+
+
+/* =========================================================
+   SET SESSION COOKIE
+========================================================= */
+
+function sessionCookie(
+    sessionId
+) {
+
+    return [
+        `session=${sessionId}`,
+        "Path=/",
+        "HttpOnly",
+        "SameSite=Lax",
+        "Secure",
+        "Max-Age=2592000"
+    ].join("; ");
+
+}
+
+
+/* =========================================================
+   CLEAR SESSION COOKIE
+========================================================= */
+
+function clearSessionCookie() {
+
+    return [
+        "session=",
+        "Path=/",
+        "HttpOnly",
+        "SameSite=Lax",
+        "Secure",
+        "Max-Age=0"
+    ].join("; ");
+
 }
 
 
 /* =========================================================
    REGISTER
-   POST /api/auth/register
-
-   НИК + ПАРОЛЬ
-   БЕЗ EMAIL
 ========================================================= */
 
 export async function register(
-  request,
-  env
+    request,
+    env
 ) {
 
-  const body =
-    await readJson(request);
-
-  if (!body) {
-    return json({
-      success: false,
-      error: "Неверный JSON"
-    }, 400);
-  }
-
-
-  const username =
-    normalizeUsername(
-      body.username
-    );
-
-  const password =
-    String(
-      body.password || ""
-    );
-
-
-  /* -------------------------
-     VALIDATION
-  ------------------------- */
-
-  if (!username) {
-    return json({
-      success: false,
-      error: "Введите никнейм"
-    }, 400);
-  }
-
-
-  if (!validUsername(username)) {
-    return json({
-      success: false,
-      error:
-        "Никнейм должен содержать 3-24 символа: буквы, цифры, _, -, ."
-    }, 400);
-  }
-
-
-  if (!password) {
-    return json({
-      success: false,
-      error: "Введите пароль"
-    }, 400);
-  }
-
-
-  if (password.length < 8) {
-    return json({
-      success: false,
-      error:
-        "Пароль должен содержать минимум 8 символов"
-    }, 400);
-  }
-
-
-  /* -------------------------
-     CHECK USERNAME
-  ------------------------- */
-
-  const existingUsername =
-    await env.DB
-      .prepare(`
-        SELECT id
-        FROM accounts
-        WHERE LOWER(username) =
-              LOWER(?)
-        LIMIT 1
-      `)
-      .bind(username)
-      .first();
-
-
-  if (existingUsername) {
-    return json({
-      success: false,
-      error:
-        "Этот никнейм уже занят"
-    }, 409);
-  }
-
-
-  /* -------------------------
-     ACCOUNT
-  ------------------------- */
-
-  const accountId =
-    crypto.randomUUID();
-
-
-  const passwordHash =
-    await createPasswordHash(
-      password
-    );
-
-
-  try {
-
-    /* ACCOUNT */
-
-    await env.DB
-      .prepare(`
-        INSERT INTO accounts
-        (
-          id,
-          username,
-          balance
-        )
-        VALUES (?, ?, 0)
-      `)
-      .bind(
-        accountId,
-        username
-      )
-      .run();
-
-
-    /* PASSWORD */
-
-    await env.DB
-      .prepare(`
-        INSERT INTO credentials
-        (
-          account_id,
-          password_hash
-        )
-        VALUES (?, ?)
-      `)
-      .bind(
-        accountId,
-        passwordHash
-      )
-      .run();
-
-
-  } catch (error) {
-
-    /* -------------------------
-       ROLLBACK
-    ------------------------- */
-
     try {
 
-      await env.DB
-        .prepare(`
-          DELETE FROM credentials
-          WHERE account_id = ?
-        `)
-        .bind(accountId)
-        .run();
-
-    } catch {}
+        const body =
+            await request.json();
 
 
-    try {
-
-      await env.DB
-        .prepare(`
-          DELETE FROM accounts
-          WHERE id = ?
-        `)
-        .bind(accountId)
-        .run();
-
-    } catch {}
+        const username =
+            normalizeUsername(
+                body.username
+            );
 
 
-    console.error(
-      "REGISTER ERROR:",
-      error
-    );
+        const password =
+            String(
+                body.password ?? ""
+            );
 
 
-    return json({
-      success: false,
-      error:
-        "Ошибка базы данных: " +
-        (
-          error?.message ||
-          String(error)
-        )
-    }, 500);
-  }
+        /* -------------------------------------------------
+           USERNAME
+        ------------------------------------------------- */
+
+        if (!username) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Введите никнейм"
+                },
+                400
+            );
+
+        }
 
 
-  /* -------------------------
-     SESSION
-  ------------------------- */
+        if (!validUsername(username)) {
 
-  const session =
-    await createSession(
-      env,
-      accountId
-    );
+            return json(
+                {
+                    success: false,
+
+                    error:
+                        "Никнейм должен содержать от 3 до 24 символов: латинские буквы, цифры, _ или -"
+                },
+                400
+            );
+
+        }
 
 
-  return json(
-    {
-      success: true,
+        /* -------------------------------------------------
+           PASSWORD
+        ------------------------------------------------- */
 
-      account: {
-        id: accountId,
-        username,
-        balance: 0
-      }
-    },
+        if (!password) {
 
-    201,
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Введите пароль"
+                },
+                400
+            );
 
-    {
-      "Set-Cookie":
-        session.cookie
+        }
+
+
+        if (password.length < 8) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Пароль должен быть не короче 8 символов"
+                },
+                400
+            );
+
+        }
+
+
+        if (password.length > 128) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Пароль слишком длинный"
+                },
+                400
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           CHECK USERNAME
+        ------------------------------------------------- */
+
+        const existing =
+            await env.DB
+                .prepare(`
+                    SELECT id
+                    FROM accounts
+                    WHERE LOWER(username) =
+                          LOWER(?)
+                    LIMIT 1
+                `)
+                .bind(username)
+                .first();
+
+
+        if (existing) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Этот никнейм уже занят"
+                },
+                409
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           HASH PASSWORD
+        ------------------------------------------------- */
+
+        const passwordData =
+            await hashPassword(
+                password
+            );
+
+
+        /* -------------------------------------------------
+           ACCOUNT ID
+        ------------------------------------------------- */
+
+        const accountId =
+            generateAccountId();
+
+
+        /* -------------------------------------------------
+           CREATE ACCOUNT
+        ------------------------------------------------- */
+
+        await env.DB
+            .prepare(`
+                INSERT INTO accounts (
+                    id,
+                    username,
+                    password_hash,
+                    password_salt,
+                    balance,
+                    created_at,
+                    updated_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    0,
+                    datetime('now'),
+                    datetime('now')
+                )
+            `)
+            .bind(
+                accountId,
+                username,
+                passwordData.hash,
+                passwordData.salt
+            )
+            .run();
+
+
+        /* -------------------------------------------------
+           SESSION
+        ------------------------------------------------- */
+
+        const sessionId =
+            generateSessionId();
+
+
+        await env.DB
+            .prepare(`
+                INSERT INTO sessions (
+                    id,
+                    account_id,
+                    created_at,
+                    expires_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    datetime('now'),
+                    datetime('now', '+30 days')
+                )
+            `)
+            .bind(
+                sessionId,
+                accountId
+            )
+            .run();
+
+
+        /* -------------------------------------------------
+           RESPONSE
+        ------------------------------------------------- */
+
+        return json(
+            {
+                success: true,
+
+                authenticated: true,
+
+                account: {
+                    id:
+                        accountId,
+
+                    username:
+                        username,
+
+                    balance:
+                        0
+                }
+            },
+            201,
+            {
+                "Set-Cookie":
+                    sessionCookie(
+                        sessionId
+                    )
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "REGISTER ERROR:",
+            error
+        );
+
+
+        return json(
+            {
+                success: false,
+
+                error:
+                    error?.message ||
+                    "Ошибка регистрации"
+            },
+            500
+        );
+
     }
-  );
+
 }
 
 
 /* =========================================================
    LOGIN
-   POST /api/auth/login
-
-   НИК + ПАРОЛЬ
 ========================================================= */
 
 export async function login(
-  request,
-  env
+    request,
+    env
 ) {
 
-  const body =
-    await readJson(request);
+    try {
+
+        const body =
+            await request.json();
 
 
-  if (!body) {
-    return json({
-      success: false,
-      error:
-        "Неверный JSON"
-    }, 400);
-  }
+        const username =
+            normalizeUsername(
+                body.username
+            );
 
 
-  const loginValue =
-    normalizeUsername(
-      body.login ??
-      body.username
-    );
+        const password =
+            String(
+                body.password ?? ""
+            );
 
 
-  const password =
-    String(
-      body.password || ""
-    );
+        if (!username) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Введите никнейм"
+                },
+                400
+            );
+
+        }
 
 
-  if (
-    !loginValue ||
-    !password
-  ) {
+        if (!password) {
 
-    return json({
-      success: false,
-      error:
-        "Введите ник и пароль"
-    }, 400);
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Введите пароль"
+                },
+                400
+            );
 
-  }
-
-
-  /* -------------------------
-     FIND ACCOUNT
-  ------------------------- */
-
-  const account =
-    await env.DB
-      .prepare(`
-        SELECT
-          accounts.id,
-          accounts.username,
-          accounts.balance,
-          credentials.password_hash
-
-        FROM accounts
-
-        INNER JOIN credentials
-          ON credentials.account_id =
-             accounts.id
-
-        WHERE
-          LOWER(accounts.username) =
-            LOWER(?)
-
-        LIMIT 1
-      `)
-      .bind(
-        loginValue
-      )
-      .first();
+        }
 
 
-  if (!account) {
+        /* -------------------------------------------------
+           FIND ACCOUNT
+        ------------------------------------------------- */
 
-    return json({
-      success: false,
-      error:
-        "Неверный ник или пароль"
-    }, 401);
-
-  }
-
-
-  /* -------------------------
-     PASSWORD
-  ------------------------- */
-
-  const valid =
-    await verifyPassword(
-      password,
-      account.password_hash
-    );
-
-
-  if (!valid) {
-
-    return json({
-      success: false,
-      error:
-        "Неверный ник или пароль"
-    }, 401);
-
-  }
+        const account =
+            await env.DB
+                .prepare(`
+                    SELECT
+                        id,
+                        username,
+                        password_hash,
+                        password_salt,
+                        balance,
+                        created_at
+                    FROM accounts
+                    WHERE LOWER(username) =
+                          LOWER(?)
+                    LIMIT 1
+                `)
+                .bind(username)
+                .first();
 
 
-  /* -------------------------
-     SESSION
-  ------------------------- */
+        if (!account) {
 
-  const session =
-    await createSession(
-      env,
-      account.id
-    );
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Неверный никнейм или пароль"
+                },
+                401
+            );
+
+        }
 
 
-  return json(
-    {
-      success: true,
+        /* -------------------------------------------------
+           VERIFY PASSWORD
+        ------------------------------------------------- */
 
-      account: {
-        id:
-          account.id,
+        const valid =
+            await verifyPassword(
+                password,
+                account.password_hash,
+                account.password_salt
+            );
 
-        username:
-          account.username,
 
-        balance:
-          Number(
-            account.balance || 0
-          )
-      }
-    },
+        if (!valid) {
 
-    200,
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Неверный никнейм или пароль"
+                },
+                401
+            );
 
-    {
-      "Set-Cookie":
-        session.cookie
+        }
+
+
+        /* -------------------------------------------------
+           SESSION
+        ------------------------------------------------- */
+
+        const sessionId =
+            generateSessionId();
+
+
+        await env.DB
+            .prepare(`
+                INSERT INTO sessions (
+                    id,
+                    account_id,
+                    created_at,
+                    expires_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    datetime('now'),
+                    datetime('now', '+30 days')
+                )
+            `)
+            .bind(
+                sessionId,
+                account.id
+            )
+            .run();
+
+
+        /* -------------------------------------------------
+           RESPONSE
+        ------------------------------------------------- */
+
+        return json(
+            {
+                success: true,
+
+                authenticated: true,
+
+                account: {
+                    id:
+                        account.id,
+
+                    username:
+                        account.username,
+
+                    balance:
+                        Number(
+                            account.balance || 0
+                        ),
+
+                    created_at:
+                        account.created_at
+                }
+            },
+            200,
+            {
+                "Set-Cookie":
+                    sessionCookie(
+                        sessionId
+                    )
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "LOGIN ERROR:",
+            error
+        );
+
+
+        return json(
+            {
+                success: false,
+
+                error:
+                    error?.message ||
+                    "Ошибка входа"
+            },
+            500
+        );
+
     }
-  );
+
 }
 
 
 /* =========================================================
    ME
-   GET /api/auth/me
 ========================================================= */
 
 export async function me(
-  request,
-  env
+    request,
+    env
 ) {
 
-  const account =
-    await getSessionAccount(
-      request,
-      env
-    );
+    try {
+
+        const sessionId =
+            getCookie(
+                request,
+                "session"
+            );
 
 
-  if (!account) {
+        if (!sessionId) {
 
-    return json({
-      authenticated: false
-    }, 401);
+            return json(
+                {
+                    success: false,
 
-  }
+                    authenticated:
+                        false,
+
+                    error:
+                        "Не авторизован"
+                },
+                401
+            );
+
+        }
 
 
-  return json({
+        /* -------------------------------------------------
+           FIND SESSION
+        ------------------------------------------------- */
 
-    authenticated: true,
+        const session =
+            await env.DB
+                .prepare(`
+                    SELECT
+                        s.id,
+                        s.account_id,
+                        s.expires_at
+                    FROM sessions s
+                    WHERE s.id = ?
+                    LIMIT 1
+                `)
+                .bind(
+                    sessionId
+                )
+                .first();
 
-    account: {
 
-      id:
-        account.id,
+        if (!session) {
 
-      username:
-        account.username,
+            return json(
+                {
+                    success: false,
 
-      balance:
-        Number(
-          account.balance || 0
-        )
+                    authenticated:
+                        false,
+
+                    error:
+                        "Сессия недействительна"
+                },
+                401
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           CHECK SESSION EXPIRATION
+        ------------------------------------------------- */
+
+        const expiresAt =
+            new Date(
+                session.expires_at
+            ).getTime();
+
+
+        if (
+            Number.isFinite(
+                expiresAt
+            ) &&
+            expiresAt <= Date.now()
+        ) {
+
+            await env.DB
+                .prepare(`
+                    DELETE FROM sessions
+                    WHERE id = ?
+                `)
+                .bind(
+                    sessionId
+                )
+                .run();
+
+
+            return json(
+                {
+                    success: false,
+
+                    authenticated:
+                        false,
+
+                    error:
+                        "Сессия истекла"
+                },
+                401
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           FIND ACCOUNT
+        ------------------------------------------------- */
+
+        const account =
+            await env.DB
+                .prepare(`
+                    SELECT
+                        id,
+                        username,
+                        balance,
+                        created_at,
+                        updated_at
+                    FROM accounts
+                    WHERE id = ?
+                    LIMIT 1
+                `)
+                .bind(
+                    session.account_id
+                )
+                .first();
+
+
+        if (!account) {
+
+            return json(
+                {
+                    success: false,
+
+                    authenticated:
+                        false,
+
+                    error:
+                        "Аккаунт не найден"
+                },
+                404
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           RESPONSE
+        ------------------------------------------------- */
+
+        return json(
+            {
+                success: true,
+
+                authenticated: true,
+
+                account: {
+                    id:
+                        account.id,
+
+                    username:
+                        account.username,
+
+                    balance:
+                        Number(
+                            account.balance || 0
+                        ),
+
+                    created_at:
+                        account.created_at,
+
+                    updated_at:
+                        account.updated_at
+                }
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "ME ERROR:",
+            error
+        );
+
+
+        return json(
+            {
+                success: false,
+
+                authenticated:
+                    false,
+
+                error:
+                    error?.message ||
+                    "Не удалось получить аккаунт"
+            },
+            500
+        );
+
     }
 
-  });
 }
 
 
 /* =========================================================
    LOGOUT
-   POST /api/auth/logout
 ========================================================= */
 
 export async function logout(
-  request,
-  env
-) {
-
-  await deleteSession(
     request,
     env
-  );
+) {
+
+    try {
+
+        const sessionId =
+            getCookie(
+                request,
+                "session"
+            );
 
 
-  return json(
+        if (sessionId) {
 
-    {
-      success: true
-    },
+            await env.DB
+                .prepare(`
+                    DELETE FROM sessions
+                    WHERE id = ?
+                `)
+                .bind(
+                    sessionId
+                )
+                .run();
 
-    200,
+        }
 
-    {
-      "Set-Cookie":
-        "meant_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
+
+        return json(
+            {
+                success: true
+            },
+            200,
+            {
+                "Set-Cookie":
+                    clearSessionCookie()
+            }
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "LOGOUT ERROR:",
+            error
+        );
+
+
+        return json(
+            {
+                success: false,
+
+                error:
+                    error?.message ||
+                    "Ошибка выхода"
+            },
+            500,
+            {
+                "Set-Cookie":
+                    clearSessionCookie()
+            }
+        );
+
     }
 
-  );
 }
