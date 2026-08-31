@@ -1,30 +1,63 @@
+/* =========================================================
+   ADMIN.JS — MEANT SHOP
+   ОТДЕЛЬНАЯ СИСТЕМА АДМИНИСТРАТОРОВ
+
+   НЕ ИСПОЛЬЗУЕТ auth.js
+   НЕ ИСПОЛЬЗУЕТ обычные sessions
+   ========================================================= */
+
 const PBKDF2_ITERATIONS = 100000;
 const HASH_BYTES = 32;
 const ADMIN_SESSION_DAYS = 7;
+const ADMIN_SESSION_SECONDS = 604800;
+
+
+/* =========================================================
+   RESPONSE
+   ========================================================= */
 
 function json(data, status = 200, extraHeaders = {}) {
-    return new Response(JSON.stringify(data), {
-        status,
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Credentials": "true",
-            ...extraHeaders
+    return new Response(
+        JSON.stringify(data),
+        {
+            status,
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Credentials": "true",
+                ...extraHeaders
+            }
         }
-    });
+    );
 }
+
+
+/* =========================================================
+   ID
+   ========================================================= */
 
 function generateId() {
     return crypto.randomUUID();
 }
 
+
+/* =========================================================
+   USERNAME
+   ========================================================= */
+
 function normalizeUsername(username) {
     return String(username ?? "").trim();
 }
 
+
 function validUsername(username) {
     return /^[a-zA-Z0-9_-]{3,32}$/.test(username);
 }
+
+
+/* =========================================================
+   PASSWORD HASH
+   ========================================================= */
 
 async function hashPassword(password) {
     const encoder = new TextEncoder();
@@ -36,7 +69,9 @@ async function hashPassword(password) {
     const key = await crypto.subtle.importKey(
         "raw",
         encoder.encode(password),
-        { name: "PBKDF2" },
+        {
+            name: "PBKDF2"
+        },
         false,
         ["deriveBits"]
     );
@@ -58,18 +93,26 @@ async function hashPassword(password) {
     };
 }
 
-async function verifyPassword(password, storedHash, storedSalt) {
-    if (!storedHash || !storedSalt) {
-        return false;
-    }
 
+/* =========================================================
+   PASSWORD VERIFY
+   ========================================================= */
+
+async function verifyPassword(
+    password,
+    storedHash,
+    storedSalt
+) {
     const encoder = new TextEncoder();
+
     const salt = hexToBytes(storedSalt);
 
     const key = await crypto.subtle.importKey(
         "raw",
         encoder.encode(password),
-        { name: "PBKDF2" },
+        {
+            name: "PBKDF2"
+        },
         false,
         ["deriveBits"]
     );
@@ -85,28 +128,41 @@ async function verifyPassword(password, storedHash, storedSalt) {
         HASH_BYTES * 8
     );
 
-    const hash = bytesToHex(new Uint8Array(bits));
+    const hash = bytesToHex(
+        new Uint8Array(bits)
+    );
 
     return hash === storedHash;
 }
 
+
+/* =========================================================
+   HEX
+   ========================================================= */
+
 function bytesToHex(bytes) {
-    return Array.from(bytes)
-        .map(byte => byte.toString(16).padStart(2, "0"))
+    return Array
+        .from(bytes)
+        .map(
+            byte =>
+                byte
+                    .toString(16)
+                    .padStart(2, "0")
+        )
         .join("");
 }
 
+
 function hexToBytes(hex) {
-    if (
-        typeof hex !== "string" ||
-        hex.length % 2 !== 0
+    const bytes = new Uint8Array(
+        hex.length / 2
+    );
+
+    for (
+        let i = 0;
+        i < hex.length;
+        i += 2
     ) {
-        return new Uint8Array();
-    }
-
-    const bytes = new Uint8Array(hex.length / 2);
-
-    for (let i = 0; i < hex.length; i += 2) {
         bytes[i / 2] = parseInt(
             hex.substring(i, i + 2),
             16
@@ -116,17 +172,29 @@ function hexToBytes(hex) {
     return bytes;
 }
 
+
+/* =========================================================
+   COOKIE
+   ========================================================= */
+
 function getCookie(request, name) {
-    const cookieHeader = request.headers.get("Cookie");
+    const cookieHeader =
+        request.headers.get("Cookie");
 
     if (!cookieHeader) {
         return null;
     }
 
-    const cookies = cookieHeader.split(";");
+    const cookies =
+        cookieHeader.split(";");
 
     for (const cookie of cookies) {
-        const [key, ...rest] = cookie.trim().split("=");
+        const [
+            key,
+            ...rest
+        ] = cookie
+            .trim()
+            .split("=");
 
         if (key === name) {
             return rest.join("=");
@@ -136,6 +204,11 @@ function getCookie(request, name) {
     return null;
 }
 
+
+/* =========================================================
+   ADMIN COOKIE
+   ========================================================= */
+
 function adminSessionCookie(sessionId) {
     return [
         `admin_session=${sessionId}`,
@@ -143,9 +216,10 @@ function adminSessionCookie(sessionId) {
         "HttpOnly",
         "SameSite=Lax",
         "Secure",
-        "Max-Age=604800"
+        `Max-Age=${ADMIN_SESSION_SECONDS}`
     ].join("; ");
 }
+
 
 function clearAdminSessionCookie() {
     return [
@@ -156,64 +230,236 @@ function clearAdminSessionCookie() {
         "Secure",
         "Max-Age=0"
     ].join("; ");
-}export async function adminRegister(request, env) {
+}
+
+
+/* =========================================================
+   REQUIRE ADMIN
+   ========================================================= */
+
+async function requireAdmin(request, env) {
+    const sessionId = getCookie(
+        request,
+        "admin_session"
+    );
+
+    if (!sessionId) {
+        return {
+            ok: false,
+            response: json(
+                {
+                    success: false,
+                    authenticated: false,
+                    error: "Администратор не авторизован"
+                },
+                401
+            )
+        };
+    }
+
+    const session = await env.DB
+        .prepare(`
+            SELECT
+                id,
+                admin_id,
+                expires_at
+            FROM admin_sessions
+            WHERE id = ?
+            LIMIT 1
+        `)
+        .bind(sessionId)
+        .first();
+
+    if (!session) {
+        return {
+            ok: false,
+            response: json(
+                {
+                    success: false,
+                    authenticated: false,
+                    error: "Сессия недействительна"
+                },
+                401
+            )
+        };
+    }
+
+    const expiresAt =
+        new Date(session.expires_at).getTime();
+
+    if (
+        Number.isFinite(expiresAt) &&
+        expiresAt <= Date.now()
+    ) {
+        await env.DB
+            .prepare(`
+                DELETE FROM admin_sessions
+                WHERE id = ?
+            `)
+            .bind(sessionId)
+            .run();
+
+        return {
+            ok: false,
+            response: json(
+                {
+                    success: false,
+                    authenticated: false,
+                    error: "Сессия истекла"
+                },
+                401
+            )
+        };
+    }
+
+    const admin = await env.DB
+        .prepare(`
+            SELECT
+                id,
+                username,
+                role,
+                created_at,
+                updated_at
+            FROM admin_accounts
+            WHERE id = ?
+            LIMIT 1
+        `)
+        .bind(session.admin_id)
+        .first();
+
+    if (!admin) {
+        return {
+            ok: false,
+            response: json(
+                {
+                    success: false,
+                    authenticated: false,
+                    error: "Администратор не найден"
+                },
+                404
+            )
+        };
+    }
+
+    return {
+        ok: true,
+        admin,
+        session
+    };
+}
+/* =========================================================
+   ADMIN REGISTER
+   ========================================================= */
+
+export async function adminRegister(request, env) {
     try {
         const body = await request.json();
 
-        const registerKey = String(body.registerKey ?? "");
-        const username = normalizeUsername(body.username);
-        const password = String(body.password ?? "");
-        const role = String(body.role ?? "ADMIN")
+        const registerKey = String(
+            body.registerKey ?? ""
+        );
+
+        if (!env.ADMIN_REGISTER_KEY) {
+            return json(
+                {
+                    success: false,
+                    error: "ADMIN_REGISTER_KEY не настроен на сервере"
+                },
+                500
+            );
+        }
+
+        if (
+            !registerKey ||
+            registerKey !== env.ADMIN_REGISTER_KEY
+        ) {
+            return json(
+                {
+                    success: false,
+                    error: "Неверный ключ регистрации администратора"
+                },
+                403
+            );
+        }
+
+        const username = normalizeUsername(
+            body.username
+        );
+
+        const password = String(
+            body.password ?? ""
+        );
+
+        const role = String(
+            body.role ?? "ADMIN"
+        )
             .trim()
             .toUpperCase();
 
-        if (!env.ADMIN_REGISTER_KEY) {
-            return json({
-                success: false,
-                error: "ADMIN_REGISTER_KEY не настроен на сервере"
-            }, 500);
-        }
-
-        if (!registerKey || registerKey !== env.ADMIN_REGISTER_KEY) {
-            return json({
-                success: false,
-                error: "Неверный ключ регистрации администратора"
-            }, 403);
-        }
-
         if (!username) {
-            return json({
-                success: false,
-                error: "Введите логин администратора"
-            }, 400);
+            return json(
+                {
+                    success: false,
+                    error: "Введите логин администратора"
+                },
+                400
+            );
         }
 
         if (!validUsername(username)) {
-            return json({
-                success: false,
-                error: "Логин должен содержать от 3 до 32 символов: латинские буквы, цифры, _ или -"
-            }, 400);
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Логин должен содержать от 3 до 32 символов: латинские буквы, цифры, _ или -"
+                },
+                400
+            );
+        }
+
+        if (!password) {
+            return json(
+                {
+                    success: false,
+                    error: "Введите пароль"
+                },
+                400
+            );
         }
 
         if (password.length < 8) {
-            return json({
-                success: false,
-                error: "Пароль должен быть не короче 8 символов"
-            }, 400);
+            return json(
+                {
+                    success: false,
+                    error: "Пароль должен быть не короче 8 символов"
+                },
+                400
+            );
         }
 
         if (password.length > 128) {
-            return json({
-                success: false,
-                error: "Пароль слишком длинный"
-            }, 400);
+            return json(
+                {
+                    success: false,
+                    error: "Пароль слишком длинный"
+                },
+                400
+            );
         }
 
-        if (!["OWNER", "ADMIN"].includes(role)) {
-            return json({
-                success: false,
-                error: "Недопустимая роль"
-            }, 400);
+        const allowedRoles = [
+            "OWNER",
+            "ADMIN"
+        ];
+
+        if (!allowedRoles.includes(role)) {
+            return json(
+                {
+                    success: false,
+                    error: "Недопустимая роль"
+                },
+                400
+            );
         }
 
         const existing = await env.DB
@@ -227,14 +473,20 @@ function clearAdminSessionCookie() {
             .first();
 
         if (existing) {
-            return json({
-                success: false,
-                error: "Этот логин администратора уже занят"
-            }, 409);
+            return json(
+                {
+                    success: false,
+                    error: "Этот логин администратора уже занят"
+                },
+                409
+            );
         }
 
-        const passwordData = await hashPassword(password);
-        const adminId = generateId();
+        const passwordData =
+            await hashPassword(password);
+
+        const adminId =
+            generateId();
 
         await env.DB
             .prepare(`
@@ -266,45 +518,71 @@ function clearAdminSessionCookie() {
             )
             .run();
 
-        return json({
-            success: true,
-            admin: {
-                id: adminId,
-                username,
-                role
-            }
-        }, 201);
+        return json(
+            {
+                success: true,
+                admin: {
+                    id: adminId,
+                    username,
+                    role
+                }
+            },
+            201
+        );
 
     } catch (error) {
-        console.error("ADMIN REGISTER ERROR:", error);
+        console.error(
+            "ADMIN REGISTER ERROR:",
+            error
+        );
 
-        return json({
-            success: false,
-            error: error?.message || "Ошибка регистрации администратора"
-        }, 500);
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Ошибка регистрации администратора"
+            },
+            500
+        );
     }
 }
 
+
+/* =========================================================
+   ADMIN LOGIN
+   ========================================================= */
 
 export async function adminLogin(request, env) {
     try {
         const body = await request.json();
 
-        const username = normalizeUsername(body.username);
-        const password = String(body.password ?? "");
+        const username = normalizeUsername(
+            body.username
+        );
+
+        const password = String(
+            body.password ?? ""
+        );
 
         if (!username) {
-            return json({
-                success: false,
-                error: "Введите логин"
-            }, 400);
+            return json(
+                {
+                    success: false,
+                    error: "Введите логин"
+                },
+                400
+            );
         }
 
         if (!password) {
-            return json({
-                success: false,
-                error: "Введите пароль"
-            }, 400);
+            return json(
+                {
+                    success: false,
+                    error: "Введите пароль"
+                },
+                400
+            );
         }
 
         const admin = await env.DB
@@ -315,7 +593,8 @@ export async function adminLogin(request, env) {
                     password_hash,
                     password_salt,
                     role,
-                    created_at
+                    created_at,
+                    updated_at
                 FROM admin_accounts
                 WHERE LOWER(username) = LOWER(?)
                 LIMIT 1
@@ -324,26 +603,34 @@ export async function adminLogin(request, env) {
             .first();
 
         if (!admin) {
-            return json({
-                success: false,
-                error: "Неверный логин или пароль"
-            }, 401);
+            return json(
+                {
+                    success: false,
+                    error: "Неверный логин или пароль"
+                },
+                401
+            );
         }
 
-        const valid = await verifyPassword(
-            password,
-            admin.password_hash,
-            admin.password_salt
-        );
+        const valid =
+            await verifyPassword(
+                password,
+                admin.password_hash,
+                admin.password_salt
+            );
 
         if (!valid) {
-            return json({
-                success: false,
-                error: "Неверный логин или пароль"
-            }, 401);
+            return json(
+                {
+                    success: false,
+                    error: "Неверный логин или пароль"
+                },
+                401
+            );
         }
 
-        const sessionId = generateId();
+        const sessionId =
+            generateId();
 
         await env.DB
             .prepare(`
@@ -366,143 +653,107 @@ export async function adminLogin(request, env) {
             )
             .run();
 
-        return json({
-            success: true,
-            authenticated: true,
-            admin: {
-                id: admin.id,
-                username: admin.username,
-                role: admin.role,
-                created_at: admin.created_at
+        return json(
+            {
+                success: true,
+                authenticated: true,
+                admin: {
+                    id: admin.id,
+                    username: admin.username,
+                    role: admin.role,
+                    created_at: admin.created_at,
+                    updated_at: admin.updated_at
+                }
+            },
+            200,
+            {
+                "Set-Cookie":
+                    adminSessionCookie(sessionId)
             }
-        }, 200, {
-            "Set-Cookie": adminSessionCookie(sessionId)
-        });
+        );
 
     } catch (error) {
-        console.error("ADMIN LOGIN ERROR:", error);
+        console.error(
+            "ADMIN LOGIN ERROR:",
+            error
+        );
 
-        return json({
-            success: false,
-            error: error?.message || "Ошибка входа администратора"
-        }, 500);
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Ошибка входа администратора"
+            },
+            500
+        );
     }
 }
 
+
+/* =========================================================
+   ADMIN ME
+   ========================================================= */
 
 export async function adminMe(request, env) {
     try {
-        const sessionId = getCookie(
-            request,
-            "admin_session"
+        const auth =
+            await requireAdmin(
+                request,
+                env
+            );
+
+        if (!auth.ok) {
+            return auth.response;
+        }
+
+        return json(
+            {
+                success: true,
+                authenticated: true,
+                admin: {
+                    id: auth.admin.id,
+                    username: auth.admin.username,
+                    role: auth.admin.role,
+                    created_at:
+                        auth.admin.created_at,
+                    updated_at:
+                        auth.admin.updated_at
+                }
+            }
         );
 
-        if (!sessionId) {
-            return json({
-                success: false,
-                authenticated: false,
-                error: "Администратор не авторизован"
-            }, 401);
-        }
-
-        const session = await env.DB
-            .prepare(`
-                SELECT
-                    id,
-                    admin_id,
-                    expires_at
-                FROM admin_sessions
-                WHERE id = ?
-                LIMIT 1
-            `)
-            .bind(sessionId)
-            .first();
-
-        if (!session) {
-            return json({
-                success: false,
-                authenticated: false,
-                error: "Сессия недействительна"
-            }, 401);
-        }
-
-        const expiresAt = new Date(
-            session.expires_at
-        ).getTime();
-
-        if (
-            Number.isFinite(expiresAt) &&
-            expiresAt <= Date.now()
-        ) {
-            await env.DB
-                .prepare(`
-                    DELETE FROM admin_sessions
-                    WHERE id = ?
-                `)
-                .bind(sessionId)
-                .run();
-
-            return json({
-                success: false,
-                authenticated: false,
-                error: "Сессия истекла"
-            }, 401);
-        }
-
-        const admin = await env.DB
-            .prepare(`
-                SELECT
-                    id,
-                    username,
-                    role,
-                    created_at,
-                    updated_at
-                FROM admin_accounts
-                WHERE id = ?
-                LIMIT 1
-            `)
-            .bind(session.admin_id)
-            .first();
-
-        if (!admin) {
-            return json({
-                success: false,
-                authenticated: false,
-                error: "Администратор не найден"
-            }, 404);
-        }
-
-        return json({
-            success: true,
-            authenticated: true,
-            admin: {
-                id: admin.id,
-                username: admin.username,
-                role: admin.role,
-                created_at: admin.created_at,
-                updated_at: admin.updated_at
-            }
-        });
-
     } catch (error) {
-        console.error("ADMIN ME ERROR:", error);
+        console.error(
+            "ADMIN ME ERROR:",
+            error
+        );
 
-        return json({
-            success: false,
-            authenticated: false,
-            error: error?.message ||
-                "Не удалось получить администратора"
-        }, 500);
+        return json(
+            {
+                success: false,
+                authenticated: false,
+                error:
+                    error?.message ||
+                    "Не удалось получить администратора"
+            },
+            500
+        );
     }
 }
 
 
+/* =========================================================
+   ADMIN LOGOUT
+   ========================================================= */
+
 export async function adminLogout(request, env) {
     try {
-        const sessionId = getCookie(
-            request,
-            "admin_session"
-        );
+        const sessionId =
+            getCookie(
+                request,
+                "admin_session"
+            );
 
         if (sessionId) {
             await env.DB
@@ -514,194 +765,133 @@ export async function adminLogout(request, env) {
                 .run();
         }
 
+        return json(
+            {
+                success: true
+            },
+            200,
+            {
+                "Set-Cookie":
+                    clearAdminSessionCookie()
+            }
+        );
+
+    } catch (error) {
+        console.error(
+            "ADMIN LOGOUT ERROR:",
+            error
+        );
+
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Ошибка выхода"
+            },
+            500,
+            {
+                "Set-Cookie":
+                    clearAdminSessionCookie()
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   ADMIN STATS
+   ========================================================= */
+
+export async function adminStats(request, env) {
+    try {
+        const auth =
+            await requireAdmin(
+                request,
+                env
+            );
+
+        if (!auth.ok) {
+            return auth.response;
+        }
+
+        const accounts = await env.DB
+            .prepare(`
+                SELECT COUNT(*) AS count
+                FROM accounts
+            `)
+            .first();
+
+        const administrators = await env.DB
+            .prepare(`
+                SELECT COUNT(*) AS count
+                FROM admin_accounts
+            `)
+            .first();
+
+        const transactions = await env.DB
+            .prepare(`
+                SELECT COUNT(*) AS count
+                FROM transactions
+            `)
+            .first();
+
+        const subscriptions = await env.DB
+            .prepare(`
+                SELECT COUNT(*) AS count
+                FROM entitlements
+                WHERE status = 'active'
+            `)
+            .first();
+
         return json({
-            success: true
-        }, 200, {
-            "Set-Cookie":
-                clearAdminSessionCookie()
+            success: true,
+            stats: {
+                accounts:
+                    Number(accounts?.count || 0),
+
+                administrators:
+                    Number(administrators?.count || 0),
+
+                transactions:
+                    Number(transactions?.count || 0),
+
+                activeSubscriptions:
+                    Number(subscriptions?.count || 0)
+            }
         });
 
     } catch (error) {
-        console.error("ADMIN LOGOUT ERROR:", error);
+        console.error(
+            "ADMIN STATS ERROR:",
+            error
+        );
 
-        return json({
-            success: false,
-            error: error?.message || "Ошибка выхода"
-        }, 500, {
-            "Set-Cookie":
-                clearAdminSessionCookie()
-        });
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось получить статистику"
+            },
+            500
+        );
     }
 }
 /* =========================================================
-   ADMIN ACCESS
-   Выдача / снятие доступа обычным аккаунтам
-   по ID или НИКУ
-========================================================= */
+   ADMIN ACCOUNTS
+   Просмотр обычных аккаунтов
+   ========================================================= */
 
+export async function adminAccounts(request, env) {
+    try {
+        const auth = await requireAdmin(request, env);
 
-/* =========================================================
-   CHECK ADMIN SESSION
-========================================================= */
+        if (!auth.ok) {
+            return auth.response;
+        }
 
-async function requireAdmin(request, env) {
-
-    const sessionId = getCookie(
-        request,
-        "admin_session"
-    );
-
-    if (!sessionId) {
-        return {
-            ok: false,
-            response: json({
-                success: false,
-                error: "Администратор не авторизован"
-            }, 401)
-        };
-    }
-
-    const session = await env.DB
-        .prepare(`
-            SELECT
-                id,
-                admin_id,
-                expires_at
-            FROM admin_sessions
-            WHERE id = ?
-            LIMIT 1
-        `)
-        .bind(sessionId)
-        .first();
-
-    if (!session) {
-        return {
-            ok: false,
-            response: json({
-                success: false,
-                error: "Сессия администратора недействительна"
-            }, 401)
-        };
-    }
-
-    const expiresAt =
-        new Date(session.expires_at).getTime();
-
-    if (
-        Number.isFinite(expiresAt) &&
-        expiresAt <= Date.now()
-    ) {
-
-        await env.DB
-            .prepare(`
-                DELETE FROM admin_sessions
-                WHERE id = ?
-            `)
-            .bind(sessionId)
-            .run();
-
-        return {
-            ok: false,
-            response: json({
-                success: false,
-                error: "Сессия администратора истекла"
-            }, 401)
-        };
-    }
-
-    const admin = await env.DB
-        .prepare(`
-            SELECT
-                id,
-                username,
-                role
-            FROM admin_accounts
-            WHERE id = ?
-            LIMIT 1
-        `)
-        .bind(session.admin_id)
-        .first();
-
-    if (!admin) {
-        return {
-            ok: false,
-            response: json({
-                success: false,
-                error: "Администратор не найден"
-            }, 404)
-        };
-    }
-
-    return {
-        ok: true,
-        admin
-    };
-}
-
-
-/* =========================================================
-   REQUIRE OWNER / ADMIN
-========================================================= */
-
-function canManageAccess(admin) {
-
-    return (
-        admin.role === "OWNER" ||
-        admin.role === "ADMIN"
-    );
-
-}
-
-
-/* =========================================================
-   FIND ACCOUNT
-   Можно передать:
-   {
-       "id": "..."
-   }
-
-   или:
-
-   {
-       "username": "detox"
-   }
-
-   или:
-
-   {
-       "query": "detox"
-   }
-========================================================= */
-
-async function findAccount(env, body) {
-
-    const id =
-        String(body.id ?? "").trim();
-
-    const username =
-        String(body.username ?? "").trim();
-
-    const query =
-        String(body.query ?? "").trim();
-
-    const searchValue =
-        id || username || query;
-
-    if (!searchValue) {
-        return {
-            account: null,
-            error: "Введите ID или ник пользователя"
-        };
-    }
-
-
-    /* -----------------------------------------------------
-       SEARCH BY ID
-    ----------------------------------------------------- */
-
-    if (id) {
-
-        const account = await env.DB
+        const result = await env.DB
             .prepare(`
                 SELECT
                     id,
@@ -710,517 +900,708 @@ async function findAccount(env, body) {
                     created_at,
                     updated_at
                 FROM accounts
-                WHERE id = ?
-                LIMIT 1
+                ORDER BY created_at DESC
             `)
-            .bind(id)
-            .first();
-
-        return {
-            account: account || null
-        };
-    }
-
-
-    /* -----------------------------------------------------
-       SEARCH BY USERNAME
-    ----------------------------------------------------- */
-
-    const account = await env.DB
-        .prepare(`
-            SELECT
-                id,
-                username,
-                balance,
-                created_at,
-                updated_at
-            FROM accounts
-            WHERE LOWER(username) = LOWER(?)
-            LIMIT 1
-        `)
-        .bind(searchValue)
-        .first();
-
-    return {
-        account: account || null
-    };
-}
-
-
-/* =========================================================
-   GET ACCOUNT ACCESS
-========================================================= */
-
-export async function adminGetAccess(
-    request,
-    env
-) {
-
-    try {
-
-        const auth =
-            await requireAdmin(
-                request,
-                env
-            );
-
-        if (!auth.ok) {
-            return auth.response;
-        }
-
-
-        if (!canManageAccess(auth.admin)) {
-            return json({
-                success: false,
-                error: "Недостаточно прав"
-            }, 403);
-        }
-
-
-        const body =
-            await request.json();
-
-
-        const result =
-            await findAccount(
-                env,
-                body
-            );
-
-
-        if (result.error) {
-            return json({
-                success: false,
-                error: result.error
-            }, 400);
-        }
-
-
-        if (!result.account) {
-            return json({
-                success: false,
-                error: "Пользователь не найден"
-            }, 404);
-        }
-
-
-        const access =
-            await env.DB
-                .prepare(`
-                    SELECT
-                        id,
-                        account_id,
-                        enabled,
-                        created_at,
-                        updated_at
-                    FROM admin_access
-                    WHERE account_id = ?
-                    LIMIT 1
-                `)
-                .bind(
-                    result.account.id
-                )
-                .first();
-
+            .all();
 
         return json({
             success: true,
-
-            account: {
-                id:
-                    result.account.id,
-
-                username:
-                    result.account.username,
-
-                balance:
-                    Number(
-                        result.account.balance || 0
-                    ),
-
-                created_at:
-                    result.account.created_at,
-
-                updated_at:
-                    result.account.updated_at
-            },
-
-            access: {
-                enabled:
-                    access
-                        ? Boolean(access.enabled)
-                        : false,
-
-                created_at:
-                    access?.created_at || null,
-
-                updated_at:
-                    access?.updated_at || null
-            }
+            accounts: result.results || []
         });
 
-
     } catch (error) {
-
         console.error(
-            "ADMIN GET ACCESS ERROR:",
+            "ADMIN ACCOUNTS ERROR:",
             error
         );
 
-        return json({
-            success: false,
-            error:
-                error?.message ||
-                "Ошибка получения доступа"
-        }, 500);
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось получить аккаунты"
+            },
+            500
+        );
     }
 }
 
 
 /* =========================================================
-   GRANT ADMIN ACCESS
-========================================================= */
+   ADMINISTRATORS
+   ========================================================= */
 
-export async function adminGrantAccess(
-    request,
-    env
-) {
-
+export async function adminAdministrators(request, env) {
     try {
-
-        const auth =
-            await requireAdmin(
-                request,
-                env
-            );
+        const auth = await requireAdmin(request, env);
 
         if (!auth.ok) {
             return auth.response;
         }
 
+        const result = await env.DB
+            .prepare(`
+                SELECT
+                    id,
+                    username,
+                    role,
+                    created_at,
+                    updated_at
+                FROM admin_accounts
+                ORDER BY created_at DESC
+            `)
+            .all();
 
-        if (!canManageAccess(auth.admin)) {
-            return json({
+        return json({
+            success: true,
+            administrators:
+                result.results || []
+        });
+
+    } catch (error) {
+        console.error(
+            "ADMIN ADMINISTRATORS ERROR:",
+            error
+        );
+
+        return json(
+            {
                 success: false,
-                error: "Недостаточно прав"
-            }, 403);
+                error:
+                    error?.message ||
+                    "Не удалось получить администраторов"
+            },
+            500
+        );
+    }
+}
+
+
+/* =========================================================
+   CREATE ADMINISTRATOR
+   Только OWNER
+   ========================================================= */
+
+export async function createAdministrator(request, env) {
+    try {
+        const auth = await requireAdmin(request, env);
+
+        if (!auth.ok) {
+            return auth.response;
         }
 
-
-        const body =
-            await request.json();
-
-
-        const result =
-            await findAccount(
-                env,
-                body
+        if (auth.admin.role !== "OWNER") {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Только OWNER может создавать администраторов"
+                },
+                403
             );
-
-
-        if (result.error) {
-            return json({
-                success: false,
-                error: result.error
-            }, 400);
         }
 
+        const body = await request.json();
 
-        if (!result.account) {
-            return json({
-                success: false,
-                error: "Пользователь не найден"
-            }, 404);
+        const username = normalizeUsername(
+            body.username
+        );
+
+        const password = String(
+            body.password ?? ""
+        );
+
+        const role = String(
+            body.role ?? "ADMIN"
+        )
+            .trim()
+            .toUpperCase();
+
+        if (!username) {
+            return json(
+                {
+                    success: false,
+                    error: "Введите логин"
+                },
+                400
+            );
         }
 
+        if (!validUsername(username)) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Логин должен содержать от 3 до 32 символов: латинские буквы, цифры, _ или -"
+                },
+                400
+            );
+        }
 
-        const accessId =
+        if (password.length < 8) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Пароль должен быть не короче 8 символов"
+                },
+                400
+            );
+        }
+
+        if (
+            role !== "ADMIN" &&
+            role !== "OWNER"
+        ) {
+            return json(
+                {
+                    success: false,
+                    error: "Недопустимая роль"
+                },
+                400
+            );
+        }
+
+        const existing = await env.DB
+            .prepare(`
+                SELECT id
+                FROM admin_accounts
+                WHERE LOWER(username) = LOWER(?)
+                LIMIT 1
+            `)
+            .bind(username)
+            .first();
+
+        if (existing) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Администратор с таким логином уже существует"
+                },
+                409
+            );
+        }
+
+        const passwordData =
+            await hashPassword(password);
+
+        const adminId =
             generateId();
-
 
         await env.DB
             .prepare(`
-                INSERT INTO admin_access (
+                INSERT INTO admin_accounts (
                     id,
-                    account_id,
-                    enabled,
+                    username,
+                    password_hash,
+                    password_salt,
+                    role,
                     created_at,
                     updated_at
                 )
                 VALUES (
                     ?,
                     ?,
-                    1,
+                    ?,
+                    ?,
+                    ?,
                     datetime('now'),
                     datetime('now')
                 )
-                ON CONFLICT(account_id)
-                DO UPDATE SET
-                    enabled = 1,
-                    updated_at = datetime('now')
             `)
             .bind(
-                accessId,
-                result.account.id
+                adminId,
+                username,
+                passwordData.hash,
+                passwordData.salt,
+                role
             )
             .run();
 
-
-        return json({
-            success: true,
-
-            message:
-                "Доступ к админ-панели выдан",
-
-            account: {
-                id:
-                    result.account.id,
-
-                username:
-                    result.account.username
+        return json(
+            {
+                success: true,
+                administrator: {
+                    id: adminId,
+                    username,
+                    role
+                }
             },
-
-            access: {
-                enabled: true
-            }
-        });
-
+            201
+        );
 
     } catch (error) {
-
         console.error(
-            "ADMIN GRANT ACCESS ERROR:",
+            "CREATE ADMINISTRATOR ERROR:",
             error
         );
 
-        return json({
-            success: false,
-            error:
-                error?.message ||
-                "Ошибка выдачи доступа"
-        }, 500);
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось создать администратора"
+            },
+            500
+        );
     }
 }
 
 
 /* =========================================================
-   REVOKE ADMIN ACCESS
-========================================================= */
+   UPDATE ADMINISTRATOR
+   Только OWNER
+   ========================================================= */
 
-export async function adminRevokeAccess(
-    request,
-    env
-) {
-
+export async function updateAdministrator(request, env) {
     try {
-
-        const auth =
-            await requireAdmin(
-                request,
-                env
-            );
+        const auth = await requireAdmin(request, env);
 
         if (!auth.ok) {
             return auth.response;
         }
 
-
-        if (!canManageAccess(auth.admin)) {
-            return json({
-                success: false,
-                error: "Недостаточно прав"
-            }, 403);
-        }
-
-
-        const body =
-            await request.json();
-
-
-        const result =
-            await findAccount(
-                env,
-                body
+        if (auth.admin.role !== "OWNER") {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Только OWNER может изменять администраторов"
+                },
+                403
             );
-
-
-        if (result.error) {
-            return json({
-                success: false,
-                error: result.error
-            }, 400);
         }
 
+        const body = await request.json();
 
-        if (!result.account) {
-            return json({
-                success: false,
-                error: "Пользователь не найден"
-            }, 404);
+        const id = String(
+            body.id ?? ""
+        ).trim();
+
+        if (!id) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Не указан ID администратора"
+                },
+                400
+            );
         }
 
+        const target = await env.DB
+            .prepare(`
+                SELECT
+                    id,
+                    username,
+                    role
+                FROM admin_accounts
+                WHERE id = ?
+                LIMIT 1
+            `)
+            .bind(id)
+            .first();
+
+        if (!target) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Администратор не найден"
+                },
+                404
+            );
+        }
+
+        const username =
+            body.username !== undefined
+                ? normalizeUsername(body.username)
+                : target.username;
+
+        const role =
+            body.role !== undefined
+                ? String(body.role)
+                    .trim()
+                    .toUpperCase()
+                : target.role;
+
+        if (!validUsername(username)) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Недопустимый логин"
+                },
+                400
+            );
+        }
+
+        if (
+            role !== "ADMIN" &&
+            role !== "OWNER"
+        ) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Недопустимая роль"
+                },
+                400
+            );
+        }
+
+        const duplicate = await env.DB
+            .prepare(`
+                SELECT id
+                FROM admin_accounts
+                WHERE LOWER(username) = LOWER(?)
+                  AND id != ?
+                LIMIT 1
+            `)
+            .bind(
+                username,
+                id
+            )
+            .first();
+
+        if (duplicate) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Этот логин уже используется"
+                },
+                409
+            );
+        }
 
         await env.DB
             .prepare(`
-                UPDATE admin_access
+                UPDATE admin_accounts
                 SET
-                    enabled = 0,
+                    username = ?,
+                    role = ?,
                     updated_at = datetime('now')
-                WHERE account_id = ?
+                WHERE id = ?
             `)
             .bind(
-                result.account.id
+                username,
+                role,
+                id
             )
             .run();
 
-
         return json({
             success: true,
-
-            message:
-                "Доступ к админ-панели забран",
-
-            account: {
-                id:
-                    result.account.id,
-
-                username:
-                    result.account.username
-            },
-
-            access: {
-                enabled: false
+            administrator: {
+                id,
+                username,
+                role
             }
         });
 
-
     } catch (error) {
-
         console.error(
-            "ADMIN REVOKE ACCESS ERROR:",
+            "UPDATE ADMINISTRATOR ERROR:",
             error
         );
 
-        return json({
-            success: false,
-            error:
-                error?.message ||
-                "Ошибка снятия доступа"
-        }, 500);
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось изменить администратора"
+            },
+            500
+        );
     }
 }
 
 
 /* =========================================================
-   CHECK ADMIN ACCESS FOR USER
-   Это понадобится profile.html
+   DELETE ADMINISTRATOR
+   Только OWNER
+   ========================================================= */
 
-   Передаём:
-   {
-       "accountId": "..."
-   }
-
-   или:
-   {
-       "username": "detox"
-   }
-========================================================= */
-
-export async function checkAdminAccess(
-    request,
-    env
-) {
-
+export async function deleteAdministrator(request, env) {
     try {
+        const auth = await requireAdmin(request, env);
 
-        const body =
-            await request.json();
-
-
-        const result =
-            await findAccount(
-                env,
-                body
-            );
-
-
-        if (!result.account) {
-            return json({
-                success: true,
-                hasAccess: false
-            });
+        if (!auth.ok) {
+            return auth.response;
         }
 
+        if (auth.admin.role !== "OWNER") {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Только OWNER может удалять администраторов"
+                },
+                403
+            );
+        }
 
-        const access =
-            await env.DB
-                .prepare(`
-                    SELECT enabled
-                    FROM admin_access
-                    WHERE account_id = ?
-                    LIMIT 1
-                `)
-                .bind(
-                    result.account.id
-                )
-                .first();
+        const body = await request.json();
 
+        const id = String(
+            body.id ?? ""
+        ).trim();
+
+        if (!id) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Не указан ID администратора"
+                },
+                400
+            );
+        }
+
+        if (id === auth.admin.id) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Нельзя удалить самого себя"
+                },
+                400
+            );
+        }
+
+        const target = await env.DB
+            .prepare(`
+                SELECT id
+                FROM admin_accounts
+                WHERE id = ?
+                LIMIT 1
+            `)
+            .bind(id)
+            .first();
+
+        if (!target) {
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Администратор не найден"
+                },
+                404
+            );
+        }
+
+        await env.DB
+            .prepare(`
+                DELETE FROM admin_sessions
+                WHERE admin_id = ?
+            `)
+            .bind(id)
+            .run();
+
+        await env.DB
+            .prepare(`
+                DELETE FROM admin_accounts
+                WHERE id = ?
+            `)
+            .bind(id)
+            .run();
 
         return json({
             success: true,
-
-            hasAccess:
-                Boolean(
-                    access &&
-                    Number(access.enabled) === 1
-                ),
-
-            account: {
-                id:
-                    result.account.id,
-
-                username:
-                    result.account.username
-            }
+            deleted: id
         });
 
-
     } catch (error) {
-
         console.error(
-            "CHECK ADMIN ACCESS ERROR:",
+            "DELETE ADMINISTRATOR ERROR:",
             error
         );
 
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось удалить администратора"
+            },
+            500
+        );
+    }
+}
+
+
+/* =========================================================
+   PRODUCTS
+   ========================================================= */
+
+export async function adminProducts(request, env) {
+    try {
+        const auth = await requireAdmin(request, env);
+
+        if (!auth.ok) {
+            return auth.response;
+        }
+
         return json({
-            success: false,
-            hasAccess: false,
-            error:
-                error?.message ||
-                "Ошибка проверки доступа"
-        }, 500);
+            success: true,
+            products: []
+        });
+
+    } catch (error) {
+        console.error(
+            "ADMIN PRODUCTS ERROR:",
+            error
+        );
+
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось получить товары"
+            },
+            500
+        );
+    }
+}
+
+
+/* =========================================================
+   TRANSACTIONS
+   ========================================================= */
+
+export async function adminTransactions(request, env) {
+    try {
+        const auth = await requireAdmin(request, env);
+
+        if (!auth.ok) {
+            return auth.response;
+        }
+
+        const result = await env.DB
+            .prepare(`
+                SELECT
+                    id,
+                    account_id,
+                    type,
+                    amount,
+                    balance_after,
+                    tebex_transaction_id,
+                    webhook_id,
+                    product_id,
+                    created_at
+                FROM transactions
+                ORDER BY created_at DESC
+                LIMIT 500
+            `)
+            .all();
+
+        return json({
+            success: true,
+            transactions:
+                result.results || []
+        });
+
+    } catch (error) {
+        console.error(
+            "ADMIN TRANSACTIONS ERROR:",
+            error
+        );
+
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось получить транзакции"
+            },
+            500
+        );
+    }
+}
+
+
+/* =========================================================
+   SUBSCRIPTIONS
+   ========================================================= */
+
+export async function adminSubscriptions(request, env) {
+    try {
+        const auth = await requireAdmin(request, env);
+
+        if (!auth.ok) {
+            return auth.response;
+        }
+
+        const result = await env.DB
+            .prepare(`
+                SELECT
+                    id,
+                    account_id,
+                    product_id,
+                    product_name,
+                    expires_at,
+                    status,
+                    tebex_transaction_id,
+                    created_at
+                FROM entitlements
+                ORDER BY created_at DESC
+                LIMIT 500
+            `)
+            .all();
+
+        return json({
+            success: true,
+            subscriptions:
+                result.results || []
+        });
+
+    } catch (error) {
+        console.error(
+            "ADMIN SUBSCRIPTIONS ERROR:",
+            error
+        );
+
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось получить подписки"
+            },
+            500
+        );
     }
 }
 /* =========================================================
-   ADMIN ACCESS MANAGEMENT
-   Выдача / отзыв доступа пользователям
+   PART 4/4
+   ADMIN ACCESS CONTROL FOR NORMAL ACCOUNTS
 
-   Поиск пользователя:
-   - по ID
-   - по username
+   Выдача / снятие доступа обычному пользователю
+   по ID или username.
 
-   Администратор может:
-   - выдать доступ
-   - забрать доступ
-   - посмотреть текущий доступ
+   Использует:
+   - accounts
+   - entitlements
+   - admin_sessions
+   - admin_accounts
+
+   НЕ использует:
+   - credentials
+   - обычные sessions
 ========================================================= */
 
 
 /* =========================================================
-   FIND ACCOUNT
+   FIND NORMAL ACCOUNT
 ========================================================= */
 
-async function findAccount(env, identifier) {
+async function findNormalAccount(env, identifier) {
 
     const value =
         String(identifier ?? "").trim();
@@ -1230,7 +1611,8 @@ async function findAccount(env, identifier) {
     }
 
     /*
-       Сначала пробуем найти по ID.
+       Сначала пытаемся найти по ID,
+       затем по username.
     */
 
     let account =
@@ -1240,7 +1622,8 @@ async function findAccount(env, identifier) {
                     id,
                     username,
                     balance,
-                    created_at
+                    created_at,
+                    updated_at
                 FROM accounts
                 WHERE id = ?
                 LIMIT 1
@@ -1252,11 +1635,6 @@ async function findAccount(env, identifier) {
         return account;
     }
 
-    /*
-       Если по ID не нашли —
-       ищем по нику.
-    */
-
     account =
         await env.DB
             .prepare(`
@@ -1264,7 +1642,8 @@ async function findAccount(env, identifier) {
                     id,
                     username,
                     balance,
-                    created_at
+                    created_at,
+                    updated_at
                 FROM accounts
                 WHERE LOWER(username) = LOWER(?)
                 LIMIT 1
@@ -1280,7 +1659,10 @@ async function findAccount(env, identifier) {
    CHECK ADMIN SESSION
 ========================================================= */
 
-async function requireAdmin(request, env) {
+async function requireAdminForAccess(
+    request,
+    env
+) {
 
     const sessionId =
         getCookie(
@@ -1289,49 +1671,25 @@ async function requireAdmin(request, env) {
         );
 
     if (!sessionId) {
-        return {
-            ok: false,
-            response: json(
-                {
-                    success: false,
-                    authenticated: false,
-                    error: "Необходима авторизация администратора"
-                },
-                401
-            )
-        };
+        return null;
     }
 
     const session =
         await env.DB
             .prepare(`
                 SELECT
-                    s.id,
-                    s.admin_id,
-                    s.expires_at,
-                    a.username,
-                    a.role
-                FROM admin_sessions s
-                INNER JOIN admin_accounts a
-                    ON a.id = s.admin_id
-                WHERE s.id = ?
+                    id,
+                    admin_id,
+                    expires_at
+                FROM admin_sessions
+                WHERE id = ?
                 LIMIT 1
             `)
             .bind(sessionId)
             .first();
 
     if (!session) {
-        return {
-            ok: false,
-            response: json(
-                {
-                    success: false,
-                    authenticated: false,
-                    error: "Сессия администратора недействительна"
-                },
-                401
-            )
-        };
+        return null;
     }
 
     const expiresAt =
@@ -1352,28 +1710,55 @@ async function requireAdmin(request, env) {
             .bind(sessionId)
             .run();
 
-        return {
-            ok: false,
-            response: json(
-                {
-                    success: false,
-                    authenticated: false,
-                    error: "Сессия администратора истекла"
-                },
-                401
-            )
-        };
+        return null;
     }
 
-    return {
-        ok: true,
-        session
-    };
+    const admin =
+        await env.DB
+            .prepare(`
+                SELECT
+                    id,
+                    username,
+                    role
+                FROM admin_accounts
+                WHERE id = ?
+                LIMIT 1
+            `)
+            .bind(session.admin_id)
+            .first();
+
+    if (!admin) {
+        return null;
+    }
+
+    return admin;
 }
 
 
 /* =========================================================
-   GIVE ACCESS
+   GRANT ACCESS
+=========================================================
+
+POST /api/admin/access/grant
+
+BODY:
+
+{
+    "identifier": "nickname",
+    "productId": "visual",
+    "productName": "Visual",
+    "days": 30
+}
+
+identifier может быть:
+- ID аккаунта
+- username
+
+days:
+- 7
+- 30
+- 90
+- null / 0 = навсегда
 ========================================================= */
 
 export async function adminGrantAccess(
@@ -1383,40 +1768,60 @@ export async function adminGrantAccess(
 
     try {
 
-        const auth =
-            await requireAdmin(
+        /* -------------------------------------------------
+           ADMIN AUTH
+        ------------------------------------------------- */
+
+        const admin =
+            await requireAdminForAccess(
                 request,
                 env
             );
 
-        if (!auth.ok) {
-            return auth.response;
+        if (!admin) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Требуется авторизация администратора"
+                },
+                401
+            );
+
         }
+
+
+        /* -------------------------------------------------
+           BODY
+        ------------------------------------------------- */
 
         const body =
             await request.json();
 
-        /*
-           Можно передать:
-
-           {
-               "identifier": "username"
-           }
-
-           или
-
-           {
-               "identifier": "account-id"
-           }
-        */
 
         const identifier =
             String(
-                body.identifier ??
-                body.username ??
-                body.accountId ??
-                ""
+                body.identifier ?? ""
             ).trim();
+
+
+        const productId =
+            String(
+                body.productId ?? ""
+            ).trim();
+
+
+        const productName =
+            String(
+                body.productName ??
+                productId
+            ).trim();
+
+
+        const daysValue =
+            body.days;
+
 
         if (!identifier) {
 
@@ -1424,10 +1829,25 @@ export async function adminGrantAccess(
                 {
                     success: false,
                     error:
-                        "Введите ID или ник пользователя"
+                        "Укажите ID или ник пользователя"
                 },
                 400
             );
+
+        }
+
+
+        if (!productId) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Укажите productId"
+                },
+                400
+            );
+
         }
 
 
@@ -1436,10 +1856,11 @@ export async function adminGrantAccess(
         ------------------------------------------------- */
 
         const account =
-            await findAccount(
+            await findNormalAccount(
                 env,
                 identifier
             );
+
 
         if (!account) {
 
@@ -1447,67 +1868,36 @@ export async function adminGrantAccess(
                 {
                     success: false,
                     error:
-                        "Пользователь не найден"
+                        "Обычный аккаунт не найден"
                 },
                 404
             );
-        }
 
-
-        /* -------------------------------------------------
-           ACCESS DATA
-        ------------------------------------------------- */
-
-        const productId =
-            String(
-                body.productId ??
-                "admin_granted"
-            ).trim();
-
-        const productName =
-            String(
-                body.productName ??
-                "Административный доступ"
-            ).trim();
-
-        /*
-           days:
-
-           0 = навсегда
-           7 = 7 дней
-           30 = 30 дней
-           90 = 90 дней
-        */
-
-        const days =
-            Number(
-                body.days ?? 0
-            );
-
-        if (
-            !Number.isInteger(days) ||
-            days < 0 ||
-            days > 3650
-        ) {
-
-            return json(
-                {
-                    success: false,
-                    error:
-                        "Количество дней должно быть от 0 до 3650"
-                },
-                400
-            );
         }
 
 
         /* -------------------------------------------------
            EXPIRATION
+        -------------------------------------------------
+
+           days = 7  -> 7 дней
+           days = 30 -> 30 дней
+           days = 90 -> 90 дней
+           days = 0  -> навсегда
+           days = null -> навсегда
         ------------------------------------------------- */
 
         let expiresAt = null;
 
-        if (days > 0) {
+
+        const days =
+            Number(daysValue);
+
+
+        if (
+            Number.isFinite(days) &&
+            days > 0
+        ) {
 
             const expiration =
                 new Date(
@@ -1521,102 +1911,61 @@ export async function adminGrantAccess(
 
             expiresAt =
                 expiration.toISOString();
+
         }
 
 
         /* -------------------------------------------------
-           REMOVE OLD ACTIVE ACCESS
+           CREATE ENTITLEMENT
         ------------------------------------------------- */
+
+        const entitlementId =
+            crypto.randomUUID();
+
 
         await env.DB
             .prepare(`
-                UPDATE entitlements
-                SET status = 'revoked'
-                WHERE account_id = ?
-                  AND product_id = ?
-                  AND status = 'active'
-            `)
-            .bind(
-                account.id,
-                productId
-            )
-            .run();
-
-
-        /* -------------------------------------------------
-           CREATE ACCESS
-        ------------------------------------------------- */
-
-        const result =
-            await env.DB
-                .prepare(`
-                    INSERT INTO entitlements (
-                        account_id,
-                        product_id,
-                        product_name,
-                        expires_at,
-                        status,
-                        tebex_transaction_id,
-                        created_at
-                    )
-                    VALUES (
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        'active',
-                        NULL,
-                        datetime('now')
-                    )
-                `)
-                .bind(
-                    account.id,
-                    productId,
-                    productName,
-                    expiresAt
-                )
-                .run();
-
-
-        /* -------------------------------------------------
-           LOG
-        ------------------------------------------------- */
-
-        await env.DB
-            .prepare(`
-                INSERT INTO admin_logs (
-                    admin_id,
-                    action,
-                    target_account_id,
-                    details,
+                INSERT INTO entitlements (
+                    id,
+                    account_id,
+                    product_id,
+                    product_name,
+                    expires_at,
+                    status,
+                    tebex_transaction_id,
                     created_at
                 )
                 VALUES (
                     ?,
-                    'grant_access',
                     ?,
                     ?,
+                    ?,
+                    ?,
+                    'active',
+                    NULL,
                     datetime('now')
                 )
             `)
             .bind(
-                auth.session.admin_id,
+                entitlementId,
                 account.id,
-                JSON.stringify({
-                    productId,
-                    productName,
-                    days
-                })
+                productId,
+                productName,
+                expiresAt
             )
             .run();
 
+
+        /* -------------------------------------------------
+           RESPONSE
+        ------------------------------------------------- */
 
         return json(
             {
                 success: true,
 
                 message:
-                    "Доступ успешно выдан",
+                    "Доступ выдан",
 
                 account: {
                     id:
@@ -1626,15 +1975,33 @@ export async function adminGrantAccess(
                         account.username
                 },
 
-                access: {
-                    productId,
-                    productName,
-                    days,
-                    expiresAt,
-                    status: "active"
+                entitlement: {
+                    id:
+                        entitlementId,
+
+                    productId:
+                        productId,
+
+                    productName:
+                        productName,
+
+                    expiresAt:
+                        expiresAt,
+
+                    status:
+                        "active"
                 },
 
-                result
+                admin: {
+                    id:
+                        admin.id,
+
+                    username:
+                        admin.username,
+
+                    role:
+                        admin.role
+                }
             },
             201
         );
@@ -1647,21 +2014,45 @@ export async function adminGrantAccess(
             error
         );
 
+
         return json(
             {
                 success: false,
                 error:
                     error?.message ||
-                    "Ошибка выдачи доступа"
+                    "Не удалось выдать доступ"
             },
             500
         );
+
     }
+
 }
 
 
 /* =========================================================
    REVOKE ACCESS
+=========================================================
+
+POST /api/admin/access/revoke
+
+BODY:
+
+{
+    "identifier": "nickname",
+    "productId": "visual"
+}
+
+identifier:
+- ID
+- username
+
+productId:
+- конкретный товар
+
+Если productId не указан,
+снимаются ВСЕ активные доступы
+пользователя.
 ========================================================= */
 
 export async function adminRevokeAccess(
@@ -1671,26 +2062,49 @@ export async function adminRevokeAccess(
 
     try {
 
-        const auth =
-            await requireAdmin(
+        /* -------------------------------------------------
+           ADMIN AUTH
+        ------------------------------------------------- */
+
+        const admin =
+            await requireAdminForAccess(
                 request,
                 env
             );
 
-        if (!auth.ok) {
-            return auth.response;
+        if (!admin) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Требуется авторизация администратора"
+                },
+                401
+            );
+
         }
+
+
+        /* -------------------------------------------------
+           BODY
+        ------------------------------------------------- */
 
         const body =
             await request.json();
 
+
         const identifier =
             String(
-                body.identifier ??
-                body.username ??
-                body.accountId ??
-                ""
+                body.identifier ?? ""
             ).trim();
+
+
+        const productId =
+            String(
+                body.productId ?? ""
+            ).trim();
+
 
         if (!identifier) {
 
@@ -1698,10 +2112,11 @@ export async function adminRevokeAccess(
                 {
                     success: false,
                     error:
-                        "Введите ID или ник пользователя"
+                        "Укажите ID или ник пользователя"
                 },
                 400
             );
+
         }
 
 
@@ -1710,10 +2125,11 @@ export async function adminRevokeAccess(
         ------------------------------------------------- */
 
         const account =
-            await findAccount(
+            await findNormalAccount(
                 env,
                 identifier
             );
+
 
         if (!account) {
 
@@ -1721,38 +2137,28 @@ export async function adminRevokeAccess(
                 {
                     success: false,
                     error:
-                        "Пользователь не найден"
+                        "Обычный аккаунт не найден"
                 },
                 404
             );
+
         }
 
 
         /* -------------------------------------------------
-           PRODUCT
+           REVOKE ONE PRODUCT
         ------------------------------------------------- */
-
-        const productId =
-            body.productId
-                ? String(
-                    body.productId
-                ).trim()
-                : null;
-
-
-        let result;
-
 
         if (productId) {
 
-            result =
+            const result =
                 await env.DB
                     .prepare(`
                         UPDATE entitlements
                         SET status = 'revoked'
                         WHERE account_id = ?
-                          AND product_id = ?
-                          AND status = 'active'
+                        AND product_id = ?
+                        AND status = 'active'
                     `)
                     .bind(
                         account.id,
@@ -1760,52 +2166,62 @@ export async function adminRevokeAccess(
                     )
                     .run();
 
-        } else {
 
-            result =
-                await env.DB
-                    .prepare(`
-                        UPDATE entitlements
-                        SET status = 'revoked'
-                        WHERE account_id = ?
-                          AND status = 'active'
-                    `)
-                    .bind(
-                        account.id
-                    )
-                    .run();
+            return json(
+                {
+                    success: true,
+
+                    message:
+                        result.meta?.changes
+                            ? "Доступ снят"
+                            : "Активный доступ не найден",
+
+                    account: {
+                        id:
+                            account.id,
+
+                        username:
+                            account.username
+                    },
+
+                    productId:
+                        productId,
+
+                    changed:
+                        result.meta?.changes || 0,
+
+                    admin: {
+                        id:
+                            admin.id,
+
+                        username:
+                            admin.username,
+
+                        role:
+                            admin.role
+                    }
+                }
+            );
+
         }
 
 
         /* -------------------------------------------------
-           LOG
+           REVOKE ALL PRODUCTS
         ------------------------------------------------- */
 
-        await env.DB
-            .prepare(`
-                INSERT INTO admin_logs (
-                    admin_id,
-                    action,
-                    target_account_id,
-                    details,
-                    created_at
+        const result =
+            await env.DB
+                .prepare(`
+                    UPDATE entitlements
+                    SET status = 'revoked'
+                    WHERE account_id = ?
+                    AND status = 'active'
+                `)
+                .bind(
+                    account.id
                 )
-                VALUES (
-                    ?,
-                    'revoke_access',
-                    ?,
-                    ?,
-                    datetime('now')
-                )
-            `)
-            .bind(
-                auth.session.admin_id,
-                account.id,
-                JSON.stringify({
-                    productId
-                })
-            )
-            .run();
+                .run();
 
 
         return json(
@@ -1813,7 +2229,9 @@ export async function adminRevokeAccess(
                 success: true,
 
                 message:
-                    "Доступ успешно забран",
+                    result.meta?.changes
+                        ? "Все активные доступы сняты"
+                        : "Активных доступов не найдено",
 
                 account: {
                     id:
@@ -1823,10 +2241,19 @@ export async function adminRevokeAccess(
                         account.username
                 },
 
-                productId:
-                    productId || "all",
+                changed:
+                    result.meta?.changes || 0,
 
-                result
+                admin: {
+                    id:
+                        admin.id,
+
+                    username:
+                        admin.username,
+
+                    role:
+                        admin.role
+                }
             }
         );
 
@@ -1838,22 +2265,35 @@ export async function adminRevokeAccess(
             error
         );
 
+
         return json(
             {
                 success: false,
-
                 error:
                     error?.message ||
-                    "Ошибка отзыва доступа"
+                    "Не удалось снять доступ"
             },
             500
         );
+
     }
+
 }
 
 
 /* =========================================================
    GET USER ACCESS
+=========================================================
+
+POST /api/admin/access/list
+
+BODY:
+
+{
+    "identifier": "nickname"
+}
+
+Возвращает все entitlement пользователя.
 ========================================================= */
 
 export async function adminUserAccess(
@@ -1863,34 +2303,43 @@ export async function adminUserAccess(
 
     try {
 
-        const auth =
-            await requireAdmin(
+        /* -------------------------------------------------
+           ADMIN AUTH
+        ------------------------------------------------- */
+
+        const admin =
+            await requireAdminForAccess(
                 request,
                 env
             );
 
-        if (!auth.ok) {
-            return auth.response;
+        if (!admin) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Требуется авторизация администратора"
+                },
+                401
+            );
+
         }
 
-        const url =
-            new URL(
-                request.url
-            );
+
+        /* -------------------------------------------------
+           BODY
+        ------------------------------------------------- */
+
+        const body =
+            await request.json();
+
 
         const identifier =
             String(
-                url.searchParams.get(
-                    "identifier"
-                ) ??
-                url.searchParams.get(
-                    "username"
-                ) ??
-                url.searchParams.get(
-                    "accountId"
-                ) ??
-                ""
+                body.identifier ?? ""
             ).trim();
+
 
         if (!identifier) {
 
@@ -1898,10 +2347,11 @@ export async function adminUserAccess(
                 {
                     success: false,
                     error:
-                        "Укажите ID или ник"
+                        "Укажите ID или ник пользователя"
                 },
                 400
             );
+
         }
 
 
@@ -1910,10 +2360,11 @@ export async function adminUserAccess(
         ------------------------------------------------- */
 
         const account =
-            await findAccount(
+            await findNormalAccount(
                 env,
                 identifier
             );
+
 
         if (!account) {
 
@@ -1921,15 +2372,16 @@ export async function adminUserAccess(
                 {
                     success: false,
                     error:
-                        "Пользователь не найден"
+                        "Обычный аккаунт не найден"
                 },
                 404
             );
+
         }
 
 
         /* -------------------------------------------------
-           GET ACCESS
+           ENTITLEMENTS
         ------------------------------------------------- */
 
         const result =
@@ -1953,6 +2405,10 @@ export async function adminUserAccess(
                 .all();
 
 
+        /* -------------------------------------------------
+           RESPONSE
+        ------------------------------------------------- */
+
         return json(
             {
                 success: true,
@@ -1965,16 +2421,25 @@ export async function adminUserAccess(
                         account.username,
 
                     balance:
-                        Number(
-                            account.balance || 0
-                        ),
+                        account.balance,
 
                     created_at:
                         account.created_at
                 },
 
-                access:
-                    result.results || []
+                entitlements:
+                    result.results || [],
+
+                admin: {
+                    id:
+                        admin.id,
+
+                    username:
+                        admin.username,
+
+                    role:
+                        admin.role
+                }
             }
         );
 
@@ -1986,15 +2451,17 @@ export async function adminUserAccess(
             error
         );
 
+
         return json(
             {
                 success: false,
-
                 error:
                     error?.message ||
-                    "Ошибка получения доступа"
+                    "Не удалось получить доступы пользователя"
             },
             500
         );
+
     }
+
 }
