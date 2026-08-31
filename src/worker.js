@@ -10,6 +10,17 @@ import {
     adminLogin,
     adminMe,
     adminLogout,
+
+    adminStats,
+    adminAccounts,
+    adminAdministrators,
+    createAdministrator,
+    updateAdministrator,
+    deleteAdministrator,
+
+    adminTransactions,
+    adminSubscriptions,
+
     adminGrantAccess,
     adminRevokeAccess,
     adminUserAccess
@@ -37,10 +48,13 @@ export default {
 
                 headers: {
                     "Access-Control-Allow-Origin": "*",
+
                     "Access-Control-Allow-Methods":
                         "GET,POST,PUT,DELETE,OPTIONS",
+
                     "Access-Control-Allow-Headers":
                         "Content-Type",
+
                     "Access-Control-Allow-Credentials":
                         "true"
                 }
@@ -51,8 +65,6 @@ export default {
         /* =====================================================
            ОБЫЧНАЯ АВТОРИЗАЦИЯ
            auth.js
-
-           Эти маршруты НЕ связаны с admin.js
         ===================================================== */
 
         if (
@@ -157,24 +169,159 @@ export default {
 
 
         /* =====================================================
-           ВЫДАЧА ДОСТУПА ОБЫЧНОМУ АККАУНТУ
+           ADMIN STATS
+
+           GET /api/admin/stats
+        ===================================================== */
+
+        if (
+            path === "/api/admin/stats" &&
+            method === "GET"
+        ) {
+
+            return adminStats(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           ОБЫЧНЫЕ АККАУНТЫ
+
+           GET /api/admin/accounts
+        ===================================================== */
+
+        if (
+            path === "/api/admin/accounts" &&
+            method === "GET"
+        ) {
+
+            return adminAccounts(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           СПИСОК АДМИНИСТРАТОРОВ
+
+           GET /api/admin/administrators
+        ===================================================== */
+
+        if (
+            path === "/api/admin/administrators" &&
+            method === "GET"
+        ) {
+
+            return adminAdministrators(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           СОЗДАНИЕ АДМИНИСТРАТОРА
+
+           POST /api/admin/administrators/create
+
+           Только OWNER
+        ===================================================== */
+
+        if (
+            path === "/api/admin/administrators/create" &&
+            method === "POST"
+        ) {
+
+            return createAdministrator(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           ИЗМЕНЕНИЕ АДМИНИСТРАТОРА
+
+           POST /api/admin/administrators/update
+
+           Только OWNER
+        ===================================================== */
+
+        if (
+            path === "/api/admin/administrators/update" &&
+            method === "POST"
+        ) {
+
+            return updateAdministrator(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           УДАЛЕНИЕ АДМИНИСТРАТОРА
+
+           POST /api/admin/administrators/delete
+
+           Только OWNER
+        ===================================================== */
+
+        if (
+            path === "/api/admin/administrators/delete" &&
+            method === "POST"
+        ) {
+
+            return deleteAdministrator(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           ТРАНЗАКЦИИ
+
+           GET /api/admin/transactions
+        ===================================================== */
+
+        if (
+            path === "/api/admin/transactions" &&
+            method === "GET"
+        ) {
+
+            return adminTransactions(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           ПОДПИСКИ
+
+           GET /api/admin/subscriptions
+        ===================================================== */
+
+        if (
+            path === "/api/admin/subscriptions" &&
+            method === "GET"
+        ) {
+
+            return adminSubscriptions(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           ВЫДАЧА ДОСТУПА
 
            POST /api/admin/access/grant
-
-           BODY:
-
-           {
-               "identifier": "nickname или ID",
-               "productId": "visual",
-               "productName": "Visual",
-               "days": 30
-           }
-
-           days:
-           7  = 7 дней
-           30 = 30 дней
-           90 = 90 дней
-           0  = навсегда
         ===================================================== */
 
         if (
@@ -193,16 +340,6 @@ export default {
            СНЯТИЕ ДОСТУПА
 
            POST /api/admin/access/revoke
-
-           BODY:
-
-           {
-               "identifier": "nickname или ID",
-               "productId": "visual"
-           }
-
-           Если productId не указан,
-           будут сняты все активные доступы.
         ===================================================== */
 
         if (
@@ -221,12 +358,6 @@ export default {
            ПРОСМОТР ДОСТУПОВ ПОЛЬЗОВАТЕЛЯ
 
            POST /api/admin/access/list
-
-           BODY:
-
-           {
-               "identifier": "nickname или ID"
-           }
         ===================================================== */
 
         if (
