@@ -551,10 +551,18 @@ export async function adminRegister(request, env) {
 
 /* =========================================================
    ADMIN LOGIN
+   В админку может войти только:
+   username = detox
+   role     = OWNER
    ========================================================= */
 
 export async function adminLogin(request, env) {
     try {
+
+        /* -------------------------------------------------
+           BODY
+        ------------------------------------------------- */
+
         const body = await request.json();
 
         const username = normalizeUsername(
@@ -565,10 +573,16 @@ export async function adminLogin(request, env) {
             body.password ?? ""
         );
 
+
+        /* -------------------------------------------------
+           VALIDATION
+        ------------------------------------------------- */
+
         if (!username) {
             return json(
                 {
                     success: false,
+                    authenticated: false,
                     error: "Введите логин"
                 },
                 400
@@ -579,11 +593,33 @@ export async function adminLogin(request, env) {
             return json(
                 {
                     success: false,
+                    authenticated: false,
                     error: "Введите пароль"
                 },
                 400
             );
         }
+
+
+        /* -------------------------------------------------
+           ONLY DETOX / OWNER
+        ------------------------------------------------- */
+
+        if (username.toLowerCase() !== "detox") {
+            return json(
+                {
+                    success: false,
+                    authenticated: false,
+                    error: "Доступ в админ-панель запрещён"
+                },
+                403
+            );
+        }
+
+
+        /* -------------------------------------------------
+           FIND ADMIN
+        ------------------------------------------------- */
 
         const admin = await env.DB
             .prepare(`
@@ -596,41 +632,58 @@ export async function adminLogin(request, env) {
                     created_at,
                     updated_at
                 FROM admin_accounts
-                WHERE LOWER(username) = LOWER(?)
+                WHERE LOWER(username) = 'detox'
+                  AND role = 'OWNER'
                 LIMIT 1
             `)
-            .bind(username)
             .first();
+
+
+        /* -------------------------------------------------
+           ADMIN NOT FOUND
+        ------------------------------------------------- */
 
         if (!admin) {
             return json(
                 {
                     success: false,
-                    error: "Неверный логин или пароль"
+                    authenticated: false,
+                    error: "Администратор detox не найден"
                 },
                 401
             );
         }
 
-        const valid =
-            await verifyPassword(
-                password,
-                admin.password_hash,
-                admin.password_salt
-            );
+
+        /* -------------------------------------------------
+           PASSWORD
+        ------------------------------------------------- */
+
+        const valid = await verifyPassword(
+            password,
+            admin.password_hash,
+            admin.password_salt
+        );
+
 
         if (!valid) {
             return json(
                 {
                     success: false,
+                    authenticated: false,
                     error: "Неверный логин или пароль"
                 },
                 401
             );
         }
 
-        const sessionId =
-            generateId();
+
+        /* -------------------------------------------------
+           CREATE SESSION
+        ------------------------------------------------- */
+
+        const sessionId = generateId();
+
 
         await env.DB
             .prepare(`
@@ -653,10 +706,16 @@ export async function adminLogin(request, env) {
             )
             .run();
 
+
+        /* -------------------------------------------------
+           SUCCESS
+        ------------------------------------------------- */
+
         return json(
             {
                 success: true,
                 authenticated: true,
+
                 admin: {
                     id: admin.id,
                     username: admin.username,
@@ -672,7 +731,9 @@ export async function adminLogin(request, env) {
             }
         );
 
+
     } catch (error) {
+
         console.error(
             "ADMIN LOGIN ERROR:",
             error
@@ -681,6 +742,7 @@ export async function adminLogin(request, env) {
         return json(
             {
                 success: false,
+                authenticated: false,
                 error:
                     error?.message ||
                     "Ошибка входа администратора"
@@ -689,8 +751,6 @@ export async function adminLogin(request, env) {
         );
     }
 }
-
-
 /* =========================================================
    ADMIN ME
    ========================================================= */
