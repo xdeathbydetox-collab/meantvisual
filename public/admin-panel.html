@@ -1,0 +1,2013 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>MEANT SHOP — Admin Panel</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+        }
+
+        body {
+            background: #070707;
+            color: #f7f7f7;
+            font-family:
+                Inter,
+                Arial,
+                sans-serif;
+        }
+
+        button,
+        input,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 30px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1240px;
+            margin: 0 auto;
+        }
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+
+            padding: 20px 24px;
+
+            background: #111;
+
+            border: 1px solid #292929;
+            border-radius: 18px;
+
+            margin-bottom: 24px;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .brand span {
+            color: #ffd21a;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-name {
+            color: #bdbdbd;
+            font-size: 14px;
+        }
+
+        .role {
+            padding: 7px 10px;
+
+            border-radius: 8px;
+
+            background: #1c1c1c;
+
+            color: #ffd21a;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .logout-btn {
+            border: 1px solid #333;
+            background: #171717;
+            color: #fff;
+
+            padding: 9px 14px;
+
+            border-radius: 9px;
+        }
+
+        .logout-btn:hover {
+            background: #222;
+        }
+
+        /* =====================================================
+           TITLE
+        ===================================================== */
+
+        .title {
+            margin-bottom: 20px;
+        }
+
+        .title h1 {
+            margin: 0 0 7px;
+
+            font-size: 32px;
+            letter-spacing: -1px;
+        }
+
+        .title p {
+            margin: 0;
+
+            color: #8f8f8f;
+
+            font-size: 14px;
+        }
+
+        /* =====================================================
+           GRID
+        ===================================================== */
+
+        .grid {
+            display: grid;
+
+            grid-template-columns:
+                minmax(0, 1fr)
+                minmax(0, 1fr);
+
+            gap: 20px;
+        }
+
+        .card {
+            background: #111;
+
+            border: 1px solid #292929;
+
+            border-radius: 18px;
+
+            padding: 22px;
+        }
+
+        .card.full {
+            grid-column: 1 / -1;
+        }
+
+        .card-title {
+            margin: 0 0 18px;
+
+            font-size: 18px;
+            font-weight: 750;
+        }
+
+        .card-subtitle {
+            color: #858585;
+
+            font-size: 13px;
+
+            margin-top: -10px;
+            margin-bottom: 18px;
+        }
+
+        /* =====================================================
+           FORM
+        ===================================================== */
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            color: #aaa;
+
+            font-size: 13px;
+        }
+
+        input,
+        select {
+            width: 100%;
+
+            border: 1px solid #303030;
+
+            background: #080808;
+
+            color: #fff;
+
+            border-radius: 10px;
+
+            padding: 12px 13px;
+
+            outline: none;
+        }
+
+        input:focus,
+        select:focus {
+            border-color: #ffd21a;
+        }
+
+        .buttons {
+            display: flex;
+
+            gap: 10px;
+
+            flex-wrap: wrap;
+
+            margin-top: 16px;
+        }
+
+        .btn {
+            border: 0;
+
+            border-radius: 10px;
+
+            padding: 12px 16px;
+
+            font-weight: 700;
+        }
+
+        .btn-yellow {
+            background: #ffd21a;
+            color: #070707;
+        }
+
+        .btn-yellow:hover {
+            background: #ffdf52;
+        }
+
+        .btn-dark {
+            background: #1b1b1b;
+
+            border: 1px solid #333;
+
+            color: #fff;
+        }
+
+        .btn-dark:hover {
+            background: #252525;
+        }
+
+        .btn-danger {
+            background: #251212;
+
+            border: 1px solid #5b2424;
+
+            color: #ff7070;
+        }
+
+        .btn-danger:hover {
+            background: #351717;
+        }
+
+        /* =====================================================
+           ACCOUNT
+        ===================================================== */
+
+        .account-box {
+            display: none;
+
+            margin-top: 18px;
+
+            border: 1px solid #292929;
+
+            background: #0b0b0b;
+
+            border-radius: 12px;
+
+            padding: 16px;
+        }
+
+        .account-box.visible {
+            display: block;
+        }
+
+        .account-row {
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            padding: 9px 0;
+
+            border-bottom: 1px solid #202020;
+        }
+
+        .account-row:last-child {
+            border-bottom: 0;
+        }
+
+        .account-label {
+            color: #777;
+        }
+
+        .account-value {
+            color: #fff;
+
+            text-align: right;
+
+            word-break: break-word;
+        }
+
+        /* =====================================================
+           ACCESS LIST
+        ===================================================== */
+
+        .access-list {
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 10px;
+        }
+
+        .access-item {
+            background: #0b0b0b;
+
+            border: 1px solid #292929;
+
+            border-radius: 12px;
+
+            padding: 15px;
+        }
+
+        .access-top {
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            gap: 10px;
+        }
+
+        .access-name {
+            font-weight: 750;
+        }
+
+        .status {
+            padding: 5px 8px;
+
+            border-radius: 7px;
+
+            font-size: 11px;
+
+            font-weight: 700;
+        }
+
+        .status-active {
+            background: #102415;
+            color: #62e77b;
+        }
+
+        .status-revoked {
+            background: #281212;
+            color: #ff6969;
+        }
+
+        .status-expired {
+            background: #29240d;
+            color: #ffd21a;
+        }
+
+        .access-details {
+            margin-top: 10px;
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 8px;
+
+            color: #888;
+
+            font-size: 12px;
+        }
+
+        .access-details strong {
+            color: #ddd;
+        }
+
+        .empty {
+            color: #777;
+
+            text-align: center;
+
+            padding: 25px 10px;
+        }
+
+        /* =====================================================
+           TOAST
+        ===================================================== */
+
+        .toast {
+            position: fixed;
+
+            right: 22px;
+            bottom: 22px;
+
+            min-width: 260px;
+            max-width: 400px;
+
+            padding: 14px 16px;
+
+            border-radius: 12px;
+
+            background: #151515;
+
+            border: 1px solid #333;
+
+            box-shadow:
+                0 15px 40px
+                rgba(0,0,0,.4);
+
+            transform:
+                translateY(20px);
+
+            opacity: 0;
+
+            pointer-events: none;
+
+            transition:
+                .2s ease;
+
+            z-index: 100;
+        }
+
+        .toast.show {
+            transform:
+                translateY(0);
+
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: #315b38;
+        }
+
+        .toast.error {
+            border-color: #6a2e2e;
+        }
+
+        /* =====================================================
+           LOADING
+        ===================================================== */
+
+        .loading {
+            opacity: .55;
+
+            pointer-events: none;
+        }
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 850px) {
+
+            .page {
+                padding: 15px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card.full {
+                grid-column: auto;
+            }
+
+            .header {
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+            .admin-info {
+                width: 100%;
+
+                flex-wrap: wrap;
+            }
+
+            .access-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="container">
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="header">
+
+            <div class="brand">
+                MEANT <span>SHOP</span>
+            </div>
+
+            <div class="admin-info">
+
+                <div
+                    id="adminName"
+                    class="admin-name"
+                >
+                    Загрузка...
+                </div>
+
+                <div
+                    id="adminRole"
+                    class="role"
+                >
+                    —
+                </div>
+
+                <button
+                    id="logoutBtn"
+                    class="logout-btn"
+                >
+                    Выйти
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- =================================================
+             TITLE
+        ================================================== -->
+
+        <div class="title">
+
+            <h1>
+                Админ-панель
+            </h1>
+
+            <p>
+                Управление доступом пользователей MEANT SHOP
+            </p>
+
+        </div>
+
+
+        <!-- =================================================
+             GRID
+        ================================================== -->
+
+        <div class="grid">
+
+
+            <!-- =============================================
+                 SEARCH USER
+            ============================================== -->
+
+            <section class="card">
+
+                <h2 class="card-title">
+                    Пользователь
+                </h2>
+
+                <div class="card-subtitle">
+                    Найдите обычный аккаунт по ID или нику
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="identifier">
+                        ID или ник
+                    </label>
+
+                    <input
+                        id="identifier"
+                        type="text"
+                        placeholder="Например: 8f31... или nickname"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="buttons">
+
+                    <button
+                        id="findBtn"
+                        class="btn btn-yellow"
+                    >
+                        Найти пользователя
+                    </button>
+
+                    <button
+                        id="clearBtn"
+                        class="btn btn-dark"
+                    >
+                        Очистить
+                    </button>
+
+                </div>
+
+
+                <!-- ACCOUNT INFO -->
+
+                <div
+                    id="accountBox"
+                    class="account-box"
+                >
+
+                    <div class="account-row">
+
+                        <span class="account-label">
+                            ID
+                        </span>
+
+                        <span
+                            id="accountId"
+                            class="account-value"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="account-row">
+
+                        <span class="account-label">
+                            Ник
+                        </span>
+
+                        <span
+                            id="accountUsername"
+                            class="account-value"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="account-row">
+
+                        <span class="account-label">
+                            Баланс
+                        </span>
+
+                        <span
+                            id="accountBalance"
+                            class="account-value"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="account-row">
+
+                        <span class="account-label">
+                            Создан
+                        </span>
+
+                        <span
+                            id="accountCreated"
+                            class="account-value"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 GRANT ACCESS
+            ============================================== -->
+
+            <section class="card">
+
+                <h2 class="card-title">
+                    Выдать доступ
+                </h2>
+
+                <div class="card-subtitle">
+                    Доступ будет добавлен выбранному пользователю
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="productId">
+                        Product ID
+                    </label>
+
+                    <input
+                        id="productId"
+                        type="text"
+                        value="visual"
+                        placeholder="visual"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="productName">
+                        Название доступа
+                    </label>
+
+                    <input
+                        id="productName"
+                        type="text"
+                        value="Visual"
+                        placeholder="Visual"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="days">
+                        Срок доступа
+                    </label>
+
+                    <select id="days">
+
+                        <option value="7">
+                            7 дней
+                        </option>
+
+                        <option value="30" selected>
+                            30 дней
+                        </option>
+
+                        <option value="90">
+                            90 дней
+                        </option>
+
+                        <option value="0">
+                            Навсегда
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="buttons">
+
+                    <button
+                        id="grantBtn"
+                        class="btn btn-yellow"
+                    >
+                        Выдать доступ
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 ACCESS LIST
+            ============================================== -->
+
+            <section class="card full">
+
+                <h2 class="card-title">
+                    Доступы пользователя
+                </h2>
+
+                <div class="card-subtitle">
+                    Здесь отображаются все выданные этому аккаунту доступы
+                </div>
+
+
+                <div
+                    id="accessList"
+                    class="access-list"
+                >
+
+                    <div class="empty">
+                        Сначала найдите пользователя
+                    </div>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
+
+<script>
+
+    /* ========================================================
+       API
+    ======================================================== */
+
+    const API = "";
+
+
+    /* ========================================================
+       ELEMENTS
+    ======================================================== */
+
+    const identifierInput =
+        document.getElementById(
+            "identifier"
+        );
+
+    const findBtn =
+        document.getElementById(
+            "findBtn"
+        );
+
+    const clearBtn =
+        document.getElementById(
+            "clearBtn"
+        );
+
+    const grantBtn =
+        document.getElementById(
+            "grantBtn"
+        );
+
+    const logoutBtn =
+        document.getElementById(
+            "logoutBtn"
+        );
+
+    const accountBox =
+        document.getElementById(
+            "accountBox"
+        );
+
+    const accessList =
+        document.getElementById(
+            "accessList"
+        );
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    /* ========================================================
+       STATE
+    ======================================================== */
+
+    let currentAccount = null;
+
+
+    /* ========================================================
+       TOAST
+    ======================================================== */
+
+    let toastTimer = null;
+
+
+    function showToast(
+        message,
+        type = "success"
+    ) {
+
+        toast.textContent =
+            message;
+
+        toast.className =
+            "toast show " + type;
+
+
+        clearTimeout(
+            toastTimer
+        );
+
+
+        toastTimer =
+            setTimeout(
+                () => {
+
+                    toast.className =
+                        "toast";
+
+                },
+                3500
+            );
+    }
+
+
+    /* ========================================================
+       API REQUEST
+    ======================================================== */
+
+    async function api(
+        path,
+        options = {}
+    ) {
+
+        const response =
+            await fetch(
+                API + path,
+                {
+                    credentials:
+                        "include",
+
+                    ...options,
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        ...(options.headers || {})
+                    }
+                }
+            );
+
+
+        let data = null;
+
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch {
+
+            data = {
+                success: false,
+                error:
+                    "Сервер вернул некорректный ответ"
+            };
+
+        }
+
+
+        if (!response.ok) {
+
+            const error =
+                new Error(
+                    data?.error ||
+                    "Ошибка запроса"
+                );
+
+            error.status =
+                response.status;
+
+            throw error;
+        }
+
+
+        return data;
+    }
+
+
+    /* ========================================================
+       ADMIN ME
+    ======================================================== */
+
+    async function loadAdmin() {
+
+        try {
+
+            const data =
+                await api(
+                    "/api/admin/me",
+                    {
+                        method: "GET"
+                    }
+                );
+
+
+            if (
+                !data.success ||
+                !data.authenticated
+            ) {
+
+                redirectToAdminLogin();
+
+                return;
+            }
+
+
+            document.getElementById(
+                "adminName"
+            ).textContent =
+                data.admin.username;
+
+
+            document.getElementById(
+                "adminRole"
+            ).textContent =
+                data.admin.role;
+
+
+        } catch (error) {
+
+            redirectToAdminLogin();
+
+        }
+
+    }
+
+
+    /* ========================================================
+       REDIRECT LOGIN
+    ======================================================== */
+
+    function redirectToAdminLogin() {
+
+        /*
+           Страница входа администратора.
+
+           Если у тебя она называется иначе,
+           измени только эту строку.
+        */
+
+        window.location.href =
+            "/admin.html";
+    }
+
+
+    /* ========================================================
+       FIND USER
+    ======================================================== */
+
+    async function findUser() {
+
+        const identifier =
+            identifierInput
+                .value
+                .trim();
+
+
+        if (!identifier) {
+
+            showToast(
+                "Введите ID или ник пользователя",
+                "error"
+            );
+
+            return;
+        }
+
+
+        setLoading(
+            findBtn,
+            true
+        );
+
+
+        try {
+
+            const data =
+                await api(
+                    "/api/admin/access/list",
+                    {
+                        method: "POST",
+
+                        body:
+                            JSON.stringify({
+                                identifier
+                            })
+                    }
+                );
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.error ||
+                    "Не удалось найти пользователя"
+                );
+
+            }
+
+
+            currentAccount =
+                data.account;
+
+
+            showAccount(
+                data.account
+            );
+
+
+            renderAccess(
+                data.entitlements || []
+            );
+
+
+            showToast(
+                "Пользователь найден"
+            );
+
+
+        } catch (error) {
+
+            currentAccount =
+                null;
+
+
+            accountBox.classList.remove(
+                "visible"
+            );
+
+
+            accessList.innerHTML = `
+                <div class="empty">
+                    Пользователь не найден
+                </div>
+            `;
+
+
+            if (
+                error.status === 401
+            ) {
+
+                redirectToAdminLogin();
+
+                return;
+            }
+
+
+            showToast(
+                error.message ||
+                "Ошибка поиска пользователя",
+                "error"
+            );
+
+
+        } finally {
+
+            setLoading(
+                findBtn,
+                false
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       SHOW ACCOUNT
+    ======================================================== */
+
+    function showAccount(
+        account
+    ) {
+
+        document.getElementById(
+            "accountId"
+        ).textContent =
+            account.id || "—";
+
+
+        document.getElementById(
+            "accountUsername"
+        ).textContent =
+            account.username || "—";
+
+
+        document.getElementById(
+            "accountBalance"
+        ).textContent =
+            account.balance ?? "0";
+
+
+        document.getElementById(
+            "accountCreated"
+        ).textContent =
+            formatDate(
+                account.created_at
+            );
+
+
+        accountBox.classList.add(
+            "visible"
+        );
+
+    }
+
+
+    /* ========================================================
+       RENDER ACCESS
+    ======================================================== */
+
+    function renderAccess(
+        entitlements
+    ) {
+
+        if (
+            !entitlements.length
+        ) {
+
+            accessList.innerHTML = `
+                <div class="empty">
+                    У пользователя пока нет доступов
+                </div>
+            `;
+
+            return;
+        }
+
+
+        accessList.innerHTML =
+            entitlements
+                .map(
+                    entitlement =>
+                        createAccessHTML(
+                            entitlement
+                        )
+                )
+                .join("");
+    }
+
+
+    /* ========================================================
+       CREATE ACCESS HTML
+    ======================================================== */
+
+    function createAccessHTML(
+        item
+    ) {
+
+        const status =
+            String(
+                item.status || ""
+            ).toLowerCase();
+
+
+        let statusClass =
+            "status-active";
+
+
+        if (
+            status === "revoked"
+        ) {
+
+            statusClass =
+                "status-revoked";
+
+        } else if (
+            isExpired(item)
+        ) {
+
+            statusClass =
+                "status-expired";
+
+        }
+
+
+        let statusText =
+            "Активен";
+
+
+        if (
+            status === "revoked"
+        ) {
+
+            statusText =
+                "Снят";
+
+        } else if (
+            isExpired(item)
+        ) {
+
+            statusText =
+                "Истёк";
+
+        }
+
+
+        const expires =
+            item.expires_at
+                ? formatDate(
+                    item.expires_at
+                )
+                : "Навсегда";
+
+
+        return `
+            <div class="access-item">
+
+                <div class="access-top">
+
+                    <div class="access-name">
+                        ${escapeHTML(
+                            item.product_name ||
+                            item.product_id ||
+                            "Доступ"
+                        )}
+                    </div>
+
+                    <div
+                        class="status ${statusClass}"
+                    >
+                        ${statusText}
+                    </div>
+
+                </div>
+
+
+                <div class="access-details">
+
+                    <div>
+                        Product ID:
+                        <strong>
+                            ${escapeHTML(
+                                item.product_id ||
+                                "—"
+                            )}
+                        </strong>
+                    </div>
+
+                    <div>
+                        До:
+                        <strong>
+                            ${escapeHTML(
+                                expires
+                            )}
+                        </strong>
+                    </div>
+
+                    <div>
+                        Создан:
+                        <strong>
+                            ${escapeHTML(
+                                formatDate(
+                                    item.created_at
+                                )
+                            )}
+                        </strong>
+                    </div>
+
+                    <div>
+                        ID доступа:
+                        <strong>
+                            ${escapeHTML(
+                                item.id ||
+                                "—"
+                            )}
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                ${
+                    status === "active"
+                    ?
+                    `
+                        <div class="buttons">
+
+                            <button
+                                class="btn btn-danger"
+                                onclick="revokeAccess('${escapeJS(item.product_id)}')"
+                            >
+                                Снять доступ
+                            </button>
+
+                        </div>
+                    `
+                    :
+                    ""
+                }
+
+            </div>
+        `;
+    }
+
+
+    /* ========================================================
+       GRANT ACCESS
+    ======================================================== */
+
+    async function grantAccess() {
+
+        if (!currentAccount) {
+
+            showToast(
+                "Сначала найдите пользователя",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const productId =
+            document
+                .getElementById(
+                    "productId"
+                )
+                .value
+                .trim();
+
+
+        const productName =
+            document
+                .getElementById(
+                    "productName"
+                )
+                .value
+                .trim();
+
+
+        const days =
+            Number(
+                document
+                    .getElementById(
+                        "days"
+                    )
+                    .value
+            );
+
+
+        if (!productId) {
+
+            showToast(
+                "Введите Product ID",
+                "error"
+            );
+
+            return;
+        }
+
+
+        if (!productName) {
+
+            showToast(
+                "Введите название доступа",
+                "error"
+            );
+
+            return;
+        }
+
+
+        setLoading(
+            grantBtn,
+            true
+        );
+
+
+        try {
+
+            const data =
+                await api(
+                    "/api/admin/access/grant",
+                    {
+                        method: "POST",
+
+                        body:
+                            JSON.stringify({
+
+                                identifier:
+                                    currentAccount.id,
+
+                                productId,
+
+                                productName,
+
+                                days
+
+                            })
+                    }
+                );
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.error ||
+                    "Не удалось выдать доступ"
+                );
+
+            }
+
+
+            showToast(
+                "Доступ успешно выдан"
+            );
+
+
+            await reloadCurrentUser();
+
+
+        } catch (error) {
+
+            if (
+                error.status === 401
+            ) {
+
+                redirectToAdminLogin();
+
+                return;
+            }
+
+
+            showToast(
+                error.message ||
+                "Ошибка выдачи доступа",
+                "error"
+            );
+
+
+        } finally {
+
+            setLoading(
+                grantBtn,
+                false
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       REVOKE ACCESS
+    ======================================================== */
+
+    async function revokeAccess(
+        productId
+    ) {
+
+        if (!currentAccount) {
+
+            showToast(
+                "Пользователь не выбран",
+                "error"
+            );
+
+            return;
+        }
+
+
+        const confirmed =
+            confirm(
+                `Снять доступ "${productId}" у пользователя ${currentAccount.username}?`
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        try {
+
+            const data =
+                await api(
+                    "/api/admin/access/revoke",
+                    {
+                        method: "POST",
+
+                        body:
+                            JSON.stringify({
+
+                                identifier:
+                                    currentAccount.id,
+
+                                productId
+
+                            })
+                    }
+                );
+
+
+            if (!data.success) {
+
+                throw new Error(
+                    data.error ||
+                    "Не удалось снять доступ"
+                );
+
+            }
+
+
+            showToast(
+                "Доступ снят"
+            );
+
+
+            await reloadCurrentUser();
+
+
+        } catch (error) {
+
+            if (
+                error.status === 401
+            ) {
+
+                redirectToAdminLogin();
+
+                return;
+            }
+
+
+            showToast(
+                error.message ||
+                "Ошибка снятия доступа",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       RELOAD CURRENT USER
+    ======================================================== */
+
+    async function reloadCurrentUser() {
+
+        if (!currentAccount) {
+            return;
+        }
+
+
+        const data =
+            await api(
+                "/api/admin/access/list",
+                {
+                    method: "POST",
+
+                    body:
+                        JSON.stringify({
+
+                            identifier:
+                                currentAccount.id
+
+                        })
+                }
+            );
+
+
+        if (
+            data.success
+        ) {
+
+            currentAccount =
+                data.account;
+
+
+            showAccount(
+                data.account
+            );
+
+
+            renderAccess(
+                data.entitlements || []
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       LOGOUT
+    ======================================================== */
+
+    async function logout() {
+
+        try {
+
+            await api(
+                "/api/admin/logout",
+                {
+                    method: "POST"
+                }
+            );
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+        }
+
+
+        window.location.href =
+            "/admin.html";
+    }
+
+
+    /* ========================================================
+       CLEAR
+    ======================================================== */
+
+    function clearPage() {
+
+        identifierInput.value =
+            "";
+
+
+        currentAccount =
+            null;
+
+
+        accountBox.classList.remove(
+            "visible"
+        );
+
+
+        accessList.innerHTML = `
+            <div class="empty">
+                Сначала найдите пользователя
+            </div>
+        `;
+
+        identifierInput.focus();
+
+    }
+
+
+    /* ========================================================
+       LOADING
+    ======================================================== */
+
+    function setLoading(
+        button,
+        loading
+    ) {
+
+        if (
+            loading
+        ) {
+
+            button.dataset.oldText =
+                button.textContent;
+
+            button.textContent =
+                "Загрузка...";
+
+            button.classList.add(
+                "loading"
+            );
+
+        } else {
+
+            button.textContent =
+                button.dataset.oldText ||
+                button.textContent;
+
+            button.classList.remove(
+                "loading"
+            );
+
+        }
+
+    }
+
+
+    /* ========================================================
+       DATE
+    ======================================================== */
+
+    function formatDate(
+        value
+    ) {
+
+        if (!value) {
+            return "—";
+        }
+
+
+        const date =
+            new Date(value);
+
+
+        if (
+            Number.isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return String(value);
+
+        }
+
+
+        return date.toLocaleString(
+            "ru-RU",
+            {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+
+    /* ========================================================
+       EXPIRED
+    ======================================================== */
+
+    function isExpired(
+        item
+    ) {
+
+        if (
+            !item.expires_at
+        ) {
+
+            return false;
+
+        }
+
+
+        const timestamp =
+            new Date(
+                item.expires_at
+            ).getTime();
+
+
+        return (
+            Number.isFinite(
+                timestamp
+            ) &&
+            timestamp <= Date.now()
+        );
+
+    }
+
+
+    /* ========================================================
+       ESCAPE HTML
+    ======================================================== */
+
+    function escapeHTML(
+        value
+    ) {
+
+        return String(
+            value ?? ""
+        )
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+    }
+
+
+    /* ========================================================
+       ESCAPE JS
+    ======================================================== */
+
+    function escapeJS(
+        value
+    ) {
+
+        return String(
+            value ?? ""
+        )
+        .replace(
+            /\\/g,
+            "\\\\"
+        )
+        .replace(
+            /'/g,
+            "\\'"
+        )
+        .replace(
+            /\n/g,
+            "\\n"
+        )
+        .replace(
+            /\r/g,
+            "\\r"
+        );
+
+    }
+
+
+    /* ========================================================
+       EVENTS
+    ======================================================== */
+
+    findBtn.addEventListener(
+        "click",
+        findUser
+    );
+
+
+    grantBtn.addEventListener(
+        "click",
+        grantAccess
+    );
+
+
+    clearBtn.addEventListener(
+        "click",
+        clearPage
+    );
+
+
+    logoutBtn.addEventListener(
+        "click",
+        logout
+    );
+
+
+    identifierInput.addEventListener(
+        "keydown",
+        event => {
+
+            if (
+                event.key === "Enter"
+            ) {
+
+                findUser();
+
+            }
+
+        }
+    );
+
+
+    /* ========================================================
+       START
+    ======================================================== */
+
+    loadAdmin();
+
+</script>
+
+</body>
+</html>
