@@ -1,1085 +1,1234 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MEANT SHOP — Профиль</title>
-
-<style>
-:root{
-    --bg:#070707;
-    --card:#111;
-    --card2:#161616;
-    --line:#292929;
-    --yellow:#ffd21a;
-    --yellow2:#ffb900;
-    --text:#f7f7f7;
-    --muted:#909090;
-    --danger:#ff4d4d;
-}
-
-*{
-    box-sizing:border-box;
-}
-
-html{
-    scroll-behavior:smooth;
-}
-
-body{
-    margin:0;
-    min-height:100vh;
-    background:
-        radial-gradient(
-            circle at 50% -10%,
-            #2b2400 0,
-            #0b0b0b 34%,
-            #050505 75%
-        );
-    color:var(--text);
-    font-family:
-        Inter,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-}
-
-.container{
-    max-width:1080px;
-    margin:auto;
-    padding:22px;
-}
-
-/* =====================================================
-   HEADER
-===================================================== */
-
-header{
-    position:sticky;
-    top:14px;
-    z-index:20;
-
-    min-height:68px;
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-    padding:10px 14px 10px 20px;
-
-    background:rgba(15,15,15,.88);
-    backdrop-filter:blur(18px);
-
-    border:1px solid #292929;
-    border-radius:22px;
-
-    box-shadow:0 18px 55px #0008;
-}
-
-.logo{
-    font-size:18px;
-    font-weight:950;
-    letter-spacing:.08em;
-    white-space:nowrap;
-}
-
-.logo b{
-    color:var(--yellow);
-}
-
-/* =====================================================
-   NAV
-===================================================== */
-
-.nav-tabs{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    flex-wrap:wrap;
-}
-
-.nav-tabs a,
-.nav-tabs button{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-
-    min-width:110px;
-
-    padding:11px 16px;
+    <meta charset="UTF-8">
 
-    border:1px solid #303030;
-    background:#181818;
-    color:#eee;
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    border-radius:13px;
-
-    cursor:pointer;
-    text-decoration:none;
-
-    font:inherit;
-    font-weight:750;
-    font-size:13px;
-
-    transition:.18s;
-}
+    <title>Профиль — MEANT SHOP</title>
 
-.nav-tabs a:hover,
-.nav-tabs a.active,
-.nav-tabs button:hover{
-    border-color:var(--yellow);
-    color:var(--yellow);
-    background:#1d1a08;
-}
+    <style>
+        :root {
+            --bg: #070707;
+            --card: #111111;
+            --card2: #161616;
+            --line: #292929;
 
-/* =====================================================
-   ADMIN BUTTON
-===================================================== */
+            --yellow: #ffd21a;
+            --yellow2: #ffb900;
+
+            --text: #f7f7f7;
+            --muted: #909090;
+
+            --danger: #ff4d4d;
+            --success: #53d769;
+        }
 
-.admin-button{
-    display:none !important;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    border-color:#5c4d00 !important;
-    color:var(--yellow) !important;
-    background:#171500 !important;
-}
+        html {
+            scroll-behavior: smooth;
+        }
 
-.admin-button:hover{
-    border-color:var(--yellow) !important;
-    background:#282000 !important;
-}
+        body {
+            min-height: 100vh;
 
-/* =====================================================
-   HERO
-===================================================== */
+            background:
+                radial-gradient(
+                    circle at top,
+                    rgba(255, 210, 26, 0.06),
+                    transparent 35%
+                ),
+                var(--bg);
 
-.hero{
-    text-align:center;
-    padding:70px 8px 35px;
-}
+            color: var(--text);
 
-.eyebrow{
-    font-size:11px;
-    color:var(--yellow);
-    font-weight:900;
-    letter-spacing:.2em;
-}
+            font-family:
+                Inter,
+                Arial,
+                Helvetica,
+                sans-serif;
+        }
 
-.hero h1{
-    font-size:clamp(40px,7vw,70px);
-    line-height:.92;
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
 
-    margin:12px 0 15px;
+        button,
+        input {
+            font: inherit;
+        }
 
-    letter-spacing:-.04em;
-}
+        button {
+            cursor: pointer;
+        }
 
-.hero p{
-    max-width:620px;
-    margin:auto;
+        /* =====================================================
+           HEADER
+        ===================================================== */
 
-    color:var(--muted);
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
 
-    font-size:15px;
-    line-height:1.6;
-}
+            width: 100%;
 
-/* =====================================================
-   PROFILE
-===================================================== */
+            background: rgba(7, 7, 7, 0.92);
 
-.profile{
-    display:grid;
-    grid-template-columns:1fr 1.5fr;
-    gap:18px;
-}
+            backdrop-filter: blur(14px);
 
-.card{
-    background:
-        linear-gradient(
-            180deg,
-            #151515,
-            #0d0d0d
-        );
+            border-bottom:
+                1px solid var(--line);
+        }
 
-    border:1px solid #292929;
-    border-radius:25px;
+        .header-inner {
+            width: min(1240px, calc(100% - 32px));
 
-    padding:24px;
+            min-height: 74px;
 
-    box-shadow:0 18px 55px #0005;
-}
+            margin: 0 auto;
 
-/* =====================================================
-   IDENTITY
-===================================================== */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
 
-.identity{
-    display:flex;
-    align-items:center;
-    gap:16px;
+            gap: 20px;
+        }
 
-    padding-bottom:22px;
+        .logo {
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
 
-    border-bottom:1px solid #252525;
-}
+        .logo b {
+            color: var(--yellow);
+        }
 
-.avatar{
-    width:66px;
-    height:66px;
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    border-radius:20px;
+        .nav a {
+            padding: 10px 14px;
 
-    background:var(--yellow);
-    color:#050505;
+            border-radius: 12px;
 
-    display:grid;
-    place-items:center;
+            color: var(--muted);
 
-    font-size:25px;
-    font-weight:950;
+            font-size: 14px;
+            font-weight: 700;
 
-    flex-shrink:0;
-}
+            transition:
+                0.2s ease;
+        }
 
-.nickname{
-    font-size:25px;
-    font-weight:950;
+        .nav a:hover,
+        .nav a.active {
+            color: var(--text);
 
-    word-break:break-word;
-}
+            background:
+                var(--card2);
+        }
 
-.title{
-    margin-top:5px;
+        /* =====================================================
+           PAGE
+        ===================================================== */
 
-    color:var(--yellow);
+        .page {
+            width: min(1240px, calc(100% - 32px));
 
-    font-size:12px;
-    font-weight:900;
+            margin: 0 auto;
 
-    letter-spacing:.12em;
-    text-transform:uppercase;
-}
+            padding:
+                55px 0
+                80px;
+        }
 
-/* =====================================================
-   BALANCE
-===================================================== */
+        .page-title {
+            margin-bottom: 8px;
 
-.balance{
-    margin-top:22px;
-}
+            font-size:
+                clamp(30px, 5vw, 48px);
 
-.label{
-    font-size:10px;
+            font-weight: 900;
 
-    color:#666;
+            letter-spacing:
+                -1.5px;
+        }
 
-    letter-spacing:.15em;
+        .page-subtitle {
+            margin-bottom: 35px;
 
-    font-weight:900;
+            color: var(--muted);
 
-    text-transform:uppercase;
-}
+            font-size: 15px;
+        }
 
-.money{
-    font-size:38px;
-    font-weight:950;
+        /* =====================================================
+           GRID
+        ===================================================== */
 
-    margin:6px 0 15px;
-}
+        .profile-grid {
+            display: grid;
 
-.deposit{
-    width:100%;
+            grid-template-columns:
+                minmax(0, 1fr)
+                minmax(0, 1fr);
 
-    border:0;
+            gap: 20px;
+        }
 
-    background:var(--yellow);
-    color:#050505;
+        /* =====================================================
+           CARD
+        ===================================================== */
 
-    font-weight:950;
+        .card {
+            padding: 25px;
 
-    border-radius:14px;
+            background:
+                linear-gradient(
+                    145deg,
+                    var(--card),
+                    var(--card2)
+                );
 
-    padding:14px;
+            border:
+                1px solid var(--line);
 
-    cursor:pointer;
+            border-radius: 20px;
 
-    font-size:14px;
+            box-shadow:
+                0 15px 45px
+                rgba(0, 0, 0, 0.25);
+        }
 
-    transition:.18s;
-}
+        .card.full {
+            grid-column: 1 / -1;
+        }
 
-.deposit:hover{
-    background:#ffe45d;
-}
+        .card-title {
+            margin-bottom: 20px;
 
-/* =====================================================
-   SECTION
-===================================================== */
+            font-size: 18px;
+            font-weight: 900;
+        }
 
-.section-title{
-    margin:0 0 17px;
+        /* =====================================================
+           ACCOUNT
+        ===================================================== */
 
-    font-size:18px;
-    font-weight:900;
-}
+        .account-head {
+            display: flex;
 
-/* =====================================================
-   ROWS
-===================================================== */
+            align-items: center;
 
-.rows{
-    display:grid;
-    gap:1px;
+            gap: 18px;
 
-    background:#252525;
+            margin-bottom: 25px;
+        }
 
-    border:1px solid #252525;
+        .avatar {
+            width: 64px;
+            height: 64px;
 
-    border-radius:17px;
+            flex:
+                0 0 64px;
 
-    overflow:hidden;
-}
+            display: flex;
 
-.row{
-    display:flex;
+            align-items: center;
+            justify-content: center;
 
-    justify-content:space-between;
+            border-radius: 18px;
 
-    gap:18px;
+            background:
+                linear-gradient(
+                    135deg,
+                    var(--yellow),
+                    var(--yellow2)
+                );
 
-    padding:16px;
+            color: #080808;
 
-    background:#111;
+            font-size: 23px;
+            font-weight: 900;
 
-    align-items:center;
-}
+            text-transform: uppercase;
+        }
 
-.row span:first-child{
-    color:#777;
-    font-size:12px;
-}
+        .account-name {
+            font-size: 23px;
+            font-weight: 900;
 
-.row b{
-    font-size:13px;
+            word-break: break-word;
+        }
 
-    text-align:right;
+        .account-status {
+            margin-top: 4px;
 
-    word-break:break-word;
-}
+            color: var(--muted);
 
-.hwid{
-    font-family:
-        ui-monospace,
-        SFMono-Regular,
-        Menlo,
-        monospace;
+            font-size: 13px;
+        }
 
-    color:#ddd;
-}
+        /* =====================================================
+           INFO ROW
+        ===================================================== */
 
-/* =====================================================
-   SUBSCRIPTION
-===================================================== */
+        .info-list {
+            display: flex;
 
-.subscription{
-    margin-top:18px;
-}
+            flex-direction: column;
 
-.sub-top{
-    display:flex;
+            gap: 10px;
+        }
 
-    justify-content:space-between;
+        .info-row {
+            display: flex;
 
-    align-items:center;
+            align-items: center;
+            justify-content: space-between;
 
-    margin-bottom:14px;
-}
+            gap: 20px;
 
-.active{
-    color:#6ee66e;
+            padding:
+                14px 15px;
 
-    font-size:11px;
+            background:
+                rgba(255,255,255,0.025);
 
-    font-weight:900;
+            border:
+                1px solid
+                rgba(255,255,255,0.04);
 
-    letter-spacing:.12em;
+            border-radius: 12px;
+        }
 
-    text-transform:uppercase;
-}
+        .info-label {
+            color: var(--muted);
 
-.forever{
-    color:var(--yellow);
-    font-weight:950;
-}
+            font-size: 13px;
+        }
 
-.progress{
-    height:8px;
+        .info-value {
+            max-width: 60%;
 
-    background:#242424;
+            text-align: right;
 
-    border-radius:999px;
+            font-size: 14px;
+            font-weight: 800;
 
-    overflow:hidden;
+            word-break: break-word;
+        }
 
-    margin:14px 0 18px;
-}
+        /* =====================================================
+           SUBSCRIPTION
+        ===================================================== */
 
-.progress span{
-    display:block;
+        .subscription-box {
+            min-height: 180px;
 
-    height:100%;
+            display: flex;
 
-    width:67%;
+            flex-direction: column;
 
-    background:var(--yellow);
+            justify-content: center;
+        }
 
-    border-radius:inherit;
-}
+        .subscription-none {
+            text-align: center;
 
-.sub-grid{
-    display:grid;
+            padding: 25px;
+        }
 
-    grid-template-columns:
-        repeat(3,1fr);
+        .subscription-icon {
+            width: 52px;
+            height: 52px;
 
-    gap:10px;
-}
+            margin:
+                0 auto 14px;
 
-.sub-box{
-    background:#101010;
+            display: flex;
 
-    border:1px solid #252525;
+            align-items: center;
+            justify-content: center;
 
-    border-radius:14px;
+            border-radius: 16px;
 
-    padding:13px;
-}
+            background:
+                rgba(255,255,255,0.04);
 
-.sub-box small{
-    display:block;
+            color: var(--muted);
 
-    color:#666;
+            font-size: 23px;
+        }
 
-    font-size:10px;
+        .subscription-none-title {
+            margin-bottom: 7px;
 
-    margin-bottom:6px;
-}
+            font-size: 17px;
+            font-weight: 900;
+        }
 
-.sub-box b{
-    font-size:13px;
-}
+        .subscription-none-text {
+            color: var(--muted);
 
-.note{
-    margin-top:18px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
 
-    color:#666;
+        .subscription-active {
+            display: none;
+        }
 
-    font-size:11px;
+        .subscription-product {
+            margin-bottom: 8px;
 
-    line-height:1.5;
-}
+            font-size: 24px;
+            font-weight: 900;
+        }
 
-/* =====================================================
-   FOOTER
-===================================================== */
+        .subscription-status {
+            display: inline-flex;
 
-footer{
-    padding:42px 4px 25px;
+            align-items: center;
 
-    color:#666;
+            width: fit-content;
 
-    text-align:center;
+            padding:
+                6px 10px;
 
-    font-size:12px;
-}
+            margin-bottom: 20px;
 
-/* =====================================================
-   MODAL
-===================================================== */
+            border-radius: 999px;
 
-.modal{
-    position:fixed;
+            background:
+                rgba(83, 215, 105, 0.1);
 
-    inset:0;
+            color:
+                var(--success);
 
-    z-index:50;
+            font-size: 12px;
+            font-weight: 800;
+        }
 
-    display:none;
-}
+        .subscription-status.expired {
+            background:
+                rgba(255, 77, 77, 0.1);
 
-.modal.open{
-    display:block;
-}
+            color:
+                var(--danger);
+        }
 
-.shade{
-    position:absolute;
+        .timer {
+            display: grid;
 
-    inset:0;
+            grid-template-columns:
+                repeat(4, 1fr);
 
-    background:#000a;
+            gap: 8px;
 
-    backdrop-filter:blur(4px);
-}
+            margin-top: 10px;
+        }
 
-.panel{
-    position:absolute;
+        .timer-item {
+            padding:
+                14px 8px;
 
-    left:50%;
-    top:50%;
+            text-align: center;
 
-    transform:
-        translate(-50%,-50%);
+            background:
+                rgba(255,255,255,0.035);
 
-    width:min(
-        420px,
-        calc(100% - 28px)
-    );
+            border:
+                1px solid var(--line);
 
-    background:#0d0d0d;
+            border-radius: 13px;
+        }
 
-    border:1px solid #303030;
+        .timer-number {
+            display: block;
 
-    border-radius:24px;
+            margin-bottom: 4px;
 
-    padding:23px;
+            font-size: 21px;
+            font-weight: 900;
+        }
 
-    box-shadow:0 25px 90px #000;
-}
+        .timer-label {
+            color: var(--muted);
 
-.panel-head{
-    display:flex;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
 
-    align-items:center;
+        .forever {
+            padding: 20px;
 
-    justify-content:space-between;
-}
+            text-align: center;
 
-.panel h2{
-    margin:0;
-}
+            border-radius: 14px;
 
-.close{
-    background:#191919;
+            background:
+                rgba(255,210,26,0.07);
 
-    color:#aaa;
+            border:
+                1px solid
+                rgba(255,210,26,0.15);
 
-    border:1px solid #303030;
+            color: var(--yellow);
 
-    border-radius:12px;
+            font-size: 20px;
+            font-weight: 900;
+        }
 
-    width:38px;
-    height:38px;
+        /* =====================================================
+           ACTIONS
+        ===================================================== */
 
-    cursor:pointer;
+        .actions {
+            display: flex;
 
-    font-size:20px;
-}
+            flex-wrap: wrap;
 
-.input{
-    width:100%;
+            gap: 10px;
+        }
 
-    margin:18px 0 12px;
+        .btn {
+            min-height: 46px;
 
-    background:#111;
+            padding:
+                0 17px;
 
-    border:1px solid #303030;
+            display: inline-flex;
 
-    color:#fff;
+            align-items: center;
+            justify-content: center;
 
-    border-radius:13px;
+            border-radius: 12px;
 
-    padding:13px;
+            border:
+                1px solid var(--line);
 
-    outline:none;
+            background:
+                var(--card2);
 
-    font:inherit;
-}
+            color: var(--text);
 
-.input:focus{
-    border-color:var(--yellow);
-}
+            font-size: 14px;
+            font-weight: 800;
 
-.quick{
-    display:grid;
+            transition:
+                transform 0.15s ease,
+                background 0.15s ease,
+                border-color 0.15s ease;
+        }
 
-    grid-template-columns:
-        repeat(3,1fr);
+        .btn:hover {
+            transform:
+                translateY(-1px);
 
-    gap:8px;
-}
+            border-color:
+                #444;
+        }
 
-.quick button{
-    background:#151515;
+        .btn-primary {
+            background:
+                var(--yellow);
 
-    color:#aaa;
+            color:
+                #080808;
 
-    border:1px solid #2c2c2c;
+            border-color:
+                var(--yellow);
+        }
 
-    border-radius:12px;
+        .btn-primary:hover {
+            background:
+                var(--yellow2);
 
-    padding:10px;
+            border-color:
+                var(--yellow2);
+        }
 
-    cursor:pointer;
-}
+        .btn-danger {
+            color:
+                var(--danger);
+        }
 
-.quick button:hover{
-    border-color:var(--yellow);
+        /* =====================================================
+           ADMIN
+        ===================================================== */
 
-    color:var(--yellow);
-}
+        #adminSection {
+            display: none;
+        }
 
-.confirm{
-    width:100%;
+        .admin-box {
+            padding: 20px;
 
-    margin-top:14px;
+            border:
+                1px solid
+                rgba(255,210,26,0.18);
 
-    border:0;
+            border-radius: 15px;
 
-    background:var(--yellow);
+            background:
+                rgba(255,210,26,0.05);
+        }
 
-    color:#050505;
+        .admin-title {
+            margin-bottom: 7px;
 
-    font-weight:950;
+            color: var(--yellow);
 
-    border-radius:13px;
+            font-size: 18px;
+            font-weight: 900;
+        }
 
-    padding:14px;
+        .admin-text {
+            margin-bottom: 17px;
 
-    cursor:pointer;
-}
+            color: var(--muted);
 
-/* =====================================================
-   TOAST
-===================================================== */
+            font-size: 13px;
+            line-height: 1.5;
+        }
 
-.toast{
-    position:fixed;
+        /* =====================================================
+           LOADING
+        ===================================================== */
 
-    left:50%;
-    bottom:24px;
+        .loading {
+            position: fixed;
 
-    transform:
-        translate(-50%,20px);
+            inset: 0;
 
-    opacity:0;
+            z-index: 999;
 
-    z-index:70;
+            display: flex;
 
-    background:#171717;
+            align-items: center;
+            justify-content: center;
 
-    border:1px solid #393939;
+            background:
+                var(--bg);
+        }
 
-    border-radius:14px;
+        .loader {
+            width: 42px;
+            height: 42px;
 
-    padding:12px 16px;
+            border:
+                3px solid
+                var(--line);
 
-    transition:.2s;
+            border-top-color:
+                var(--yellow);
 
-    pointer-events:none;
-}
+            border-radius: 50%;
 
-.toast.show{
-    opacity:1;
+            animation:
+                spin 0.8s linear infinite;
+        }
 
-    transform:
-        translate(-50%,0);
-}
+        @keyframes spin {
+            to {
+                transform:
+                    rotate(360deg);
+            }
+        }
 
-/* =====================================================
-   MOBILE
-===================================================== */
+        /* =====================================================
+           ERROR
+        ===================================================== */
 
-@media(max-width:760px){
+        .error-page {
+            display: none;
 
-    .container{
-        padding:12px;
-    }
+            min-height: 60vh;
 
-    header{
-        height:auto;
+            align-items: center;
+            justify-content: center;
 
-        min-height:68px;
+            text-align: center;
+        }
 
-        padding:10px;
+        .error-title {
+            margin-bottom: 8px;
 
-        gap:10px;
+            font-size: 28px;
+            font-weight: 900;
+        }
 
-        flex-wrap:wrap;
-    }
+        .error-text {
+            margin-bottom: 20px;
 
-    .logo{
-        width:100%;
-        text-align:center;
-    }
+            color: var(--muted);
+        }
 
-    .nav-tabs{
-        width:100%;
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
 
-        justify-content:center;
-    }
+        @media (max-width: 800px) {
 
-    .nav-tabs a,
-    .nav-tabs button{
-        min-width:0;
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
 
-        flex:1;
+            .card.full {
+                grid-column: auto;
+            }
 
-        padding:10px 7px;
+            .timer {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
 
-        font-size:11px;
-    }
+            .nav a {
+                padding:
+                    9px 8px;
 
-    .profile{
-        grid-template-columns:1fr;
-    }
+                font-size: 12px;
+            }
+        }
 
-    .hero{
-        padding-top:55px;
-    }
+        @media (max-width: 520px) {
 
-    .sub-grid{
-        grid-template-columns:1fr;
-    }
+            .header-inner {
+                width:
+                    calc(100% - 20px);
+            }
 
-    .row{
-        align-items:flex-start;
+            .page {
+                width:
+                    calc(100% - 20px);
 
-        flex-direction:column;
+                padding-top:
+                    35px;
+            }
 
-        gap:6px;
-    }
+            .card {
+                padding: 18px;
+            }
 
-    .row b{
-        text-align:left;
-    }
-}
-</style>
+            .account-head {
+                align-items: flex-start;
+            }
+
+            .info-row {
+                align-items:
+                    flex-start;
+
+                flex-direction:
+                    column;
+
+                gap: 5px;
+            }
+
+            .info-value {
+                max-width: 100%;
+
+                text-align:
+                    left;
+            }
+
+            .actions {
+                flex-direction:
+                    column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .logo {
+                font-size: 17px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container">
+<!-- =========================================================
+     LOADING
+========================================================= -->
+
+<div
+    class="loading"
+    id="loading"
+>
+    <div class="loader"></div>
+</div>
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
 
 <header>
 
-    <div class="logo">
-        MEANT <b>SHOP</b>
+    <div class="header-inner">
+
+        <a
+            href="/shop.html"
+            class="logo"
+        >
+            MEANT <b>SHOP</b>
+        </a>
+
+        <nav class="nav">
+
+            <a href="/shop.html">
+                Магазин
+            </a>
+
+            <a
+                href="/visual.html"
+            >
+                Visual
+            </a>
+
+            <a
+                href="/profile.html"
+                class="active"
+            >
+                Профиль
+            </a>
+
+        </nav>
+
     </div>
-
-    <nav class="nav-tabs">
-
-        <a href="visual.html">
-            Visual
-        </a>
-
-        <a
-            class="active"
-            href="profile.html"
-        >
-            Профиль
-        </a>
-
-        <a href="shop.html">
-            Магазин
-        </a>
-
-        <a href="finance.html">
-            Финансы
-        </a>
-
-        <!-- =================================================
-             КНОПКА АДМИНКИ
-             ПО УМОЛЧАНИЮ СКРЫТА
-             ПОКАЗЫВАЕТСЯ ТОЛЬКО DETOX
-        ================================================== -->
-
-        <a
-            id="adminButton"
-            class="admin-button"
-            href="admin.html"
-        >
-            ⚙ Админка
-        </a>
-
-        <button onclick="logout()">
-            Выйти
-        </button>
-
-    </nav>
 
 </header>
 
 
-<!-- =====================================================
-     HERO
-===================================================== -->
+<!-- =========================================================
+     MAIN
+========================================================= -->
 
-<section class="hero">
+<main>
 
-    <div class="eyebrow">
-        PERSONAL ACCOUNT
-    </div>
+    <section
+        class="page"
+        id="profilePage"
+    >
 
-    <h1>
-        ПРОФИЛЬ
-    </h1>
+        <h1 class="page-title">
+            Профиль
+        </h1>
 
-    <p>
-        Управляйте балансом,
-        подпиской и данными
-        вашего аккаунта MEANT.
-    </p>
-
-</section>
+        <p class="page-subtitle">
+            Управление вашим аккаунтом MEANT SHOP
+        </p>
 
 
-<!-- =====================================================
-     PROFILE
-===================================================== -->
-
-<main class="profile">
+        <div class="profile-grid">
 
 
-    <!-- =================================================
-         LEFT CARD
-    ================================================== -->
+            <!-- =================================================
+                 ACCOUNT
+            ================================================== -->
 
-    <section class="card">
+            <div class="card">
 
-        <div class="identity">
+                <div class="account-head">
 
-            <div
-                class="avatar"
-                id="avatar"
-            >
-                D
+                    <div
+                        class="avatar"
+                        id="avatar"
+                    >
+                        ?
+                    </div>
+
+                    <div>
+
+                        <div
+                            class="account-name"
+                            id="username"
+                        >
+                            —
+                        </div>
+
+                        <div
+                            class="account-status"
+                            id="accountStatus"
+                        >
+                            Аккаунт
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="info-list">
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            ID аккаунта
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="accountId"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Баланс
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="balance"
+                        >
+                            0 ₽
+                        </span>
+
+                    </div>
+
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Дата регистрации
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="createdAt"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+                </div>
+
             </div>
 
-            <div>
+
+            <!-- =================================================
+                 SUBSCRIPTION
+            ================================================== -->
+
+            <div class="card">
+
+                <div class="card-title">
+                    Подписка
+                </div>
 
                 <div
-                    class="nickname"
-                    id="nickname"
+                    class="subscription-box"
+                    id="subscriptionBox"
                 >
-                    dora
-                </div>
 
-                <div class="title">
-                    Premium User
+                    <!-- NO SUBSCRIPTION -->
+
+                    <div
+                        class="subscription-none"
+                        id="subscriptionNone"
+                    >
+
+                        <div class="subscription-icon">
+                            —
+                        </div>
+
+                        <div
+                            class="subscription-none-title"
+                        >
+                            Нет активной подписки
+                        </div>
+
+                        <div
+                            class="subscription-none-text"
+                        >
+                            Вы ещё не приобрели доступ.
+                        </div>
+
+                    </div>
+
+
+                    <!-- ACTIVE SUBSCRIPTION -->
+
+                    <div
+                        class="subscription-active"
+                        id="subscriptionActive"
+                    >
+
+                        <div
+                            class="subscription-product"
+                            id="subscriptionProduct"
+                        >
+                            —
+                        </div>
+
+                        <div
+                            class="subscription-status"
+                            id="subscriptionStatus"
+                        >
+                            АКТИВНА
+                        </div>
+
+
+                        <!-- FOREVER -->
+
+                        <div
+                            class="forever"
+                            id="subscriptionForever"
+                            style="display:none"
+                        >
+                            НАВСЕГДА
+                        </div>
+
+
+                        <!-- TIMER -->
+
+                        <div
+                            class="timer"
+                            id="subscriptionTimer"
+                        >
+
+                            <div class="timer-item">
+
+                                <span
+                                    class="timer-number"
+                                    id="days"
+                                >
+                                    0
+                                </span>
+
+                                <span class="timer-label">
+                                    Дней
+                                </span>
+
+                            </div>
+
+
+                            <div class="timer-item">
+
+                                <span
+                                    class="timer-number"
+                                    id="hours"
+                                >
+                                    0
+                                </span>
+
+                                <span class="timer-label">
+                                    Часов
+                                </span>
+
+                            </div>
+
+
+                            <div class="timer-item">
+
+                                <span
+                                    class="timer-number"
+                                    id="minutes"
+                                >
+                                    0
+                                </span>
+
+                                <span class="timer-label">
+                                    Минут
+                                </span>
+
+                            </div>
+
+
+                            <div class="timer-item">
+
+                                <span
+                                    class="timer-number"
+                                    id="seconds"
+                                >
+                                    0
+                                </span>
+
+                                <span class="timer-label">
+                                    Секунд
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
             </div>
 
-        </div>
 
+            <!-- =================================================
+                 ACTIONS
+            ================================================== -->
 
-        <div class="balance">
+            <div class="card">
 
-            <div class="label">
-                Текущий баланс
+                <div class="card-title">
+                    Действия
+                </div>
+
+                <div class="actions">
+
+                    <a
+                        href="/shop.html"
+                        class="btn btn-primary"
+                    >
+                        Перейти в магазин
+                    </a>
+
+                    <button
+                        class="btn btn-danger"
+                        id="logoutButton"
+                    >
+                        Выйти из аккаунта
+                    </button>
+
+                </div>
+
             </div>
+
+
+            <!-- =================================================
+                 ADMIN
+            ================================================== -->
 
             <div
-                class="money"
-                id="balance"
+                class="card"
+                id="adminSection"
             >
-                0 ₽
+
+                <div class="card-title">
+                    Администрирование
+                </div>
+
+                <div class="admin-box">
+
+                    <div class="admin-title">
+                        Панель администратора
+                    </div>
+
+                    <div class="admin-text">
+                        Раздел доступен только аккаунту
+                        <b>detox</b>.
+                    </div>
+
+                    <a
+                        href="/admin-panel.html"
+                        class="btn btn-primary"
+                    >
+                        Войти в админку
+                    </a>
+
+                </div>
+
             </div>
 
-            <button
-                class="deposit"
-                onclick="openDeposit()"
-            >
-                Пополнить баланс
-            </button>
+
+            <!-- =================================================
+                 ACCOUNT ID
+            ================================================== -->
+
+            <div class="card full">
+
+                <div class="card-title">
+                    Информация об аккаунте
+                </div>
+
+                <div class="info-list">
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Username
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="usernameInfo"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+                    <div class="info-row">
+
+                        <span class="info-label">
+                            Account ID
+                        </span>
+
+                        <span
+                            class="info-value"
+                            id="accountIdInfo"
+                        >
+                            —
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
     </section>
 
 
-    <!-- =================================================
-         RIGHT CARD
-    ================================================== -->
+    <!-- =========================================================
+         ERROR
+    ========================================================== -->
 
-    <section class="card">
+    <section
+        class="error-page"
+        id="errorPage"
+    >
 
-        <h2 class="section-title">
-            Данные аккаунта
-        </h2>
+        <div>
 
-        <div class="rows">
-
-            <div class="row">
-
-                <span>
-                    ID аккаунта
-                </span>
-
-                <b
-                    class="hwid"
-                    id="accountId"
-                >
-                    —
-                </b>
-
+            <div class="error-title">
+                Не удалось загрузить профиль
             </div>
-
-
-            <div class="row">
-
-                <span>
-                    Никнейм
-                </span>
-
-                <b id="accountUsername">
-                    —
-                </b>
-
-            </div>
-
-
-            <div class="row">
-
-                <span>
-                    Статус / титул
-                </span>
-
-                <b style="color:var(--yellow)">
-                    Premium User
-                </b>
-
-            </div>
-
-
-            <div class="row">
-
-                <span>
-                    Текущий HWID
-                </span>
-
-                <b
-                    class="hwid"
-                    id="hwid"
-                >
-                    —
-                </b>
-
-            </div>
-
-        </div>
-
-
-        <!-- =================================================
-             SUBSCRIPTION
-        ================================================== -->
-
-        <div class="subscription">
-
-            <div class="sub-top">
-
-                <h2
-                    class="section-title"
-                    style="margin:0"
-                >
-                    Подписка
-                </h2>
-
-                <span class="active">
-                    ● Активна
-                </span>
-
-            </div>
-
 
             <div
-                class="row"
-                style="
-                    border:1px solid #252525;
-                    border-radius:16px;
-                    margin-bottom:12px
-                "
+                class="error-text"
+                id="errorText"
             >
-
-                <span>
-                    Тариф
-                </span>
-
-                <b
-                    class="forever"
-                    id="plan"
-                >
-                    —
-                </b>
-
+                Необходимо войти в аккаунт.
             </div>
 
-
-            <div class="progress">
-
-                <span
-                    id="progressBar"
-                    style="width:67%"
-                ></span>
-
-            </div>
-
-
-            <div class="sub-grid">
-
-                <div class="sub-box">
-
-                    <small>
-                        Оформлена
-                    </small>
-
-                    <b id="createdDate">
-                        —
-                    </b>
-
-                </div>
-
-
-                <div class="sub-box">
-
-                    <small>
-                        Продлена
-                    </small>
-
-                    <b id="renewedDate">
-                        —
-                    </b>
-
-                </div>
-
-
-                <div class="sub-box">
-
-                    <small>
-                        Осталось
-                    </small>
-
-                    <b id="daysLeft">
-                        —
-                    </b>
-
-                </div>
-
-            </div>
-
-
-            <div class="note">
-
-                Доступ автоматически считается
-                от даты последнего продления.
-                Для тарифа «Навсегда» вместо
-                количества дней отображается
-                «Навсегда».
-
-            </div>
+            <a
+                href="/index.html"
+                class="btn btn-primary"
+            >
+                Войти
+            </a>
 
         </div>
 
@@ -1088,110 +1237,35 @@ footer{
 </main>
 
 
-<footer>
-    © 2026 MEANT SHOP · Личный кабинет
-</footer>
-
-</div>
-
-
-<!-- =====================================================
-     DEPOSIT MODAL
-===================================================== -->
-
-<div
-    class="modal"
-    id="depositModal"
->
-
-    <div
-        class="shade"
-        onclick="closeDeposit()"
-    ></div>
-
-    <div class="panel">
-
-        <div class="panel-head">
-
-            <h2>
-                Пополнение баланса
-            </h2>
-
-            <button
-                class="close"
-                onclick="closeDeposit()"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <input
-            id="amount"
-            class="input"
-            type="number"
-            min="1"
-            placeholder="Введите сумму, ₽"
-        >
-
-
-        <div class="quick">
-
-            <button onclick="setAmount(100)">
-                100 ₽
-            </button>
-
-            <button onclick="setAmount(500)">
-                500 ₽
-            </button>
-
-            <button onclick="setAmount(1000)">
-                1000 ₽
-            </button>
-
-        </div>
-
-
-        <button
-            class="confirm"
-            onclick="deposit()"
-        >
-            Пополнить
-        </button>
-
-    </div>
-
-</div>
-
-
-<div
-    class="toast"
-    id="toast"
-></div>
-
-
 <script>
 
 /* =========================================================
-   ACCOUNT
+   STATE
 ========================================================= */
 
-let ACCOUNT = null;
+let currentAccount = null;
+let currentEntitlement = null;
+
+let timerInterval = null;
 
 
 /* =========================================================
-   FORMAT
+   HELPERS
 ========================================================= */
 
-function fmt(number){
+function $(id) {
+    return document.getElementById(id);
+}
 
-    return new Intl.NumberFormat(
-        "ru-RU"
-    ).format(
-        Number(number || 0)
-    );
 
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 
@@ -1199,69 +1273,563 @@ function fmt(number){
    DATE
 ========================================================= */
 
-function formatDate(value){
+function formatDate(value) {
 
-    if(!value){
+    if (!value) {
         return "—";
     }
 
-    const date = new Date(value);
+    const date =
+        new Date(value);
 
-    if(
+    if (
         Number.isNaN(
             date.getTime()
         )
-    ){
-        return String(value);
+    ) {
+        return "—";
     }
 
-    return date.toLocaleDateString(
-        "ru-RU"
-    );
+    return date.toLocaleString(
+        "ru-RU",
+        {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
 
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
 }
 
 
 /* =========================================================
-   ADMIN BUTTON
+   TIMER
 ========================================================= */
 
-function checkAdminButton(username){
+function stopTimer() {
 
-    const button =
-        document.getElementById(
-            "adminButton"
+    if (timerInterval) {
+
+        clearInterval(
+            timerInterval
         );
 
-    if(!button){
+        timerInterval = null;
+    }
+}
+
+
+function showNoSubscription() {
+
+    stopTimer();
+
+    $("subscriptionNone")
+        .style.display = "block";
+
+    $("subscriptionActive")
+        .style.display = "none";
+
+    currentEntitlement = null;
+}
+
+
+function showForever(entitlement) {
+
+    stopTimer();
+
+    $("subscriptionNone")
+        .style.display = "none";
+
+    $("subscriptionActive")
+        .style.display = "block";
+
+    $("subscriptionForever")
+        .style.display = "block";
+
+    $("subscriptionTimer")
+        .style.display = "none";
+
+    $("subscriptionProduct")
+        .textContent =
+            entitlement.product_name ||
+            entitlement.productId ||
+            "Подписка";
+
+    $("subscriptionStatus")
+        .textContent =
+            "АКТИВНА";
+
+    $("subscriptionStatus")
+        .classList.remove(
+            "expired"
+        );
+}
+
+
+function showTimer(entitlement) {
+
+    stopTimer();
+
+    $("subscriptionNone")
+        .style.display = "none";
+
+    $("subscriptionActive")
+        .style.display = "block";
+
+    $("subscriptionForever")
+        .style.display = "none";
+
+    $("subscriptionTimer")
+        .style.display = "grid";
+
+    $("subscriptionProduct")
+        .textContent =
+            entitlement.product_name ||
+            entitlement.productId ||
+            "Подписка";
+
+    const expires =
+        new Date(
+            entitlement.expires_at ||
+            entitlement.expiresAt
+        ).getTime();
+
+
+    function updateTimer() {
+
+        const remaining =
+            expires -
+            Date.now();
+
+
+        if (
+            !Number.isFinite(expires) ||
+            remaining <= 0
+        ) {
+
+            stopTimer();
+
+            $("subscriptionStatus")
+                .textContent =
+                    "ИСТЕКЛА";
+
+            $("subscriptionStatus")
+                .classList.add(
+                    "expired"
+                );
+
+            $("days")
+                .textContent = "0";
+
+            $("hours")
+                .textContent = "0";
+
+            $("minutes")
+                .textContent = "0";
+
+            $("seconds")
+                .textContent = "0";
+
+            return;
+        }
+
+
+        $("subscriptionStatus")
+            .textContent =
+                "АКТИВНА";
+
+        $("subscriptionStatus")
+            .classList.remove(
+                "expired"
+            );
+
+
+        const totalSeconds =
+            Math.floor(
+                remaining / 1000
+            );
+
+
+        const days =
+            Math.floor(
+                totalSeconds /
+                86400
+            );
+
+
+        const hours =
+            Math.floor(
+                (
+                    totalSeconds %
+                    86400
+                ) / 3600
+            );
+
+
+        const minutes =
+            Math.floor(
+                (
+                    totalSeconds %
+                    3600
+                ) / 60
+            );
+
+
+        const seconds =
+            totalSeconds %
+            60;
+
+
+        $("days")
+            .textContent =
+                String(days);
+
+        $("hours")
+            .textContent =
+                String(hours)
+                    .padStart(2, "0");
+
+        $("minutes")
+            .textContent =
+                String(minutes)
+                    .padStart(2, "0");
+
+        $("seconds")
+            .textContent =
+                String(seconds)
+                    .padStart(2, "0");
+    }
+
+
+    updateTimer();
+
+    timerInterval =
+        setInterval(
+            updateTimer,
+            1000
+        );
+}
+
+
+/* =========================================================
+   SUBSCRIPTION
+========================================================= */
+
+function renderSubscription(account) {
+
+    /*
+       ВАЖНО:
+
+       Мы НЕ создаём подписку сами.
+
+       Если API не вернул entitlement,
+       значит подписки нет.
+
+       Никаких тестовых 30 дней здесь нет.
+    */
+
+
+    let entitlements =
+        account.entitlements;
+
+
+    if (
+        !Array.isArray(
+            entitlements
+        )
+    ) {
+
+        entitlements = [];
+
+    }
+
+
+    /*
+       Берём только активные entitlement.
+    */
+
+    const active =
+        entitlements
+            .filter(item => {
+
+                if (
+                    String(
+                        item.status ??
+                        ""
+                    ).toLowerCase()
+                    !== "active"
+                ) {
+                    return false;
+                }
+
+                /*
+                   Если expires_at есть,
+                   проверяем, не истёк ли он.
+                */
+
+                const expiration =
+                    item.expires_at ??
+                    item.expiresAt;
+
+                if (!expiration) {
+                    return true;
+                }
+
+                const time =
+                    new Date(
+                        expiration
+                    ).getTime();
+
+                return (
+                    Number.isFinite(time) &&
+                    time > Date.now()
+                );
+            });
+
+
+    /*
+       Если ничего нет —
+       подписки нет.
+    */
+
+    if (!active.length) {
+
+        showNoSubscription();
+
         return;
     }
 
-    /*
-       Кнопка показывается
-       ТОЛЬКО пользователю detox.
 
-       Сравнение без учёта регистра.
+    /*
+       Если несколько доступов,
+       показываем самый свежий.
     */
 
-    if(
-        String(username || "")
-            .trim()
-            .toLowerCase()
-        ===
-        "detox"
-    ){
+    active.sort(
+        (a, b) => {
 
-        button.style.display =
-            "inline-flex";
+            const aDate =
+                new Date(
+                    a.created_at ??
+                    a.createdAt ??
+                    0
+                ).getTime();
 
-    }else{
+            const bDate =
+                new Date(
+                    b.created_at ??
+                    b.createdAt ??
+                    0
+                ).getTime();
 
-        button.style.display =
-            "none";
+            return bDate - aDate;
+        }
+    );
 
+
+    const entitlement =
+        active[0];
+
+
+    currentEntitlement =
+        entitlement;
+
+
+    const expiration =
+        entitlement.expires_at ??
+        entitlement.expiresAt;
+
+
+    /*
+       expires_at = null
+       означает навсегда.
+    */
+
+    if (!expiration) {
+
+        showForever(
+            entitlement
+        );
+
+        return;
     }
 
+
+    showTimer(
+        entitlement
+    );
+}
+
+
+/* =========================================================
+   NORMALIZE API RESPONSE
+========================================================= */
+
+function getAccountFromResponse(data) {
+
+    /*
+       Поддерживаем несколько вариантов
+       структуры ответа /api/auth/me.
+    */
+
+    if (
+        data &&
+        data.account
+    ) {
+
+        return data.account;
+    }
+
+
+    if (
+        data &&
+        data.user
+    ) {
+
+        return data.user;
+    }
+
+
+    if (
+        data &&
+        data.me
+    ) {
+
+        return data.me;
+    }
+
+
+    /*
+       Иногда API может возвращать
+       account непосредственно в JSON.
+    */
+
+    if (
+        data &&
+        (
+            data.id ||
+            data.username
+        )
+    ) {
+
+        return data;
+    }
+
+
+    return null;
+}
+
+
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
+
+async function loadProfile() {
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/auth/me",
+                {
+                    method: "GET",
+
+                    credentials:
+                        "include",
+
+                    headers: {
+                        "Accept":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        let data = null;
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch {
+
+            data = null;
+
+        }
+
+
+        if (
+            !response.ok ||
+            !data ||
+            data.authenticated === false
+        ) {
+
+            throw new Error(
+                data?.error ||
+                "Пользователь не авторизован"
+            );
+        }
+
+
+        const account =
+            getAccountFromResponse(
+                data
+            );
+
+
+        if (!account) {
+
+            throw new Error(
+                "API не вернул данные аккаунта"
+            );
+        }
+
+
+        currentAccount =
+            account;
+
+
+        renderProfile(
+            account
+        );
+
+
+        $("loading")
+            .style.display =
+                "none";
+
+
+    } catch (error) {
+
+        console.error(
+            "PROFILE ERROR:",
+            error
+        );
+
+
+        $("loading")
+            .style.display =
+                "none";
+
+
+        $("profilePage")
+            .style.display =
+                "none";
+
+
+        $("errorPage")
+            .style.display =
+                "flex";
+
+
+        $("errorText")
+            .textContent =
+                error?.message ||
+                "Необходимо войти в аккаунт.";
+    }
 }
 
 
@@ -1269,328 +1837,134 @@ function checkAdminButton(username){
    RENDER PROFILE
 ========================================================= */
 
-async function render(){
+function renderProfile(account) {
 
-    try{
+    /*
+       USERNAME
 
-        /*
-           Получаем авторизованный
-           обычный аккаунт.
-        */
+       Берём именно username,
+       который находится в аккаунте.
+    */
 
-        const authResponse =
-            await fetch(
-                "/api/auth/me",
-                {
-                    credentials:"include"
-                }
-            );
-
-
-        if(!authResponse.ok){
-
-            location.href =
-                "auth.html";
-
-            return;
-        }
+    const username =
+        String(
+            account.username ??
+            account.nickname ??
+            ""
+        ).trim();
 
 
-        const authData =
-            await authResponse.json();
+    const safeUsername =
+        username ||
+        "Пользователь";
 
 
-        if(
-            !authData ||
-            !authData.account
-        ){
-
-            location.href =
-                "auth.html";
-
-            return;
-        }
+    $("username")
+        .textContent =
+            safeUsername;
 
 
-        ACCOUNT =
-            authData.account.id;
+    $("usernameInfo")
+        .textContent =
+            username || "—";
 
 
-        localStorage.setItem(
-            "meant_account_id",
-            ACCOUNT
+    /*
+       AVATAR
+    */
+
+    $("avatar")
+        .textContent =
+            safeUsername
+                .charAt(0)
+                .toUpperCase();
+
+
+    /*
+       ID
+    */
+
+    $("accountId")
+        .textContent =
+            account.id ||
+            "—";
+
+
+    $("accountIdInfo")
+        .textContent =
+            account.id ||
+            "—";
+
+
+    /*
+       BALANCE
+    */
+
+    const balance =
+        Number(
+            account.balance ??
+            0
         );
 
 
-        /*
-           Получаем расширенную
-           информацию профиля.
-        */
+    $("balance")
+        .textContent =
+            `${balance} ₽`;
 
-        const response =
-            await fetch(
-                "/api/me",
-                {
-                    credentials:"include"
-                }
+
+    /*
+       CREATED
+    */
+
+    $("createdAt")
+        .textContent =
+            formatDate(
+                account.created_at ??
+                account.createdAt
             );
 
 
-        if(!response.ok){
+    /*
+       STATUS
+    */
 
-            throw new Error(
-                "Не удалось загрузить профиль"
-            );
+    $("accountStatus")
+        .textContent =
+            "Аккаунт MEANT SHOP";
 
-        }
 
+    /*
+       ADMIN BUTTON
 
-        const data =
-            await response.json();
+       Только username = detox.
 
+       Регистр не имеет значения.
+    */
 
-        if(
-            !data ||
-            !data.account
-        ){
+    if (
+        username.toLowerCase()
+        === "detox"
+    ) {
 
-            throw new Error(
-                "Данные аккаунта отсутствуют"
-            );
+        $("adminSection")
+            .style.display =
+                "block";
 
-        }
+    } else {
 
-
-        const account =
-            data.account;
-
-
-        /* =================================================
-           BASIC
-        ================================================== */
-
-        document.getElementById(
-            "nickname"
-        ).textContent =
-            account.username || "User";
-
-
-        document.getElementById(
-            "accountUsername"
-        ).textContent =
-            account.username || "—";
-
-
-        document.getElementById(
-            "avatar"
-        ).textContent =
-            (
-                account.username ||
-                "M"
-            )[0].toUpperCase();
-
-
-        document.getElementById(
-            "balance"
-        ).textContent =
-            fmt(account.balance) +
-            " ₽";
-
-
-        document.getElementById(
-            "accountId"
-        ).textContent =
-            account.id || "—";
-
-
-        /*
-           HWID может отсутствовать
-           в текущей таблице accounts.
-        */
-
-        document.getElementById(
-            "hwid"
-        ).textContent =
-            account.hwid ||
-            "Не установлен";
-
-
-        /* =================================================
-           ADMIN
-        ================================================== */
-
-        checkAdminButton(
-            account.username
-        );
-
-
-        /* =================================================
-           SUBSCRIPTION
-        ================================================== */
-
-        if(
-            Array.isArray(
-                data.subscriptions
-            ) &&
-            data.subscriptions.length
-        ){
-
-            const sub =
-                data.subscriptions[0];
-
-
-            document.getElementById(
-                "plan"
-            ).textContent =
-                sub.product_name ||
-                sub.product_id ||
-                "Подписка";
-
-
-            document.getElementById(
-                "createdDate"
-            ).textContent =
-                formatDate(
-                    sub.created_at
-                );
-
-
-            document.getElementById(
-                "renewedDate"
-            ).textContent =
-                formatDate(
-                    sub.created_at
-                );
-
-
-            if(
-                sub.expires_at
-            ){
-
-                const expiration =
-                    new Date(
-                        sub.expires_at
-                    );
-
-                const now =
-                    new Date();
-
-
-                const diff =
-                    expiration.getTime() -
-                    now.getTime();
-
-
-                const days =
-                    Math.max(
-                        0,
-                        Math.ceil(
-                            diff /
-                            (
-                                1000 *
-                                60 *
-                                60 *
-                                24
-                            )
-                        )
-                    );
-
-
-                document.getElementById(
-                    "daysLeft"
-                ).textContent =
-                    days + " дн.";
-
-
-                /*
-                   Примерная шкала
-                   оставшегося времени.
-                */
-
-                const percent =
-                    Math.min(
-                        100,
-                        Math.max(
-                            0,
-                            (days / 30) * 100
-                        )
-                    );
-
-
-                document.getElementById(
-                    "progressBar"
-                ).style.width =
-                    percent + "%";
-
-            }else{
-
-                document.getElementById(
-                    "plan"
-                ).textContent =
-                    "Навсегда";
-
-
-                document.getElementById(
-                    "daysLeft"
-                ).textContent =
-                    "Навсегда";
-
-
-                document.getElementById(
-                    "progressBar"
-                ).style.width =
-                    "100%";
-
-            }
-
-        }else{
-
-            document.getElementById(
-                "plan"
-            ).textContent =
-                "Нет подписки";
-
-
-            document.getElementById(
-                "createdDate"
-            ).textContent =
-                "—";
-
-
-            document.getElementById(
-                "renewedDate"
-            ).textContent =
-                "—";
-
-
-            document.getElementById(
-                "daysLeft"
-            ).textContent =
-                "—";
-
-
-            document.getElementById(
-                "progressBar"
-            ).style.width =
-                "0%";
-
-        }
-
-
-    }catch(error){
-
-        console.error(
-            "PROFILE ERROR:",
-            error
-        );
-
-        toast(
-            error.message ||
-            "Ошибка загрузки профиля"
-        );
-
+        $("adminSection")
+            .style.display =
+                "none";
     }
 
+
+    /*
+       SUBSCRIPTION
+    */
+
+    renderSubscription(
+        account
+    );
 }
 
 
@@ -1598,174 +1972,77 @@ async function render(){
    LOGOUT
 ========================================================= */
 
-async function logout(){
+async function logout() {
 
-    try{
+    try {
 
-        await fetch(
-            "/api/auth/logout",
-            {
-                method:"POST",
-                credentials:"include"
-            }
-        );
+        const response =
+            await fetch(
+                "/api/auth/logout",
+                {
+                    method: "POST",
 
-    }catch(error){
+                    credentials:
+                        "include",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    }
+                }
+            );
+
+
+        if (
+            response.ok
+        ) {
+
+            window.location.href =
+                "/index.html";
+
+            return;
+        }
+
+
+        /*
+           Даже если API вернул ошибку,
+           всё равно возвращаем пользователя
+           на страницу входа.
+        */
+
+        window.location.href =
+            "/index.html";
+
+
+    } catch (error) {
 
         console.error(
             "LOGOUT ERROR:",
             error
         );
 
+        window.location.href =
+            "/index.html";
     }
-
-
-    localStorage.removeItem(
-        "meant_account_id"
-    );
-
-
-    location.href =
-        "auth.html";
-
 }
 
 
 /* =========================================================
-   DEPOSIT
+   EVENTS
 ========================================================= */
 
-function openDeposit(){
-
-    location.href =
-        "finance.html";
-
-}
-
-
-function closeDeposit(){
-
-    const modal =
-        document.getElementById(
-            "depositModal"
-        );
-
-    if(modal){
-        modal.classList.remove(
-            "open"
-        );
-    }
-
-}
-
-
-function setAmount(amount){
-
-    const input =
-        document.getElementById(
-            "amount"
-        );
-
-    if(input){
-        input.value =
-            amount;
-    }
-
-}
-
-
-function deposit(){
-
-    const amount =
-        Number(
-            document.getElementById(
-                "amount"
-            ).value
-        );
-
-
-    if(
-        !Number.isFinite(amount) ||
-        amount <= 0
-    ){
-
-        toast(
-            "Введите корректную сумму"
-        );
-
-        return;
-    }
-
-
-    toast(
-        "Для пополнения откройте раздел «Финансы»"
+$("logoutButton")
+    .addEventListener(
+        "click",
+        logout
     );
-
-
-    setTimeout(
-        () => {
-            location.href =
-                "finance.html";
-        },
-        700
-    );
-
-}
-
-
-/* =========================================================
-   TOAST
-========================================================= */
-
-let toastTimer = null;
-
-
-function toast(message){
-
-    const element =
-        document.getElementById(
-            "toast"
-        );
-
-    if(!element){
-        return;
-    }
-
-
-    element.textContent =
-        message;
-
-
-    element.classList.add(
-        "show"
-    );
-
-
-    clearTimeout(
-        toastTimer
-    );
-
-
-    toastTimer =
-        setTimeout(
-            () => {
-
-                element.classList.remove(
-                    "show"
-                );
-
-            },
-            3000
-        );
-
-}
 
 
 /* =========================================================
    START
 ========================================================= */
 
-render();
+loadProfile();
 
 </script>
 
