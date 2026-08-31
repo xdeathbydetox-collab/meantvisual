@@ -6,10 +6,13 @@ import {
 } from "./utilits/auth.js";
 
 import {
-    registerAdmin,
-    loginAdmin,
+    adminRegister,
+    adminLogin,
     adminMe,
-    logoutAdmin
+    adminLogout,
+    adminGrantAccess,
+    adminRevokeAccess,
+    adminUserAccess
 } from "./utilits/admin.js";
 
 
@@ -42,7 +45,6 @@ export default {
                         "true"
                 }
             });
-
         }
 
 
@@ -50,7 +52,7 @@ export default {
            ОБЫЧНАЯ АВТОРИЗАЦИЯ
            auth.js
 
-           ЭТА СИСТЕМА НЕ МЕНЯЕТСЯ
+           Эти маршруты НЕ связаны с admin.js
         ===================================================== */
 
         if (
@@ -62,7 +64,6 @@ export default {
                 request,
                 env
             );
-
         }
 
 
@@ -75,7 +76,6 @@ export default {
                 request,
                 env
             );
-
         }
 
 
@@ -88,7 +88,6 @@ export default {
                 request,
                 env
             );
-
         }
 
 
@@ -101,15 +100,12 @@ export default {
                 request,
                 env
             );
-
         }
 
 
         /* =====================================================
            АДМИНСКАЯ АВТОРИЗАЦИЯ
            admin.js
-
-           ОТДЕЛЬНАЯ СИСТЕМА
         ===================================================== */
 
         if (
@@ -117,11 +113,10 @@ export default {
             method === "POST"
         ) {
 
-            return registerAdmin(
+            return adminRegister(
                 request,
                 env
             );
-
         }
 
 
@@ -130,11 +125,10 @@ export default {
             method === "POST"
         ) {
 
-            return loginAdmin(
+            return adminLogin(
                 request,
                 env
             );
-
         }
 
 
@@ -147,7 +141,6 @@ export default {
                 request,
                 env
             );
-
         }
 
 
@@ -156,11 +149,95 @@ export default {
             method === "POST"
         ) {
 
-            return logoutAdmin(
+            return adminLogout(
                 request,
                 env
             );
+        }
 
+
+        /* =====================================================
+           ВЫДАЧА ДОСТУПА ОБЫЧНОМУ АККАУНТУ
+
+           POST /api/admin/access/grant
+
+           BODY:
+
+           {
+               "identifier": "nickname или ID",
+               "productId": "visual",
+               "productName": "Visual",
+               "days": 30
+           }
+
+           days:
+           7  = 7 дней
+           30 = 30 дней
+           90 = 90 дней
+           0  = навсегда
+        ===================================================== */
+
+        if (
+            path === "/api/admin/access/grant" &&
+            method === "POST"
+        ) {
+
+            return adminGrantAccess(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           СНЯТИЕ ДОСТУПА
+
+           POST /api/admin/access/revoke
+
+           BODY:
+
+           {
+               "identifier": "nickname или ID",
+               "productId": "visual"
+           }
+
+           Если productId не указан,
+           будут сняты все активные доступы.
+        ===================================================== */
+
+        if (
+            path === "/api/admin/access/revoke" &&
+            method === "POST"
+        ) {
+
+            return adminRevokeAccess(
+                request,
+                env
+            );
+        }
+
+
+        /* =====================================================
+           ПРОСМОТР ДОСТУПОВ ПОЛЬЗОВАТЕЛЯ
+
+           POST /api/admin/access/list
+
+           BODY:
+
+           {
+               "identifier": "nickname или ID"
+           }
+        ===================================================== */
+
+        if (
+            path === "/api/admin/access/list" &&
+            method === "POST"
+        ) {
+
+            return adminUserAccess(
+                request,
+                env
+            );
         }
 
 
@@ -188,7 +265,5 @@ export default {
                 }
             }
         );
-
     }
-
 };
