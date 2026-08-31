@@ -79,3 +79,28 @@ CREATE TABLE IF NOT EXISTS admin_access (
 
 CREATE INDEX IF NOT EXISTS idx_admin_access_enabled
 ON admin_access(enabled);
+CREATE TABLE IF NOT EXISTS admin_accounts (
+  id TEXT PRIMARY KEY,
+  username TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  password_salt TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'ADMIN',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_accounts_username
+ON admin_accounts(username);
+
+CREATE TABLE IF NOT EXISTS admin_sessions (
+  id TEXT PRIMARY KEY,
+  admin_id TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_admin
+ON admin_sessions(admin_id);
+
+CREATE INDEX IF NOT EXISTS idx_admin_sessions_expires
+ON admin_sessions(expires_at);
