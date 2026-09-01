@@ -30,8 +30,8 @@ import {
 
 
 /* =========================================================
-   MEANT SHOP — WORKER
-   ========================================================= */
+   MEANT SHOP WORKER
+========================================================= */
 
 export default {
 
@@ -47,445 +47,346 @@ export default {
            CORS
         ===================================================== */
 
-        const corsHeaders = {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods":
-                "GET,POST,PUT,DELETE,OPTIONS",
-            "Access-Control-Allow-Headers":
-                "Content-Type",
-            "Access-Control-Allow-Credentials":
-                "true"
-        };
-
-
-        /* =====================================================
-           OPTIONS
-        ===================================================== */
-
         if (method === "OPTIONS") {
 
             return new Response(null, {
                 status: 204,
-                headers: corsHeaders
-            });
 
+                headers: {
+                    "Access-Control-Allow-Origin": "*",
+
+                    "Access-Control-Allow-Methods":
+                        "GET,POST,PUT,DELETE,OPTIONS",
+
+                    "Access-Control-Allow-Headers":
+                        "Content-Type",
+
+                    "Access-Control-Allow-Credentials":
+                        "true"
+                }
+            });
         }
 
 
         /* =====================================================
-           ОКНОШНЫЙ HELPER ДЛЯ ДОБАВЛЕНИЯ CORS
+           Обычная авторизация пользователей
         ===================================================== */
 
-        const addCors = (response) => {
-
-            const headers =
-                new Headers(response.headers);
-
-            for (
-                const [key, value]
-                of Object.entries(corsHeaders)
-            ) {
-
-                headers.set(key, value);
-
-            }
-
-            return new Response(
-                response.body,
-                {
-                    status: response.status,
-                    statusText: response.statusText,
-                    headers
-                }
-            );
-        };
-
-
-        /* =====================================================
-           ОБЫЧНЫЙ АККАУНТ
-           auth.js
-        ===================================================== */
-
-
-        /* -----------------------------------------------------
-           REGISTER
-           POST /api/auth/register
-        ----------------------------------------------------- */
 
         if (
             path === "/api/auth/register" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await register(
-                    request,
-                    env
-                )
+            return register(
+                request,
+                env
             );
-
         }
 
-
-        /* -----------------------------------------------------
-           LOGIN
-           POST /api/auth/login
-        ----------------------------------------------------- */
 
         if (
             path === "/api/auth/login" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await login(
-                    request,
-                    env
-                )
+            return login(
+                request,
+                env
             );
-
         }
 
-
-        /* -----------------------------------------------------
-           ME
-           GET /api/auth/me
-        ----------------------------------------------------- */
 
         if (
             path === "/api/auth/me" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await me(
-                    request,
-                    env
-                )
+            return me(
+                request,
+                env
             );
-
         }
 
-
-        /* -----------------------------------------------------
-           LOGOUT
-           POST /api/auth/logout
-        ----------------------------------------------------- */
 
         if (
             path === "/api/auth/logout" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await logout(
-                    request,
-                    env
-                )
+            return logout(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
            ADMIN AUTH
-           admin.js
         ===================================================== */
 
 
-        /* -----------------------------------------------------
-           ADMIN REGISTER
+        /*
+           Создание администратора
+           
            POST /api/admin/register
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/register" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await adminRegister(
-                    request,
-                    env
-                )
+            return adminRegister(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           ADMIN LOGIN
+        /*
+           Вход администратора
+
            POST /api/admin/login
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/login" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await adminLogin(
-                    request,
-                    env
-                )
+            return adminLogin(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           ADMIN ME
+        /*
+           Проверка текущего администратора
+
            GET /api/admin/me
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/me" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await adminMe(
-                    request,
-                    env
-                )
+            return adminMe(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           ADMIN LOGOUT
+        /*
+           Выход администратора
+
            POST /api/admin/logout
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/logout" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await adminLogout(
-                    request,
-                    env
-                )
+            return adminLogout(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           ADMIN STATISTICS
+           ADMIN PANEL — STATISTICS
         ===================================================== */
 
 
-        /* -----------------------------------------------------
+        /*
            GET /api/admin/stats
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/stats" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await adminStats(
-                    request,
-                    env
-                )
+            return adminStats(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           NORMAL ACCOUNTS
+           ADMIN PANEL — USERS
         ===================================================== */
 
 
-        /* -----------------------------------------------------
+        /*
            GET /api/admin/accounts
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/accounts" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await adminAccounts(
-                    request,
-                    env
-                )
+            return adminAccounts(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           ADMINISTRATORS
+           ADMIN PANEL — ADMINISTRATORS
         ===================================================== */
 
 
-        /* -----------------------------------------------------
+        /*
            GET /api/admin/administrators
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/administrators" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await adminAdministrators(
-                    request,
-                    env
-                )
+            return adminAdministrators(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           CREATE ADMINISTRATOR
-           POST /api/admin/administrators/create
-        ----------------------------------------------------- */
+        /*
+           POST /api/admin/administrators
+
+           Создание администратора.
+           Только OWNER.
+        */
 
         if (
-            path === "/api/admin/administrators/create" &&
+            path === "/api/admin/administrators" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await createAdministrator(
-                    request,
-                    env
-                )
+            return createAdministrator(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           UPDATE ADMINISTRATOR
-           POST /api/admin/administrators/update
-        ----------------------------------------------------- */
+        /*
+           PUT /api/admin/administrators
+
+           Изменение администратора.
+           Только OWNER.
+        */
 
         if (
-            path === "/api/admin/administrators/update" &&
-            method === "POST"
+            path === "/api/admin/administrators" &&
+            method === "PUT"
         ) {
 
-            return addCors(
-                await updateAdministrator(
-                    request,
-                    env
-                )
+            return updateAdministrator(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           DELETE ADMINISTRATOR
-           POST /api/admin/administrators/delete
-        ----------------------------------------------------- */
+        /*
+           DELETE /api/admin/administrators
+
+           Удаление администратора.
+           Только OWNER.
+        */
 
         if (
-            path === "/api/admin/administrators/delete" &&
-            method === "POST"
+            path === "/api/admin/administrators" &&
+            method === "DELETE"
         ) {
 
-            return addCors(
-                await deleteAdministrator(
-                    request,
-                    env
-                )
+            return deleteAdministrator(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           PRODUCTS
+           ADMIN PANEL — PRODUCTS
         ===================================================== */
 
 
-        /* -----------------------------------------------------
+        /*
            GET /api/admin/products
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/products" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await adminProducts(
-                    request,
-                    env
-                )
+            return adminProducts(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           TRANSACTIONS
+           ADMIN PANEL — TRANSACTIONS
         ===================================================== */
 
 
-        /* -----------------------------------------------------
+        /*
            GET /api/admin/transactions
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/transactions" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await adminTransactions(
-                    request,
-                    env
-                )
+            return adminTransactions(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           SUBSCRIPTIONS
+           ADMIN PANEL — SUBSCRIPTIONS
         ===================================================== */
 
 
-        /* -----------------------------------------------------
+        /*
            GET /api/admin/subscriptions
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/subscriptions" &&
             method === "GET"
         ) {
 
-            return addCors(
-                await adminSubscriptions(
-                    request,
-                    env
-                )
+            return adminSubscriptions(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           ACCESS CONTROL
-           ВЫДАЧА / СНЯТИЕ ДОСТУПА
+           ADMIN ACCESS — GRANT
         ===================================================== */
 
 
-        /* -----------------------------------------------------
-           GRANT ACCESS
-
+        /*
            POST /api/admin/access/grant
 
            BODY:
@@ -497,35 +398,32 @@ export default {
                "days": 30
            }
 
-           identifier:
-           - ID аккаунта
-           - username
-
            days:
+
            7  = 7 дней
            30 = 30 дней
            90 = 90 дней
            0  = навсегда
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/access/grant" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await adminGrantAccess(
-                    request,
-                    env
-                )
+            return adminGrantAccess(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           REVOKE ACCESS
+        /* =====================================================
+           ADMIN ACCESS — REVOKE
+        ===================================================== */
 
+
+        /*
            POST /api/admin/access/revoke
 
            BODY:
@@ -535,28 +433,28 @@ export default {
                "productId": "visual"
            }
 
-           Если productId не указан,
+           Если productId отсутствует —
            снимаются все активные доступы.
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/access/revoke" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await adminRevokeAccess(
-                    request,
-                    env
-                )
+            return adminRevokeAccess(
+                request,
+                env
             );
-
         }
 
 
-        /* -----------------------------------------------------
-           USER ACCESS
+        /* =====================================================
+           ADMIN ACCESS — LIST
+        ===================================================== */
 
+
+        /*
            POST /api/admin/access/list
 
            BODY:
@@ -564,34 +462,31 @@ export default {
            {
                "identifier": "detox"
            }
-        ----------------------------------------------------- */
+        */
 
         if (
             path === "/api/admin/access/list" &&
             method === "POST"
         ) {
 
-            return addCors(
-                await adminUserAccess(
-                    request,
-                    env
-                )
+            return adminUserAccess(
+                request,
+                env
             );
-
         }
 
 
         /* =====================================================
-           API 404
+           404
         ===================================================== */
 
         return new Response(
+
             JSON.stringify({
                 success: false,
-                error: "API endpoint not found",
-                path,
-                method
+                error: "API endpoint not found"
             }),
+
             {
                 status: 404,
 
@@ -599,10 +494,13 @@ export default {
                     "Content-Type":
                         "application/json; charset=utf-8",
 
-                    ...corsHeaders
+                    "Access-Control-Allow-Origin":
+                        "*",
+
+                    "Access-Control-Allow-Credentials":
+                        "true"
                 }
             }
         );
-
     }
 };
