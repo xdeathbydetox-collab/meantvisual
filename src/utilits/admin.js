@@ -2525,3 +2525,400 @@ export async function adminUserAccess(
     }
 
 }
+/* =========================================================
+   ADMIN BALANCE CONTROL
+   Только OWNER
+
+   POST /api/admin/balance/add
+   POST /api/admin/balance/remove
+
+   BODY:
+   {
+       "identifier": "detox",
+       "amount": 200
+   }
+
+   identifier:
+   - ID пользователя
+   - username пользователя
+
+   amount:
+   - положительное целое число
+========================================================= */
+
+
+/* =========================================================
+   CHANGE BALANCE
+========================================================= */
+
+async function changeUserBalance(
+    request,
+    env,
+    operation
+) {
+
+    try {
+
+        /* -------------------------------------------------
+           Проверяем администратора
+        ------------------------------------------------- */
+
+        const auth =
+            await requireAdmin(
+                request,
+                env
+            );
+
+        if (!auth.ok) {
+            return auth.response;
+        }
+
+
+        /* -------------------------------------------------
+           Только OWNER
+        ------------------------------------------------- */
+
+        if (auth.admin.role !== "OWNER") {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Только OWNER может изменять валюту пользователей"
+                },
+                403
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           BODY
+        ------------------------------------------------- */
+
+        const body =
+            await request.json();
+
+
+        const identifier =
+            String(
+                body.identifier ?? ""
+            ).trim();
+
+
+        const amount =
+            Number(
+                body.amount
+            );
+
+
+        /* -------------------------------------------------
+           VALIDATION
+        ------------------------------------------------- */
+
+        if (!identifier) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Укажите ID или username пользователя"
+                },
+                400
+            );
+
+        }
+
+
+        if (
+            !Number.isInteger(amount) ||
+            amount <= 0
+        ) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Сумма должна быть положительным целым числом"
+                },
+                400
+            );
+
+        }
+
+
+        /*
+         * Защита от слишком больших значений.
+         */
+
+        if (amount > 1000000000) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Слишком большая сумма"
+                },
+                400
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           FIND ACCOUNT
+        ------------------------------------------------- */
+
+        const account =
+            await findNormalAccount(
+                env,
+                identifier
+            );
+
+
+        if (!account) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Пользователь не найден"
+                },
+                404
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           REMOVE BALANCE
+           Проверяем, хватает ли средств
+        ------------------------------------------------- */
+
+        if (
+            operation === "remove" &&
+            Number(account.balance) < amount
+        ) {
+
+            return json(
+                {
+                    success: false,
+                    error:
+                        "Недостаточно валюты на балансе",
+                    balance:
+                        Number(account.balance)
+                },
+                400
+            );
+
+        }
+
+
+        /* -------------------------------------------------
+           CALCULATE NEW BALANCE
+        ------------------------------------------------- */
+
+        const oldBalance =
+            Number(account.balance) || 0;
+
+
+        let newBalance;
+
+
+        if (operation === "add") {
+
+            newBalance =
+                oldBalance + amount;
+
+        } else {
+
+            newBalance =
+                oldBalance - amount;
+
+        }
+
+
+        /* -------------------------------------------------
+           UPDATE ACCOUNT
+        ------------------------------------------------- */
+
+        await env.DB
+            .prepare(`
+                UPDATE accounts
+                SET
+                    balance = ?,
+                    updated_at = datetime('now')
+                WHERE id = ?
+            `)
+            .bind(
+                newBalance,
+                account.id
+            )
+            .run();
+
+
+        /* -------------------------------------------------
+           TRANSACTION TYPE
+        ------------------------------------------------- */
+
+        const transactionType =
+            operation === "add"
+                ? "admin_add"
+                : "admin_remove";
+
+
+        /* -------------------------------------------------
+           SAVE TRANSACTION
+        ------------------------------------------------- */
+
+        await env.DB
+            .prepare(`
+                INSERT INTO transactions (
+                    account_id,
+                    type,
+                    amount,
+                    balance_after,
+                    tebex_transaction_id,
+                    webhook_id,
+                    product_id,
+                    created_at
+                )
+                VALUES (
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    NULL,
+                    NULL,
+                    NULL,
+                    datetime('now')
+                )
+            `)
+            .bind(
+                account.id,
+                transactionType,
+                operation === "add"
+                    ? amount
+                    : -amount,
+                newBalance
+            )
+            .run();
+
+
+        /* -------------------------------------------------
+           RESPONSE
+        ------------------------------------------------- */
+
+        return json({
+
+            success: true,
+
+            message:
+                operation === "add"
+                    ? "Валюта успешно добавлена"
+                    : "Валюта успешно снята",
+
+            account: {
+
+                id:
+                    account.id,
+
+                username:
+                    account.username,
+
+                oldBalance:
+                    oldBalance,
+
+                amount:
+                    amount,
+
+                newBalance:
+                    newBalance
+
+            },
+
+            transaction: {
+
+                type:
+                    transactionType,
+
+                amount:
+                    operation === "add"
+                        ? amount
+                        : -amount
+
+            },
+
+            admin: {
+
+                id:
+                    auth.admin.id,
+
+                username:
+                    auth.admin.username,
+
+                role:
+                    auth.admin.role
+
+            }
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "ADMIN BALANCE ERROR:",
+            error
+        );
+
+
+        return json(
+            {
+                success: false,
+                error:
+                    error?.message ||
+                    "Не удалось изменить баланс"
+            },
+            500
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   ADD BALANCE
+========================================================= */
+
+export async function adminAddBalance(
+    request,
+    env
+) {
+
+    return changeUserBalance(
+        request,
+        env,
+        "add"
+    );
+
+}
+
+
+/* =========================================================
+   REMOVE BALANCE
+========================================================= */
+
+export async function adminRemoveBalance(
+    request,
+    env
+) {
+
+    return changeUserBalance(
+        request,
+        env,
+        "remove"
+    );
+
+}
