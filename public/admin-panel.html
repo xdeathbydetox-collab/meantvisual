@@ -2,13 +2,13 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MEANT SHOP — Admin Panel</title>
 
 <style>
 :root{
     --bg:#070707;
-    --card:#111111;
+    --card:#111;
     --card2:#161616;
     --line:#292929;
     --yellow:#ffd21a;
@@ -16,30 +16,22 @@
     --text:#f7f7f7;
     --muted:#909090;
     --danger:#ff4d4d;
-    --green:#42d392;
-    --blue:#5ca9ff;
+    --green:#4ade80;
 }
 
 *{
     box-sizing:border-box;
+}
+
+html,body{
     margin:0;
-    padding:0;
-}
-
-html,
-body{
     min-height:100%;
-}
-
-body{
     background:var(--bg);
     color:var(--text);
-    font-family:Inter,Arial,Helvetica,sans-serif;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
 }
 
-button,
-input,
-select{
+button,input,select{
     font:inherit;
 }
 
@@ -55,258 +47,238 @@ button{
    LOGIN
 ========================================================= */
 
-.login-page{
+#loginScreen{
     min-height:100vh;
     display:flex;
     align-items:center;
     justify-content:center;
-    padding:20px;
+    padding:25px;
     background:
         radial-gradient(
-            circle at top,
-            rgba(255,210,26,.08),
-            transparent 35%
+            circle at 50% 20%,
+            rgba(255,210,26,.07),
+            transparent 40%
         ),
         var(--bg);
 }
 
-.login-box{
-    width:100%;
-    max-width:430px;
+.login-card{
+    width:min(620px,100%);
     background:var(--card);
-    border:1px solid var(--line);
-    border-radius:24px;
-    padding:34px;
-    box-shadow:0 30px 100px rgba(0,0,0,.45);
+    border:1px solid #303030;
+    border-radius:34px;
+    padding:46px;
+    box-shadow:0 30px 100px rgba(0,0,0,.5);
 }
 
-.logo{
-    font-size:26px;
+.brand{
+    font-size:50px;
     font-weight:900;
-    letter-spacing:-1px;
+    letter-spacing:-2px;
+    margin-bottom:70px;
 }
 
-.logo b{
+.brand span{
     color:var(--yellow);
 }
 
 .login-title{
-    margin-top:35px;
-    font-size:30px;
-    font-weight:800;
+    margin:0 0 10px;
+    font-size:42px;
+    font-weight:850;
 }
 
 .login-subtitle{
+    margin:0 0 38px;
     color:var(--muted);
-    margin-top:8px;
-    line-height:1.5;
-}
-
-.form{
-    margin-top:28px;
+    font-size:20px;
 }
 
 .field{
-    margin-bottom:17px;
+    margin-bottom:20px;
 }
 
 .field label{
     display:block;
-    color:#cfcfcf;
-    font-size:13px;
     margin-bottom:8px;
+    color:#d0d0d0;
+    font-size:16px;
 }
 
-.input{
+.field input,
+.field select{
     width:100%;
-    height:48px;
-    border:1px solid var(--line);
-    border-radius:12px;
-    background:#0c0c0c;
-    color:var(--text);
+    height:58px;
+    border:1px solid #393939;
+    border-radius:16px;
+    padding:0 17px;
     outline:none;
-    padding:0 14px;
-    transition:.2s;
-}
-
-.input:focus{
-    border-color:var(--yellow);
-    box-shadow:0 0 0 3px rgba(255,210,26,.08);
-}
-
-.btn{
-    min-height:44px;
-    border:1px solid var(--line);
-    border-radius:11px;
-    background:#181818;
-    color:var(--text);
-    padding:0 15px;
-    transition:.2s;
-}
-
-.btn:hover{
-    background:#202020;
-    border-color:#3b3b3b;
-}
-
-.btn-primary{
-    background:var(--yellow);
+    background:#f8ffae;
     color:#080808;
+}
+
+.field input:focus,
+.field select:focus{
     border-color:var(--yellow);
-    font-weight:800;
+    box-shadow:0 0 0 3px rgba(255,210,26,.12);
 }
 
-.btn-primary:hover{
+.primary{
+    width:100%;
+    height:58px;
+    border:0;
+    border-radius:16px;
     background:var(--yellow2);
-    border-color:var(--yellow2);
+    color:#050505;
+    font-size:20px;
+    font-weight:850;
 }
 
-.btn-danger{
-    color:#fff;
-    background:rgba(255,77,77,.1);
-    border-color:rgba(255,77,77,.35);
+.primary:hover{
+    filter:brightness(1.05);
 }
 
-.btn-danger:hover{
-    background:rgba(255,77,77,.18);
+.primary:disabled{
+    opacity:.5;
+    cursor:not-allowed;
 }
 
-.btn-green{
-    color:var(--green);
-    background:rgba(66,211,146,.08);
-    border-color:rgba(66,211,146,.25);
-}
-
-.btn-small{
-    min-height:36px;
-    font-size:13px;
-    padding:0 11px;
-}
-
-.login-error{
+.error{
+    min-height:22px;
     margin-top:15px;
     color:var(--danger);
-    font-size:13px;
-    line-height:1.5;
 }
 
 /* =========================================================
-   APP
+   SIDEBAR
 ========================================================= */
 
-.app{
+#app{
     min-height:100vh;
 }
 
 .sidebar{
     position:fixed;
-    left:0;
+    z-index:50;
     top:0;
+    left:0;
     bottom:0;
-    width:245px;
+    width:250px;
+    padding:22px 14px;
+    background:#0c0c0c;
     border-right:1px solid var(--line);
-    background:#090909;
-    padding:24px 15px;
-    z-index:20;
     display:flex;
     flex-direction:column;
 }
 
-.sidebar-logo{
-    padding:0 12px 28px;
+.side-brand{
+    padding:5px 12px 24px;
+    font-size:27px;
+    font-weight:900;
 }
 
-.sidebar-nav{
-    display:flex;
-    flex-direction:column;
-    gap:5px;
+.side-brand span{
+    color:var(--yellow);
 }
 
-.nav-btn{
-    width:100%;
-    text-align:left;
-    min-height:44px;
-    padding:0 13px;
-    border:1px solid transparent;
-    border-radius:11px;
-    background:transparent;
-    color:#999;
-    transition:.2s;
-}
-
-.nav-btn:hover{
-    color:#fff;
-    background:#111;
-}
-
-.nav-btn.active{
-    color:#fff;
-    background:#171717;
-    border-color:var(--line);
-}
-
-.nav-btn.active::before{
-    content:"";
-    display:inline-block;
-    width:5px;
-    height:5px;
-    border-radius:50%;
-    background:var(--yellow);
-    vertical-align:middle;
-    margin-right:9px;
-}
-
-.sidebar-bottom{
-    margin-top:auto;
-}
-
-.admin-mini{
+.side-user{
+    padding:14px;
+    margin-bottom:18px;
     border:1px solid var(--line);
-    border-radius:14px;
-    padding:13px;
-    background:#101010;
-    margin-bottom:10px;
+    border-radius:15px;
+    background:var(--card);
 }
 
-.admin-mini-name{
-    font-weight:700;
+.side-user-name{
+    font-weight:800;
     word-break:break-all;
 }
 
-.admin-mini-role{
-    color:var(--yellow);
-    font-size:11px;
-    font-weight:800;
+.side-user-role{
     margin-top:4px;
+    color:var(--yellow);
+    font-size:12px;
+    font-weight:800;
 }
 
+.nav{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    overflow:auto;
+}
+
+.nav button{
+    border:0;
+    border-radius:11px;
+    padding:12px 13px;
+    background:transparent;
+    color:#999;
+    text-align:left;
+}
+
+.nav button:hover{
+    background:#171717;
+    color:#fff;
+}
+
+.nav button.active{
+    background:#1a1a1a;
+    color:#fff;
+    box-shadow:inset 3px 0 var(--yellow);
+}
+
+.side-bottom{
+    margin-top:auto;
+}
+
+.logout{
+    width:100%;
+    padding:12px;
+    border:1px solid var(--line);
+    border-radius:11px;
+    background:#111;
+    color:#ddd;
+}
+
+.logout:hover{
+    border-color:var(--danger);
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
 .main{
-    margin-left:245px;
+    margin-left:250px;
     min-height:100vh;
+    padding:32px;
 }
 
 .topbar{
-    height:75px;
-    position:sticky;
-    top:0;
-    z-index:10;
-    background:rgba(7,7,7,.88);
-    backdrop-filter:blur(15px);
-    border-bottom:1px solid var(--line);
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    padding:0 32px;
+    gap:15px;
+    margin-bottom:30px;
 }
 
 .page-title{
-    font-size:20px;
-    font-weight:800;
+    font-size:34px;
+    font-weight:850;
 }
 
-.page-content{
-    padding:32px;
-    max-width:1500px;
+.page-subtitle{
+    margin-top:4px;
+    color:var(--muted);
+}
+
+.mobile-menu{
+    display:none;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 13px;
+    background:var(--card);
+    color:#fff;
 }
 
 /* =========================================================
@@ -321,132 +293,186 @@ button{
     display:block;
 }
 
-.section-head{
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:20px;
-    margin-bottom:25px;
+.cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:16px;
+    margin-bottom:24px;
 }
 
-.section-title{
-    font-size:28px;
-    font-weight:850;
+.stat{
+    padding:22px;
+    border:1px solid var(--line);
+    border-radius:20px;
+    background:var(--card);
 }
 
-.section-description{
+.stat-label{
     color:var(--muted);
-    margin-top:6px;
     font-size:14px;
 }
 
-.actions{
+.stat-value{
+    margin-top:8px;
+    font-size:34px;
+    font-weight:850;
+}
+
+.panel{
+    overflow:hidden;
+    border:1px solid var(--line);
+    border-radius:20px;
+    background:var(--card);
+}
+
+.panel-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:15px;
+    padding:18px 20px;
+    border-bottom:1px solid var(--line);
+}
+
+.panel-title{
+    font-size:18px;
+    font-weight:800;
+}
+
+.toolbar{
     display:flex;
     gap:8px;
     flex-wrap:wrap;
 }
 
-/* =========================================================
-   STATS
-========================================================= */
-
-.stats-grid{
-    display:grid;
-    grid-template-columns:repeat(4,1fr);
-    gap:15px;
-    margin-bottom:25px;
-}
-
-.stat-card{
-    background:var(--card);
+.toolbar input{
+    height:42px;
+    min-width:230px;
+    padding:0 13px;
     border:1px solid var(--line);
-    border-radius:17px;
-    padding:20px;
+    border-radius:10px;
+    outline:none;
+    background:#0d0d0d;
+    color:#fff;
 }
 
-.stat-label{
-    color:var(--muted);
-    font-size:13px;
-}
-
-.stat-value{
-    margin-top:10px;
-    font-size:32px;
-    font-weight:850;
-}
-
-.stat-accent{
-    color:var(--yellow);
-}
-
-/* =========================================================
-   CARD
-========================================================= */
-
-.card{
-    background:var(--card);
+.btn{
     border:1px solid var(--line);
-    border-radius:17px;
-    overflow:hidden;
+    border-radius:10px;
+    padding:9px 13px;
+    background:#171717;
+    color:#fff;
+    font-weight:700;
 }
 
-.card-head{
-    padding:17px 20px;
-    border-bottom:1px solid var(--line);
+.btn:hover{
+    background:#202020;
+}
+
+.btn.yellow{
+    background:var(--yellow);
+    border-color:var(--yellow);
+    color:#050505;
+}
+
+.btn.green{
+    border-color:rgba(74,222,128,.3);
+    background:rgba(74,222,128,.08);
+    color:var(--green);
+}
+
+.btn.danger{
+    border-color:rgba(255,77,77,.3);
+    background:rgba(255,77,77,.08);
+    color:#ff7777;
+}
+
+.actions{
     display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:15px;
+    gap:7px;
+    flex-wrap:wrap;
 }
-
-.card-title{
-    font-size:15px;
-    font-weight:750;
-}
-
-.card-body{
-    padding:20px;
-}
-
-/* =========================================================
-   TABLE
-========================================================= */
 
 .table-wrap{
     width:100%;
-    overflow-x:auto;
+    overflow:auto;
 }
 
 table{
     width:100%;
+    min-width:800px;
     border-collapse:collapse;
-    min-width:750px;
+}
+
+th,td{
+    padding:14px 17px;
+    border-bottom:1px solid #202020;
+    text-align:left;
+    white-space:nowrap;
 }
 
 th{
-    text-align:left;
     color:#777;
     font-size:11px;
     text-transform:uppercase;
-    letter-spacing:.07em;
-    font-weight:700;
-    padding:13px 15px;
-    border-bottom:1px solid var(--line);
+    letter-spacing:.7px;
 }
 
 td{
-    padding:15px;
-    border-bottom:1px solid #1d1d1d;
-    font-size:13px;
-    vertical-align:middle;
+    font-size:14px;
 }
 
 tr:last-child td{
     border-bottom:0;
 }
 
-tbody tr:hover{
-    background:#151515;
+.empty,
+.loading{
+    padding:40px 20px;
+    text-align:center;
+    color:#777;
+}
+
+.notice{
+    padding:16px;
+    border:1px solid var(--line);
+    border-radius:13px;
+    background:#0d0d0d;
+    color:#aaa;
+    line-height:1.55;
+}
+
+.notice strong{
+    color:#fff;
+}
+
+.badge{
+    display:inline-flex;
+    padding:5px 9px;
+    border-radius:999px;
+    background:#222;
+    font-size:11px;
+    font-weight:800;
+}
+
+.badge.owner{
+    background:rgba(255,210,26,.12);
+    color:var(--yellow);
+}
+
+.badge.admin{
+    background:#202020;
+    color:#ddd;
+}
+
+.badge.active{
+    background:rgba(74,222,128,.1);
+    color:var(--green);
+}
+
+.badge.revoked{
+    background:rgba(255,77,77,.1);
+    color:#ff7777;
 }
 
 .mono{
@@ -454,241 +480,113 @@ tbody tr:hover{
     font-size:11px;
 }
 
-.muted{
-    color:var(--muted);
-}
-
-.badge{
-    display:inline-flex;
-    align-items:center;
-    min-height:25px;
-    padding:0 8px;
-    border-radius:7px;
-    background:#1c1c1c;
-    border:1px solid #292929;
-    font-size:11px;
-    font-weight:750;
-}
-
-.badge-owner{
-    color:var(--yellow);
-    border-color:rgba(255,210,26,.25);
-    background:rgba(255,210,26,.07);
-}
-
-.badge-admin{
-    color:var(--blue);
-    border-color:rgba(92,169,255,.25);
-    background:rgba(92,169,255,.07);
-}
-
-.badge-active{
-    color:var(--green);
-    border-color:rgba(66,211,146,.25);
-    background:rgba(66,211,146,.07);
-}
-
-.badge-revoked{
-    color:var(--danger);
-    border-color:rgba(255,77,77,.25);
-    background:rgba(255,77,77,.07);
-}
-
 /* =========================================================
-   SEARCH
-========================================================= */
-
-.search{
-    width:300px;
-    max-width:100%;
-}
-
-/* =========================================================
-   EMPTY / LOADING
-========================================================= */
-
-.loading,
-.empty{
-    padding:45px 20px;
-    text-align:center;
-    color:var(--muted);
-}
-
-.error-box{
-    padding:16px;
-    color:var(--danger);
-    background:rgba(255,77,77,.06);
-    border:1px solid rgba(255,77,77,.2);
-    border-radius:12px;
-}
-
-/* =========================================================
-   MODAL
+   MODALS
 ========================================================= */
 
 .modal{
     position:fixed;
+    z-index:100;
     inset:0;
-    background:rgba(0,0,0,.72);
-    backdrop-filter:blur(8px);
-    display:flex;
+    display:none;
     align-items:center;
     justify-content:center;
     padding:20px;
-    z-index:100;
+    background:rgba(0,0,0,.75);
+    backdrop-filter:blur(7px);
 }
 
-.modal-box{
-    width:100%;
-    max-width:500px;
+.modal.open{
+    display:flex;
+}
+
+.modal-card{
+    width:min(560px,100%);
     max-height:90vh;
     overflow:auto;
-    background:#111;
-    border:1px solid var(--line);
-    border-radius:20px;
-    box-shadow:0 40px 120px rgba(0,0,0,.65);
+    padding:24px;
+    border:1px solid #333;
+    border-radius:23px;
+    background:#121212;
+    box-shadow:0 30px 100px #000;
 }
 
 .modal-head{
-    padding:20px;
-    border-bottom:1px solid var(--line);
     display:flex;
     align-items:center;
     justify-content:space-between;
+    margin-bottom:22px;
 }
 
 .modal-title{
-    font-size:18px;
-    font-weight:800;
+    font-size:22px;
+    font-weight:850;
 }
 
-.modal-close{
-    width:34px;
-    height:34px;
+.close{
+    width:38px;
+    height:38px;
     border:1px solid var(--line);
-    border-radius:9px;
-    background:#181818;
-    color:#aaa;
+    border-radius:10px;
+    background:#1a1a1a;
+    color:#fff;
+    font-size:20px;
 }
 
-.modal-body{
-    padding:20px;
-}
-
-.modal-foot{
-    padding:16px 20px;
-    border-top:1px solid var(--line);
+.modal-actions{
     display:flex;
     justify-content:flex-end;
     gap:8px;
-}
-
-.form-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-}
-
-.form-grid .full{
-    grid-column:1/-1;
-}
-
-.radio-grid{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:8px;
-}
-
-.radio{
-    position:relative;
-}
-
-.radio input{
-    position:absolute;
-    opacity:0;
-}
-
-.radio label{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:46px;
-    padding:0 10px;
-    border:1px solid var(--line);
-    border-radius:10px;
-    background:#0c0c0c;
-    color:#999;
-    cursor:pointer;
-    font-size:13px;
-}
-
-.radio input:checked + label{
-    color:#111;
-    background:var(--yellow);
-    border-color:var(--yellow);
-    font-weight:800;
-}
-
-.modal-note{
-    color:var(--muted);
-    font-size:12px;
-    line-height:1.5;
-    margin-top:8px;
+    margin-top:20px;
 }
 
 /* =========================================================
    TOAST
 ========================================================= */
 
-.toast-container{
+#toast{
     position:fixed;
+    z-index:200;
     right:20px;
     bottom:20px;
-    z-index:200;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
+    max-width:380px;
+    padding:14px 17px;
+    border:1px solid #383838;
+    border-radius:13px;
+    background:#1b1b1b;
+    box-shadow:0 15px 50px #000;
+    opacity:0;
+    transform:translateY(20px);
+    pointer-events:none;
+    transition:.2s;
 }
 
-.toast{
-    min-width:260px;
-    max-width:400px;
-    padding:13px 15px;
-    border-radius:12px;
-    background:#171717;
-    border:1px solid var(--line);
-    box-shadow:0 15px 50px rgba(0,0,0,.45);
-    font-size:13px;
+#toast.show{
+    opacity:1;
+    transform:translateY(0);
 }
 
-.toast.success{
-    border-color:rgba(66,211,146,.3);
-}
-
-.toast.error{
-    border-color:rgba(255,77,77,.3);
-    color:#ff7777;
+#toast.error-toast{
+    border-color:rgba(255,77,77,.5);
 }
 
 /* =========================================================
    MOBILE
 ========================================================= */
 
-.mobile-menu{
-    display:none;
-}
-
 @media(max-width:1050px){
-    .stats-grid{
+    .cards{
         grid-template-columns:repeat(2,1fr);
     }
 }
 
 @media(max-width:800px){
+
     .sidebar{
         transform:translateX(-100%);
-        transition:.25s;
-        width:260px;
+        transition:.2s;
+        width:275px;
+        box-shadow:20px 0 60px #000;
     }
 
     .sidebar.open{
@@ -697,55 +595,49 @@ tbody tr:hover{
 
     .main{
         margin-left:0;
-    }
-
-    .topbar{
-        padding:0 17px;
+        padding:18px;
     }
 
     .mobile-menu{
         display:block;
-        width:38px;
-        height:38px;
-        margin-right:10px;
-        border:1px solid var(--line);
-        border-radius:9px;
-        background:#151515;
-        color:#fff;
     }
 
-    .page-content{
-        padding:20px 15px;
+    .page-title{
+        font-size:27px;
     }
 
-    .section-head{
-        flex-direction:column;
+    .login-card{
+        padding:30px 23px;
     }
 
-    .stats-grid{
-        grid-template-columns:1fr;
+    .brand{
+        font-size:40px;
+        margin-bottom:55px;
     }
 
-    .search{
-        width:100%;
-    }
-
-    .form-grid{
-        grid-template-columns:1fr;
-    }
-
-    .form-grid .full{
-        grid-column:auto;
+    .login-title{
+        font-size:34px;
     }
 }
 
-@media(max-width:500px){
-    .login-box{
-        padding:25px 20px;
+@media(max-width:560px){
+
+    .cards{
+        grid-template-columns:1fr;
     }
 
-    .radio-grid{
-        grid-template-columns:1fr;
+    .panel-head{
+        align-items:flex-start;
+        flex-direction:column;
+    }
+
+    .toolbar{
+        width:100%;
+    }
+
+    .toolbar input{
+        width:100%;
+        min-width:0;
     }
 }
 </style>
@@ -753,1349 +645,305 @@ tbody tr:hover{
 
 <body>
 
-<!-- =========================================================
+<!-- =======================================================
      LOGIN
-========================================================= -->
+======================================================= -->
 
-<div id="loginPage" class="login-page">
+<div id="loginScreen">
 
-    <div class="login-box">
+<form class="login-card" id="loginForm">
 
-        <div class="logo">
-            MEANT <b>SHOP</b>
-        </div>
-
-        <div class="login-title">
-            Admin Panel
-        </div>
-
-        <div class="login-subtitle">
-            Войдите в административную панель.
-        </div>
-
-        <form id="loginForm" class="form">
-
-            <div class="field">
-                <label>Логин</label>
-                <input
-                    id="loginUsername"
-                    class="input"
-                    type="text"
-                    autocomplete="username"
-                    placeholder="detox"
-                    required
-                >
-            </div>
-
-            <div class="field">
-                <label>Пароль</label>
-                <input
-                    id="loginPassword"
-                    class="input"
-                    type="password"
-                    autocomplete="current-password"
-                    placeholder="••••••••"
-                    required
-                >
-            </div>
-
-            <button
-                id="loginButton"
-                class="btn btn-primary"
-                type="submit"
-                style="width:100%;"
-            >
-                Войти
-            </button>
-
-            <div id="loginError" class="login-error hidden"></div>
-
-        </form>
-
+    <div class="brand">
+        MEANT <span>SHOP</span>
     </div>
+
+    <h1 class="login-title">
+        Admin Panel
+    </h1>
+
+    <p class="login-subtitle">
+        Войдите в административную панель.
+    </p>
+
+    <div class="field">
+        <label>Логин</label>
+        <input
+            id="loginUsername"
+            type="text"
+            value="detox"
+            autocomplete="username"
+            required
+        >
+    </div>
+
+    <div class="field">
+        <label>Пароль</label>
+        <input
+            id="loginPassword"
+            type="password"
+            autocomplete="current-password"
+            required
+        >
+    </div>
+
+    <button
+        class="primary"
+        id="loginButton"
+        type="submit"
+    >
+        Войти
+    </button>
+
+    <div class="error" id="loginError"></div>
+
+</form>
 
 </div>
 
 
-<!-- =========================================================
+<!-- =======================================================
      APP
-========================================================= -->
+======================================================= -->
 
-<div id="app" class="app hidden">
+<div id="app" class="hidden">
 
-    <!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
 
-    <aside id="sidebar" class="sidebar">
+    <div class="side-brand">
+        MEANT <span>SHOP</span>
+    </div>
 
-        <div class="sidebar-logo">
-            <div class="logo">
-                MEANT <b>SHOP</b>
-            </div>
+    <div class="side-user">
+        <div
+            class="side-user-name"
+            id="sideUsername"
+        >
+            —
         </div>
 
-        <nav class="sidebar-nav">
+        <div
+            class="side-user-role"
+            id="sideRole"
+        >
+            —
+        </div>
+    </div>
 
-            <button class="nav-btn active" data-section="dashboard">
+    <nav class="nav">
+
+        <button
+            class="active"
+            data-section="dashboard"
+        >
+            Dashboard
+        </button>
+
+        <button data-section="accounts">
+            Accounts
+        </button>
+
+        <button data-section="administrators">
+            Administrators
+        </button>
+
+        <button data-section="balance">
+            Balance
+        </button>
+
+        <button data-section="subscriptions">
+            Subscriptions
+        </button>
+
+        <button data-section="transactions">
+            Transactions
+        </button>
+
+        <button data-section="products">
+            Products
+        </button>
+
+        <button data-section="logs">
+            Logs
+        </button>
+
+        <button data-section="settings">
+            Settings
+        </button>
+
+    </nav>
+
+    <div class="side-bottom">
+
+        <button
+            class="logout"
+            id="logoutButton"
+        >
+            Выйти
+        </button>
+
+    </div>
+
+</aside>
+
+
+<main class="main">
+
+    <div class="topbar">
+
+        <button
+            class="mobile-menu"
+            id="mobileMenu"
+        >
+            ☰
+        </button>
+
+        <div>
+            <div
+                class="page-title"
+                id="pageTitle"
+            >
                 Dashboard
-            </button>
+            </div>
 
-            <button class="nav-btn" data-section="accounts">
-                Accounts
-            </button>
-
-            <button
-                class="nav-btn owner-only"
-                data-section="administrators"
+            <div
+                class="page-subtitle"
+                id="pageSubtitle"
             >
-                Administrators
-            </button>
+                Обзор системы
+            </div>
+        </div>
 
-            <button
-                class="nav-btn owner-only"
-                data-section="balance"
-            >
-                Balance
-            </button>
+    </div>
 
-            <button class="nav-btn" data-section="subscriptions">
-                Subscriptions
-            </button>
 
-            <button class="nav-btn" data-section="products">
-                Products
-            </button>
+    <!-- ===================================================
+         DASHBOARD
+    ==================================================== -->
 
-            <button class="nav-btn" data-section="transactions">
-                Transactions
-            </button>
+    <section
+        class="section active"
+        id="section-dashboard"
+    >
 
-            <button class="nav-btn" data-section="logs">
-                Logs
-            </button>
+        <div class="cards">
 
-            <button class="nav-btn" data-section="settings">
-                Settings
-            </button>
-
-        </nav>
-
-        <div class="sidebar-bottom">
-
-            <div class="admin-mini">
-                <div
-                    id="sidebarAdminName"
-                    class="admin-mini-name"
-                >
-                    —
+            <div class="stat">
+                <div class="stat-label">
+                    Accounts
                 </div>
-
                 <div
-                    id="sidebarAdminRole"
-                    class="admin-mini-role"
+                    class="stat-value"
+                    id="statAccounts"
                 >
                     —
                 </div>
             </div>
 
-            <button
-                id="logoutButton"
-                class="btn btn-danger"
-                style="width:100%;"
-            >
-                Выйти
-            </button>
-
-        </div>
-
-    </aside>
-
-
-    <!-- MAIN -->
-
-    <main class="main">
-
-        <header class="topbar">
-
-            <div style="display:flex;align-items:center;">
-
-                <button
-                    id="mobileMenu"
-                    class="mobile-menu"
-                >
-                    ☰
-                </button>
-
+            <div class="stat">
+                <div class="stat-label">
+                    Administrators
+                </div>
                 <div
-                    id="pageTitle"
-                    class="page-title"
+                    class="stat-value"
+                    id="statAdministrators"
                 >
-                    Dashboard
+                    —
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">
+                    Transactions
+                </div>
+                <div
+                    class="stat-value"
+                    id="statTransactions"
+                >
+                    —
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-label">
+                    Active subscriptions
+                </div>
+                <div
+                    class="stat-value"
+                    id="statSubscriptions"
+                >
+                    —
+                </div>
+            </div>
+
+        </div>
+
+        <div class="panel">
+
+            <div class="panel-head">
+                <div class="panel-title">
+                    MEANT SHOP
+                </div>
+            </div>
+
+            <div style="padding:20px">
+
+                <div class="notice">
+
+                    Панель подключена непосредственно
+                    к Cloudflare Worker и базе D1.
+
+                    <br><br>
+
+                    Все пользователи, балансы,
+                    транзакции и доступы загружаются
+                    с сервера.
+
                 </div>
 
             </div>
 
-            <div
-                id="topbarAdmin"
-                class="muted"
-            >
-                —
-            </div>
+        </div>
 
-        </header>
+    </section>
 
 
-        <div class="page-content">
+    <!-- ===================================================
+         ACCOUNTS
+    ==================================================== -->
 
+    <section
+        class="section"
+        id="section-accounts"
+    >
 
-            <!-- =================================================
-                 DASHBOARD
-            ================================================= -->
+        <div class="panel">
 
-            <section
-                id="section-dashboard"
-                class="section active"
-            >
+            <div class="panel-head">
 
-                <div class="section-head">
+                <div class="panel-title">
+                    Accounts
+                </div>
 
-                    <div>
-                        <div class="section-title">
-                            Dashboard
-                        </div>
+                <div class="toolbar">
 
-                        <div class="section-description">
-                            Общая статистика магазина.
-                        </div>
-                    </div>
+                    <input
+                        id="accountsSearch"
+                        placeholder="ID или username"
+                    >
 
                     <button
                         class="btn"
-                        onclick="loadDashboard()"
+                        onclick="loadAccounts()"
                     >
                         Обновить
                     </button>
 
                 </div>
 
-
-                <div class="stats-grid">
-
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            Пользователи
-                        </div>
-                        <div
-                            id="statAccounts"
-                            class="stat-value"
-                        >
-                            —
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            Администраторы
-                        </div>
-                        <div
-                            id="statAdministrators"
-                            class="stat-value"
-                        >
-                            —
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            Транзакции
-                        </div>
-                        <div
-                            id="statTransactions"
-                            class="stat-value"
-                        >
-                            —
-                        </div>
-                    </div>
-
-                    <div class="stat-card">
-                        <div class="stat-label">
-                            Активные доступы
-                        </div>
-                        <div
-                            id="statSubscriptions"
-                            class="stat-value stat-accent"
-                        >
-                            —
-                        </div>
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-head">
-                        <div class="card-title">
-                            Система
-                        </div>
-                    </div>
-
-                    <div class="card-body">
-
-                        <div style="color:#aaa;line-height:1.7;font-size:14px;">
-                            Административная система MEANT SHOP
-                            работает через Cloudflare Worker и D1.
-                            Все действия выполняются через защищённые
-                            admin endpoint'ы.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 ACCOUNTS
-            ================================================= -->
-
-            <section
-                id="section-accounts"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Accounts
-                        </div>
-
-                        <div class="section-description">
-                            Обычные пользователи MEANT SHOP.
-                        </div>
-                    </div>
-
-                    <div class="actions">
-
-                        <input
-                            id="accountSearch"
-                            class="input search"
-                            placeholder="Поиск по ID или username"
-                        >
-
-                        <button
-                            class="btn"
-                            onclick="loadAccounts()"
-                        >
-                            Обновить
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Username</th>
-                                    <th>Баланс</th>
-                                    <th>Создан</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="accountsBody">
-                                <tr>
-                                    <td
-                                        colspan="5"
-                                        class="loading"
-                                    >
-                                        Загрузка...
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 ADMINISTRATORS
-            ================================================= -->
-
-            <section
-                id="section-administrators"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Administrators
-                        </div>
-
-                        <div class="section-description">
-                            Управление администраторами.
-                        </div>
-                    </div>
-
-                    <div class="actions">
-
-                        <button
-                            class="btn btn-primary owner-only"
-                            onclick="openCreateAdminModal()"
-                        >
-                            + Создать администратора
-                        </button>
-
-                        <button
-                            class="btn"
-                            onclick="loadAdministrators()"
-                        >
-                            Обновить
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Username</th>
-                                    <th>Role</th>
-                                    <th>Создан</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="administratorsBody">
-                                <tr>
-                                    <td
-                                        colspan="5"
-                                        class="loading"
-                                    >
-                                        Загрузка...
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 BALANCE
-            ================================================= -->
-
-            <section
-                id="section-balance"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Balance
-                        </div>
-
-                        <div class="section-description">
-                            Управление валютой пользователей.
-                        </div>
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-head">
-                        <div class="card-title">
-                            Изменить баланс
-                        </div>
-                    </div>
-
-                    <div class="card-body">
-
-                        <div class="form-grid">
-
-                            <div class="field">
-                                <label>
-                                    ID или username пользователя
-                                </label>
-
-                                <input
-                                    id="balanceIdentifier"
-                                    class="input"
-                                    placeholder="username"
-                                >
-                            </div>
-
-                            <div class="field">
-                                <label>
-                                    Сумма
-                                </label>
-
-                                <input
-                                    id="balanceAmount"
-                                    class="input"
-                                    type="number"
-                                    min="1"
-                                    step="1"
-                                    placeholder="200"
-                                >
-                            </div>
-
-                        </div>
-
-
-                        <div class="actions">
-
-                            <button
-                                class="btn btn-primary"
-                                onclick="addBalance()"
-                            >
-                                + Добавить валюту
-                            </button>
-
-                            <button
-                                class="btn btn-danger"
-                                onclick="removeBalance()"
-                            >
-                                − Снять валюту
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 SUBSCRIPTIONS
-            ================================================= -->
-
-            <section
-                id="section-subscriptions"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Subscriptions
-                        </div>
-
-                        <div class="section-description">
-                            Доступы и подписки пользователей.
-                        </div>
-                    </div>
-
-                    <div class="actions">
-
-                        <button
-                            class="btn btn-primary owner-only"
-                            onclick="openGrantModal()"
-                        >
-                            + Выдать доступ
-                        </button>
-
-                        <button
-                            class="btn"
-                            onclick="loadSubscriptions()"
-                        >
-                            Обновить
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Account</th>
-                                    <th>Product</th>
-                                    <th>Expires</th>
-                                    <th>Status</th>
-                                    <th>Создан</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="subscriptionsBody">
-                                <tr>
-                                    <td
-                                        colspan="6"
-                                        class="loading"
-                                    >
-                                        Загрузка...
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 PRODUCTS
-            ================================================= -->
-
-            <section
-                id="section-products"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Products
-                        </div>
-
-                        <div class="section-description">
-                            Товары магазина.
-                        </div>
-                    </div>
-
-                    <button
-                        class="btn"
-                        onclick="loadProducts()"
-                    >
-                        Обновить
-                    </button>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Название</th>
-                                    <th>Цена</th>
-                                    <th>Статус</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="productsBody">
-                                <tr>
-                                    <td
-                                        colspan="4"
-                                        class="loading"
-                                    >
-                                        Загрузка...
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 TRANSACTIONS
-            ================================================= -->
-
-            <section
-                id="section-transactions"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Transactions
-                        </div>
-
-                        <div class="section-description">
-                            Последние транзакции пользователей.
-                        </div>
-                    </div>
-
-                    <button
-                        class="btn"
-                        onclick="loadTransactions()"
-                    >
-                        Обновить
-                    </button>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="table-wrap">
-
-                        <table>
-
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Account</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Balance after</th>
-                                    <th>Product</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-
-                            <tbody id="transactionsBody">
-                                <tr>
-                                    <td
-                                        colspan="7"
-                                        class="loading"
-                                    >
-                                        Загрузка...
-                                    </td>
-                                </tr>
-                            </tbody>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 LOGS
-            ================================================= -->
-
-            <section
-                id="section-logs"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Logs
-                        </div>
-
-                        <div class="section-description">
-                            Системные журналы.
-                        </div>
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-body">
-
-                        <div class="error-box">
-                            Endpoint <b>/api/admin/logs</b> пока
-                            отсутствует в текущем <b>admin.js</b>.
-                            Поэтому здесь не используются fake-логи.
-                        </div>
-
-                        <div style="margin-top:15px;color:#777;font-size:13px;">
-                            Когда добавим таблицу logs и endpoint,
-                            этот раздел можно подключить без изменения
-                            остальных разделов панели.
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-            <!-- =================================================
-                 SETTINGS
-            ================================================= -->
-
-            <section
-                id="section-settings"
-                class="section"
-            >
-
-                <div class="section-head">
-
-                    <div>
-                        <div class="section-title">
-                            Settings
-                        </div>
-
-                        <div class="section-description">
-                            Информация о текущей административной сессии.
-                        </div>
-                    </div>
-
-                </div>
-
-
-                <div class="card">
-
-                    <div class="card-body">
-
-                        <div class="form-grid">
-
-                            <div>
-                                <div class="muted" style="font-size:12px;">
-                                    Администратор
-                                </div>
-
-                                <div
-                                    id="settingsUsername"
-                                    style="margin-top:6px;font-weight:700;"
-                                >
-                                    —
-                                </div>
-                            </div>
-
-
-                            <div>
-                                <div class="muted" style="font-size:12px;">
-                                    Роль
-                                </div>
-
-                                <div
-                                    id="settingsRole"
-                                    style="margin-top:6px;font-weight:700;"
-                                >
-                                    —
-                                </div>
-                            </div>
-
-
-                            <div>
-                                <div class="muted" style="font-size:12px;">
-                                    Admin ID
-                                </div>
-
-                                <div
-                                    id="settingsId"
-                                    class="mono"
-                                    style="margin-top:6px;"
-                                >
-                                    —
-                                </div>
-                            </div>
-
-
-                            <div>
-                                <div class="muted" style="font-size:12px;">
-                                    Сессия
-                                </div>
-
-                                <div
-                                    style="margin-top:6px;"
-                                >
-                                    7 дней
-                                </div>
-                            </div>
-
-
-                            <div>
-                                <div class="muted" style="font-size:12px;">
-                                    Backend
-                                </div>
-
-                                <div
-                                    style="margin-top:6px;"
-                                >
-                                    Cloudflare Worker
-                                </div>
-                            </div>
-
-
-                            <div>
-                                <div class="muted" style="font-size:12px;">
-                                    Database
-                                </div>
-
-                                <div
-                                    style="margin-top:6px;"
-                                >
-                                    Cloudflare D1
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-        </div>
-
-    </main>
-
-</div>
-
-
-<!-- =========================================================
-     CREATE ADMIN MODAL
-========================================================= -->
-
-<div
-    id="createAdminModal"
-    class="modal hidden"
->
-
-    <div class="modal-box">
-
-        <div class="modal-head">
-
-            <div class="modal-title">
-                Создать администратора
-            </div>
-
-            <button
-                class="modal-close"
-                onclick="closeModal('createAdminModal')"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <form id="createAdminForm">
-
-            <div class="modal-body">
-
-                <div class="field">
-                    <label>Username</label>
-
-                    <input
-                        id="newAdminUsername"
-                        class="input"
-                        minlength="3"
-                        maxlength="32"
-                        placeholder="admin"
-                        required
-                    >
-
-                    <div class="modal-note">
-                        Только латинские буквы, цифры, _ и -.
-                    </div>
-                </div>
-
-
-                <div class="field">
-                    <label>Пароль</label>
-
-                    <input
-                        id="newAdminPassword"
-                        class="input"
-                        type="password"
-                        minlength="8"
-                        maxlength="128"
-                        placeholder="Минимум 8 символов"
-                        required
-                    >
-                </div>
-
-
-                <div class="field">
-                    <label>Роль</label>
-
-                    <select
-                        id="newAdminRole"
-                        class="input"
-                    >
-                        <option value="ADMIN">
-                            ADMIN
-                        </option>
-
-                        <option value="OWNER">
-                            OWNER
-                        </option>
-                    </select>
-                </div>
-
-            </div>
-
-
-            <div class="modal-foot">
-
-                <button
-                    type="button"
-                    class="btn"
-                    onclick="closeModal('createAdminModal')"
-                >
-                    Отмена
-                </button>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                >
-                    Создать
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     EDIT ADMIN MODAL
-========================================================= -->
-
-<div
-    id="editAdminModal"
-    class="modal hidden"
->
-
-    <div class="modal-box">
-
-        <div class="modal-head">
-
-            <div class="modal-title">
-                Изменить администратора
-            </div>
-
-            <button
-                class="modal-close"
-                onclick="closeModal('editAdminModal')"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <form id="editAdminForm">
-
-            <div class="modal-body">
-
-                <input
-                    id="editAdminId"
-                    type="hidden"
-                >
-
-                <div class="field">
-                    <label>Username</label>
-
-                    <input
-                        id="editAdminUsername"
-                        class="input"
-                        minlength="3"
-                        maxlength="32"
-                        required
-                    >
-                </div>
-
-
-                <div class="field">
-                    <label>Роль</label>
-
-                    <select
-                        id="editAdminRole"
-                        class="input"
-                    >
-                        <option value="ADMIN">
-                            ADMIN
-                        </option>
-
-                        <option value="OWNER">
-                            OWNER
-                        </option>
-                    </select>
-                </div>
-
-            </div>
-
-
-            <div class="modal-foot">
-
-                <button
-                    type="button"
-                    class="btn"
-                    onclick="closeModal('editAdminModal')"
-                >
-                    Отмена
-                </button>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                >
-                    Сохранить
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     GRANT ACCESS MODAL
-========================================================= -->
-
-<div
-    id="grantModal"
-    class="modal hidden"
->
-
-    <div class="modal-box">
-
-        <div class="modal-head">
-
-            <div class="modal-title">
-                Выдать доступ
-            </div>
-
-            <button
-                class="modal-close"
-                onclick="closeModal('grantModal')"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <form id="grantForm">
-
-            <div class="modal-body">
-
-                <div class="field">
-                    <label>
-                        ID или username пользователя
-                    </label>
-
-                    <input
-                        id="grantIdentifier"
-                        class="input"
-                        placeholder="username"
-                        required
-                    >
-                </div>
-
-
-                <div class="field">
-                    <label>Товар</label>
-
-                    <select
-                        id="grantProduct"
-                        class="input"
-                    >
-
-                        <option value="30-days">
-                            30 дней — 99 ₽
-                        </option>
-
-                        <option value="90-days">
-                            90 дней — 159 ₽
-                        </option>
-
-                        <option value="forever">
-                            Навсегда — 499 ₽
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="field">
-
-                    <label>
-                        Срок
-                    </label>
-
-                    <div class="radio-grid">
-
-                        <div class="radio">
-
-                            <input
-                                id="days30"
-                                type="radio"
-                                name="grantDays"
-                                value="30"
-                                checked
-                            >
-
-                            <label for="days30">
-                                30 дней
-                            </label>
-
-                        </div>
-
-
-                        <div class="radio">
-
-                            <input
-                                id="days90"
-                                type="radio"
-                                name="grantDays"
-                                value="90"
-                            >
-
-                            <label for="days90">
-                                90 дней
-                            </label>
-
-                        </div>
-
-
-                        <div class="radio">
-
-                            <input
-                                id="daysForever"
-                                type="radio"
-                                name="grantDays"
-                                value="0"
-                            >
-
-                            <label for="daysForever">
-                                Навсегда
-                            </label>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <div class="modal-note">
-                    Доступ будет записан непосредственно
-                    в таблицу entitlements.
-                </div>
-
-            </div>
-
-
-            <div class="modal-foot">
-
-                <button
-                    type="button"
-                    class="btn"
-                    onclick="closeModal('grantModal')"
-                >
-                    Отмена
-                </button>
-
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                >
-                    Выдать доступ
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
-
-</div>
-
-
-<!-- =========================================================
-     USER ACCESS MODAL
-========================================================= -->
-
-<div
-    id="accessModal"
-    class="modal hidden"
->
-
-    <div class="modal-box" style="max-width:700px;">
-
-        <div class="modal-head">
-
-            <div class="modal-title">
-                Доступ пользователя
-            </div>
-
-            <button
-                class="modal-close"
-                onclick="closeModal('accessModal')"
-            >
-                ×
-            </button>
-
-        </div>
-
-
-        <div class="modal-body">
-
-            <div
-                id="accessUserInfo"
-                style="margin-bottom:20px;"
-            >
-                —
             </div>
 
             <div
-                id="accessList"
+                id="accountsBody"
                 class="loading"
             >
                 Загрузка...
@@ -2103,19 +951,633 @@ tbody tr:hover{
 
         </div>
 
-    </div>
+    </section>
+
+
+    <!-- ===================================================
+         ADMINISTRATORS
+    ==================================================== -->
+
+    <section
+        class="section"
+        id="section-administrators"
+    >
+
+        <div class="panel">
+
+            <div class="panel-head">
+
+                <div class="panel-title">
+                    Administrators
+                </div>
+
+                <div class="toolbar">
+
+                    <button
+                        class="btn yellow owner-only"
+                        onclick="openAdminCreateModal()"
+                    >
+                        + Создать
+                    </button>
+
+                    <button
+                        class="btn"
+                        onclick="loadAdministrators()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div
+                id="administratorsBody"
+                class="loading"
+            >
+                Загрузка...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         BALANCE
+    ==================================================== -->
+
+    <section
+        class="section"
+        id="section-balance"
+    >
+
+        <div class="panel">
+
+            <div class="panel-head">
+
+                <div>
+
+                    <div class="panel-title">
+                        Balance
+                    </div>
+
+                    <div class="page-subtitle">
+                        Изменение валюты пользователя
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div style="padding:20px">
+
+                <div class="field">
+
+                    <label>
+                        Username или ID
+                    </label>
+
+                    <input
+                        id="balanceIdentifier"
+                        placeholder="username"
+                    >
+
+                </div>
+
+                <div class="field">
+
+                    <label>
+                        Сумма
+                    </label>
+
+                    <input
+                        id="balanceAmount"
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="200"
+                    >
+
+                </div>
+
+                <div class="actions owner-only">
+
+                    <button
+                        class="btn green"
+                        onclick="changeBalance('add')"
+                    >
+                        + Добавить
+                    </button>
+
+                    <button
+                        class="btn danger"
+                        onclick="changeBalance('remove')"
+                    >
+                        − Снять
+                    </button>
+
+                </div>
+
+                <div
+                    id="balanceResult"
+                    style="margin-top:18px"
+                ></div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         SUBSCRIPTIONS
+    ==================================================== -->
+
+    <section
+        class="section"
+        id="section-subscriptions"
+    >
+
+        <div class="panel">
+
+            <div class="panel-head">
+
+                <div class="panel-title">
+                    Subscriptions
+                </div>
+
+                <div class="toolbar">
+
+                    <button
+                        class="btn yellow owner-only"
+                        onclick="openAccessModal()"
+                    >
+                        + Выдать доступ
+                    </button>
+
+                    <button
+                        class="btn"
+                        onclick="loadSubscriptions()"
+                    >
+                        Обновить
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div
+                id="subscriptionsBody"
+                class="loading"
+            >
+                Загрузка...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         TRANSACTIONS
+    ==================================================== -->
+
+    <section
+        class="section"
+        id="section-transactions"
+    >
+
+        <div class="panel">
+
+            <div class="panel-head">
+
+                <div class="panel-title">
+                    Transactions
+                </div>
+
+                <button
+                    class="btn"
+                    onclick="loadTransactions()"
+                >
+                    Обновить
+                </button>
+
+            </div>
+
+            <div
+                id="transactionsBody"
+                class="loading"
+            >
+                Загрузка...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         PRODUCTS
+    ==================================================== -->
+
+    <section
+        class="section"
+        id="section-products"
+    >
+
+        <div class="panel">
+
+            <div class="panel-head">
+
+                <div class="panel-title">
+                    Products
+                </div>
+
+                <button
+                    class="btn"
+                    onclick="loadProducts()"
+                >
+                    Обновить
+                </button>
+
+            </div>
+
+            <div
+                id="productsBody"
+                class="loading"
+            >
+                Загрузка...
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         LOGS
+    ==================================================== -->
+
+    <section
+        class="section"
+        id="section-logs"
+    >
+
+        <div class="panel">
+
+            <div class="panel-head">
+                <div class="panel-title">
+                    Logs
+                </div>
+            </div>
+
+            <div style="padding:20px">
+
+                <div class="notice">
+
+                    В текущем <span class="mono">admin.js</span>
+                    endpoint
+
+                    <strong>/api/admin/logs</strong>
+
+                    ещё не реализован.
+
+                    <br><br>
+
+                    Поэтому здесь намеренно
+                    не используются фальшивые данные.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         SETTINGS
+    ==================================================== -->
+
+    <section
+        class="section"
+        id="section-settings"
+    >
+
+        <div class="panel">
+
+            <div class="panel-head">
+
+                <div class="panel-title">
+                    Settings
+                </div>
+
+            </div>
+
+            <div style="padding:20px">
+
+                <div class="notice">
+
+                    <strong>Username</strong><br>
+                    <span id="settingsUsername">—</span>
+
+                    <br><br>
+
+                    <strong>Role</strong><br>
+                    <span id="settingsRole">—</span>
+
+                    <br><br>
+
+                    <strong>Session</strong><br>
+                    7 дней
+
+                    <br><br>
+
+                    <strong>Database</strong><br>
+                    Cloudflare D1 / env.DB
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
 
 </div>
 
 
-<!-- =========================================================
-     TOAST
-========================================================= -->
+<!-- =======================================================
+     ADMIN MODAL
+======================================================= -->
 
 <div
-    id="toastContainer"
-    class="toast-container"
-></div>
+    class="modal"
+    id="adminModal"
+>
+
+<div class="modal-card">
+
+    <div class="modal-head">
+
+        <div
+            class="modal-title"
+            id="adminModalTitle"
+        >
+            Создать администратора
+        </div>
+
+        <button
+            class="close"
+            onclick="closeModal('adminModal')"
+        >
+            ×
+        </button>
+
+    </div>
+
+    <input
+        type="hidden"
+        id="editAdminId"
+    >
+
+    <div class="field">
+
+        <label>
+            Логин
+        </label>
+
+        <input
+            id="adminUsername"
+            placeholder="moderator"
+        >
+
+    </div>
+
+    <div
+        class="field"
+        id="adminPasswordField"
+    >
+
+        <label>
+            Пароль
+        </label>
+
+        <input
+            id="adminPassword"
+            type="password"
+            placeholder="Минимум 8 символов"
+        >
+
+    </div>
+
+    <div class="field">
+
+        <label>
+            Роль
+        </label>
+
+        <select id="adminRole">
+
+            <option value="ADMIN">
+                ADMIN
+            </option>
+
+            <option value="OWNER">
+                OWNER
+            </option>
+
+        </select>
+
+    </div>
+
+    <div
+        class="error"
+        id="adminModalError"
+    ></div>
+
+    <div class="modal-actions">
+
+        <button
+            class="btn"
+            onclick="closeModal('adminModal')"
+        >
+            Отмена
+        </button>
+
+        <button
+            class="btn yellow"
+            onclick="saveAdministrator()"
+        >
+            Сохранить
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- =======================================================
+     ACCESS MODAL
+======================================================= -->
+
+<div
+    class="modal"
+    id="accessModal"
+>
+
+<div class="modal-card">
+
+    <div class="modal-head">
+
+        <div class="modal-title">
+            Выдать доступ
+        </div>
+
+        <button
+            class="close"
+            onclick="closeModal('accessModal')"
+        >
+            ×
+        </button>
+
+    </div>
+
+    <div class="field">
+
+        <label>
+            Username или ID
+        </label>
+
+        <input
+            id="accessIdentifier"
+            placeholder="username"
+        >
+
+    </div>
+
+    <div class="field">
+
+        <label>
+            Товар
+        </label>
+
+        <select id="accessProduct">
+
+            <option value="30-days">
+                30 дней
+            </option>
+
+            <option value="90-days">
+                90 дней
+            </option>
+
+            <option value="forever">
+                Навсегда
+            </option>
+
+        </select>
+
+    </div>
+
+    <div class="field">
+
+        <label>
+            Срок
+        </label>
+
+        <select id="accessDays">
+
+            <option value="30">
+                30 дней
+            </option>
+
+            <option value="90">
+                90 дней
+            </option>
+
+            <option value="0">
+                Навсегда
+            </option>
+
+        </select>
+
+    </div>
+
+    <div
+        class="error"
+        id="accessModalError"
+    ></div>
+
+    <div class="modal-actions">
+
+        <button
+            class="btn"
+            onclick="closeModal('accessModal')"
+        >
+            Отмена
+        </button>
+
+        <button
+            class="btn yellow"
+            onclick="grantAccess()"
+        >
+            Выдать
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<!-- =======================================================
+     ACCESS LIST MODAL
+======================================================= -->
+
+<div
+    class="modal"
+    id="accessListModal"
+>
+
+<div class="modal-card">
+
+    <div class="modal-head">
+
+        <div class="modal-title">
+            Доступ пользователя
+        </div>
+
+        <button
+            class="close"
+            onclick="closeModal('accessListModal')"
+        >
+            ×
+        </button>
+
+    </div>
+
+    <div
+        id="accessListBody"
+        class="loading"
+    >
+        Загрузка...
+    </div>
+
+</div>
+
+</div>
+
+
+<div id="toast"></div>
 
 
 <script>
@@ -2128,63 +1590,51 @@ tbody tr:hover{
 let currentAdmin = null;
 let accountsCache = [];
 let administratorsCache = [];
-let currentSection = "dashboard";
 
 
 /* =========================================================
    API
 ========================================================= */
 
-async function api(
-    url,
-    options = {}
-){
+async function api(url, options = {}) {
+
     const config = {
         credentials:"include",
         ...options,
         headers:{
+            ...(options.body
+                ? {"Content-Type":"application/json"}
+                : {}),
             ...(options.headers || {})
         }
     };
 
-    if(
-        config.body &&
-        typeof config.body !== "string"
-    ){
-        config.headers["Content-Type"] =
-            "application/json";
+    let response;
 
-        config.body =
-            JSON.stringify(config.body);
+    try {
+        response = await fetch(url, config);
+    } catch {
+        throw new Error(
+            "Не удалось подключиться к серверу"
+        );
     }
 
-    const response =
-        await fetch(
-            url,
-            config
+    let data = {};
+
+    try {
+        data = await response.json();
+    } catch {}
+
+    if (!response.ok) {
+
+        const error = new Error(
+            data?.error ||
+            data?.message ||
+            `HTTP ${response.status}`
         );
 
-    let data = null;
-
-    try{
-        data = await response.json();
-    }catch{
-        data = {};
-    }
-
-    if(!response.ok){
-
-        const error =
-            new Error(
-                data?.error ||
-                `HTTP ${response.status}`
-            );
-
-        error.status =
-            response.status;
-
-        error.data =
-            data;
+        error.status = response.status;
+        error.data = data;
 
         throw error;
     }
@@ -2197,148 +1647,29 @@ async function api(
    TOAST
 ========================================================= */
 
-function toast(
-    message,
-    type = "success"
-){
+let toastTimer;
 
-    const container =
-        document.getElementById(
-            "toastContainer"
-        );
+function toast(message, error = false) {
 
     const element =
-        document.createElement("div");
+        document.getElementById("toast");
 
-    element.className =
-        `toast ${type}`;
+    element.textContent = message;
 
-    element.textContent =
-        message;
-
-    container.appendChild(
-        element
+    element.classList.toggle(
+        "error-toast",
+        error
     );
 
-    setTimeout(
-        ()=>{
-            element.remove();
-        },
-        3500
-    );
-}
+    element.classList.add("show");
 
+    clearTimeout(toastTimer);
 
-/* =========================================================
-   HELPERS
-========================================================= */
+    toastTimer = setTimeout(() => {
 
-function escapeHtml(value){
+        element.classList.remove("show");
 
-    return String(
-        value ??
-        ""
-    )
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-
-function formatDate(value){
-
-    if(!value){
-        return "—";
-    }
-
-    const date =
-        new Date(value);
-
-    if(
-        Number.isNaN(
-            date.getTime()
-        )
-    ){
-        return escapeHtml(value);
-    }
-
-    return date.toLocaleString(
-        "ru-RU"
-    );
-}
-
-
-function formatNumber(value){
-
-    const number =
-        Number(value);
-
-    if(!Number.isFinite(number)){
-        return "0";
-    }
-
-    return number.toLocaleString(
-        "ru-RU"
-    );
-}
-
-
-function getRoleBadge(role){
-
-    const normalized =
-        String(role || "")
-        .toUpperCase();
-
-    if(normalized === "OWNER"){
-
-        return `
-            <span class="badge badge-owner">
-                OWNER
-            </span>
-        `;
-    }
-
-    return `
-        <span class="badge badge-admin">
-            ADMIN
-        </span>
-    `;
-}
-
-
-function getStatusBadge(status){
-
-    const normalized =
-        String(status || "")
-        .toLowerCase();
-
-    if(normalized === "active"){
-
-        return `
-            <span class="badge badge-active">
-                active
-            </span>
-        `;
-    }
-
-    return `
-        <span class="badge badge-revoked">
-            ${escapeHtml(status || "unknown")}
-        </span>
-    `;
-}
-
-
-function isOwner(){
-
-    return (
-        currentAdmin &&
-        String(
-            currentAdmin.role
-        ).toUpperCase() === "OWNER"
-    );
+    },2800);
 }
 
 
@@ -2346,152 +1677,98 @@ function isOwner(){
    AUTH
 ========================================================= */
 
-async function checkAdmin(){
+async function checkAdmin() {
 
-    try{
+    try {
 
         const data =
-            await api(
-                "/api/admin/me"
-            );
+            await api("/api/admin/me");
 
-        if(
-            !data.authenticated ||
+        if (
+            data.authenticated !== true ||
             !data.admin
-        ){
-            throw new Error(
-                "Не авторизован"
-            );
+        ) {
+            showLogin();
+            return;
         }
 
         currentAdmin =
             data.admin;
 
         showApp();
+        applyPermissions();
 
-        return true;
+        await loadDashboard();
 
-    }catch(error){
+    } catch {
 
         showLogin();
 
-        return false;
     }
 }
 
 
-/* =========================================================
-   SHOW LOGIN
-========================================================= */
-
-function showLogin(){
+function showLogin() {
 
     document
-        .getElementById("loginPage")
+        .getElementById("loginScreen")
         .classList.remove("hidden");
 
     document
         .getElementById("app")
         .classList.add("hidden");
+
 }
 
 
-/* =========================================================
-   SHOW APP
-========================================================= */
-
-function showApp(){
+function showApp() {
 
     document
-        .getElementById("loginPage")
+        .getElementById("loginScreen")
         .classList.add("hidden");
 
     document
         .getElementById("app")
         .classList.remove("hidden");
 
-    updateAdminUI();
+    document
+        .getElementById("sideUsername")
+        .textContent =
+        currentAdmin?.username || "—";
 
-    loadDashboard();
+    document
+        .getElementById("sideRole")
+        .textContent =
+        currentAdmin?.role || "—";
+
+    document
+        .getElementById("settingsUsername")
+        .textContent =
+        currentAdmin?.username || "—";
+
+    document
+        .getElementById("settingsRole")
+        .textContent =
+        currentAdmin?.role || "—";
 }
 
 
-/* =========================================================
-   ADMIN UI
-========================================================= */
+function applyPermissions() {
 
-function updateAdminUI(){
-
-    const username =
-        currentAdmin?.username ||
-        "—";
-
-    const role =
-        currentAdmin?.role ||
-        "—";
+    const owner =
+        currentAdmin?.role === "OWNER";
 
     document
-        .getElementById(
-            "sidebarAdminName"
-        )
-        .textContent =
-        username;
+        .querySelectorAll(".owner-only")
+        .forEach(element => {
 
-    document
-        .getElementById(
-            "sidebarAdminRole"
-        )
-        .textContent =
-        role;
+            element.classList.toggle(
+                "hidden",
+                !owner
+            );
 
-    document
-        .getElementById(
-            "topbarAdmin"
-        )
-        .textContent =
-        `${username} · ${role}`;
+        });
 
-    document
-        .getElementById(
-            "settingsUsername"
-        )
-        .textContent =
-        username;
-
-    document
-        .getElementById(
-            "settingsRole"
-        )
-        .innerHTML =
-        getRoleBadge(role);
-
-    document
-        .getElementById(
-            "settingsId"
-        )
-        .textContent =
-        currentAdmin?.id ||
-        "—";
-
-    document
-        .querySelectorAll(
-            ".owner-only"
-        )
-        .forEach(
-            element => {
-
-                if(isOwner()){
-                    element.classList.remove(
-                        "hidden"
-                    );
-                }else{
-                    element.classList.add(
-                        "hidden"
-                    );
-                }
-
-            }
-        );
 }
 
 
@@ -2501,102 +1778,83 @@ function updateAdminUI(){
 
 document
     .getElementById("loginForm")
-    .addEventListener(
-        "submit",
-        async event => {
+    .addEventListener("submit", async event => {
 
-            event.preventDefault();
+        event.preventDefault();
 
-            const username =
-                document
-                    .getElementById(
-                        "loginUsername"
-                    )
-                    .value
-                    .trim();
+        const button =
+            document.getElementById("loginButton");
 
-            const password =
-                document
-                    .getElementById(
-                        "loginPassword"
-                    )
-                    .value;
+        const error =
+            document.getElementById("loginError");
 
-            const button =
-                document
-                    .getElementById(
-                        "loginButton"
-                    );
+        error.textContent = "";
 
-            const errorBox =
-                document
-                    .getElementById(
-                        "loginError"
-                    );
+        const username =
+            document
+                .getElementById("loginUsername")
+                .value
+                .trim();
 
-            errorBox.classList.add(
-                "hidden"
-            );
+        const password =
+            document
+                .getElementById("loginPassword")
+                .value;
 
-            button.disabled = true;
-            button.textContent =
-                "Вход...";
+        button.disabled = true;
+        button.textContent = "Вход...";
 
-            try{
+        try {
 
-                const data =
-                    await api(
-                        "/api/admin/login",
-                        {
-                            method:"POST",
-                            body:{
-                                username,
-                                password
-                            }
-                        }
-                    );
-
-                if(
-                    !data.success ||
-                    !data.admin
-                ){
-                    throw new Error(
-                        data.error ||
-                        "Ошибка авторизации"
-                    );
-                }
-
-                currentAdmin =
-                    data.admin;
-
-                document
-                    .getElementById(
-                        "loginPassword"
-                    )
-                    .value = "";
-
-                showApp();
-
-            }catch(error){
-
-                errorBox.textContent =
-                    error.message ||
-                    "Ошибка входа";
-
-                errorBox.classList.remove(
-                    "hidden"
+            const data =
+                await api(
+                    "/api/admin/login",
+                    {
+                        method:"POST",
+                        body:JSON.stringify({
+                            username,
+                            password
+                        })
+                    }
                 );
 
-            }finally{
-
-                button.disabled = false;
-
-                button.textContent =
-                    "Войти";
+            if (
+                !data.success ||
+                !data.admin
+            ) {
+                throw new Error(
+                    data.error ||
+                    "Ошибка входа"
+                );
             }
 
+            currentAdmin =
+                data.admin;
+
+            document
+                .getElementById("loginPassword")
+                .value = "";
+
+            showApp();
+            applyPermissions();
+
+            await loadDashboard();
+
+            toast("Вы вошли в админ-панель");
+
+        } catch (err) {
+
+            error.textContent =
+                err.message;
+
+        } finally {
+
+            button.disabled = false;
+            button.textContent = "Войти";
+
         }
-    );
+
+    });
 
 
 /* =========================================================
@@ -2605,256 +1863,226 @@ document
 
 document
     .getElementById("logoutButton")
-    .addEventListener(
-        "click",
-        async ()=>{
+    .addEventListener("click", async () => {
 
-            try{
+        try {
 
-                await api(
-                    "/api/admin/logout",
-                    {
-                        method:"POST"
-                    }
-                );
-
-            }catch{}
-
-            currentAdmin =
-                null;
-
-            showLogin();
-
-            toast(
-                "Вы вышли из админ-панели"
-            );
-        }
-    );
-
-
-/* =========================================================
-   NAVIGATION
-========================================================= */
-
-document
-    .querySelectorAll(
-        ".nav-btn"
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                ()=>{
-                    const section =
-                        button.dataset.section;
-
-                    if(
-                        (
-                            section ===
-                            "administrators" ||
-                            section === "balance"
-                        ) &&
-                        !isOwner()
-                    ){
-                        toast(
-                            "Недостаточно прав",
-                            "error"
-                        );
-
-                        return;
-                    }
-
-                    openSection(
-                        section
-                    );
-
-                    document
-                        .getElementById(
-                            "sidebar"
-                        )
-                        .classList.remove(
-                            "open"
-                        );
+            await api(
+                "/api/admin/logout",
+                {
+                    method:"POST"
                 }
             );
 
-        }
-    );
+        } catch {}
+
+        currentAdmin = null;
+
+        showLogin();
+
+    });
 
 
-function openSection(
-    section
-){
+/* =========================================================
+   NAV
+========================================================= */
 
-    currentSection =
-        section;
+const pageInfo = {
 
-    document
-        .querySelectorAll(
-            ".nav-btn"
-        )
-        .forEach(
-            button => {
+    dashboard:[
+        "Dashboard",
+        "Обзор системы"
+    ],
 
-                button.classList.toggle(
-                    "active",
-                    button.dataset.section ===
-                    section
+    accounts:[
+        "Accounts",
+        "Обычные пользователи"
+    ],
+
+    administrators:[
+        "Administrators",
+        "Управление администраторами"
+    ],
+
+    balance:[
+        "Balance",
+        "Управление валютой"
+    ],
+
+    subscriptions:[
+        "Subscriptions",
+        "Доступы пользователей"
+    ],
+
+    transactions:[
+        "Transactions",
+        "История операций"
+    ],
+
+    products:[
+        "Products",
+        "Товары"
+    ],
+
+    logs:[
+        "Logs",
+        "Системные события"
+    ],
+
+    settings:[
+        "Settings",
+        "Настройки"
+    ]
+
+};
+
+
+document
+    .querySelectorAll(".nav button")
+    .forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                openSection(
+                    button.dataset.section
                 );
+
+                document
+                    .getElementById("sidebar")
+                    .classList.remove("open");
 
             }
         );
 
-    document
-        .querySelectorAll(
-            ".section"
-        )
-        .forEach(
-            element => {
+    });
 
-                element.classList.toggle(
-                    "active",
-                    element.id ===
-                    `section-${section}`
-                );
 
-            }
-        );
+function openSection(section) {
 
-    const titles = {
-        dashboard:"Dashboard",
-        accounts:"Accounts",
-        administrators:"Administrators",
-        balance:"Balance",
-        subscriptions:"Subscriptions",
-        products:"Products",
-        transactions:"Transactions",
-        logs:"Logs",
-        settings:"Settings"
-    };
-
-    document
-        .getElementById(
-            "pageTitle"
-        )
-        .textContent =
-        titles[section] ||
-        section;
-
-    switch(section){
-
-        case "dashboard":
-            loadDashboard();
-            break;
-
-        case "accounts":
-            loadAccounts();
-            break;
-
-        case "administrators":
-            loadAdministrators();
-            break;
-
-        case "subscriptions":
-            loadSubscriptions();
-            break;
-
-        case "products":
-            loadProducts();
-            break;
-
-        case "transactions":
-            loadTransactions();
-            break;
-
+    if (!pageInfo[section]) {
+        section = "dashboard";
     }
+
+    document
+        .querySelectorAll(".nav button")
+        .forEach(button => {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.section === section
+            );
+
+        });
+
+    document
+        .querySelectorAll(".section")
+        .forEach(element => {
+
+            element.classList.remove("active");
+
+        });
+
+    const target =
+        document.getElementById(
+            "section-" + section
+        );
+
+    if (target) {
+        target.classList.add("active");
+    }
+
+    document
+        .getElementById("pageTitle")
+        .textContent =
+        pageInfo[section][0];
+
+    document
+        .getElementById("pageSubtitle")
+        .textContent =
+        pageInfo[section][1];
+
+    if (section === "dashboard")
+        loadDashboard();
+
+    if (section === "accounts")
+        loadAccounts();
+
+    if (section === "administrators")
+        loadAdministrators();
+
+    if (section === "subscriptions")
+        loadSubscriptions();
+
+    if (section === "transactions")
+        loadTransactions();
+
+    if (section === "products")
+        loadProducts();
 }
 
 
 /* =========================================================
-   MOBILE
+   MOBILE MENU
 ========================================================= */
 
 document
-    .getElementById(
-        "mobileMenu"
-    )
-    .addEventListener(
-        "click",
-        ()=>{
-            document
-                .getElementById(
-                    "sidebar"
-                )
-                .classList.toggle(
-                    "open"
-                );
-        }
-    );
+    .getElementById("mobileMenu")
+    .addEventListener("click",() => {
+
+        document
+            .getElementById("sidebar")
+            .classList.toggle("open");
+
+    });
 
 
 /* =========================================================
    DASHBOARD
 ========================================================= */
 
-async function loadDashboard(){
+async function loadDashboard() {
 
-    try{
+    try {
 
         const data =
-            await api(
-                "/api/admin/stats"
-            );
+            await api("/api/admin/stats");
 
         const stats =
-            data.stats ||
-            {};
+            data.stats || {};
 
         document
-            .getElementById(
-                "statAccounts"
-            )
+            .getElementById("statAccounts")
             .textContent =
-            formatNumber(
-                stats.accounts
-            );
+            Number(stats.accounts || 0);
 
         document
-            .getElementById(
-                "statAdministrators"
-            )
+            .getElementById("statAdministrators")
             .textContent =
-            formatNumber(
-                stats.administrators
-            );
+            Number(stats.administrators || 0);
 
         document
-            .getElementById(
-                "statTransactions"
-            )
+            .getElementById("statTransactions")
             .textContent =
-            formatNumber(
-                stats.transactions
-            );
+            Number(stats.transactions || 0);
 
         document
-            .getElementById(
-                "statSubscriptions"
-            )
+            .getElementById("statSubscriptions")
             .textContent =
-            formatNumber(
-                stats.activeSubscriptions
+            Number(
+                stats.activeSubscriptions || 0
             );
 
-    }catch(error){
+    } catch(err) {
 
         toast(
-            error.message ||
-            "Не удалось загрузить статистику",
-            "error"
+            err.message,
+            true
         );
+
     }
+
 }
 
 
@@ -2862,22 +2090,17 @@ async function loadDashboard(){
    ACCOUNTS
 ========================================================= */
 
-async function loadAccounts(){
+async function loadAccounts() {
 
     const body =
         document.getElementById(
             "accountsBody"
         );
 
-    body.innerHTML = `
-        <tr>
-            <td colspan="5" class="loading">
-                Загрузка...
-            </td>
-        </tr>
-    `;
+    body.innerHTML =
+        '<div class="loading">Загрузка...</div>';
 
-    try{
+    try {
 
         const data =
             await api(
@@ -2885,32 +2108,25 @@ async function loadAccounts(){
             );
 
         accountsCache =
-            Array.isArray(
-                data.accounts
-            )
+            Array.isArray(data.accounts)
                 ? data.accounts
                 : [];
 
         renderAccounts();
 
-    }catch(error){
+    } catch(err) {
 
-        body.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    <div class="error-box">
-                        ${escapeHtml(
-                            error.message
-                        )}
-                    </div>
-                </td>
-            </tr>
-        `;
+        body.innerHTML =
+            `<div class="empty">
+                ${escapeHtml(err.message)}
+            </div>`;
+
     }
+
 }
 
 
-function renderAccounts(){
+function renderAccounts() {
 
     const body =
         document.getElementById(
@@ -2919,134 +2135,126 @@ function renderAccounts(){
 
     const search =
         document
-            .getElementById(
-                "accountSearch"
-            )
+            .getElementById("accountsSearch")
             .value
             .trim()
             .toLowerCase();
 
-    const accounts =
-        accountsCache.filter(
-            account => {
+    const list =
+        accountsCache.filter(account => {
 
-                if(!search){
-                    return true;
-                }
+            if (!search)
+                return true;
 
-                return (
-                    String(
-                        account.id
-                    )
+            return (
+                String(account.id || "")
                     .toLowerCase()
                     .includes(search)
-                    ||
-                    String(
-                        account.username
-                    )
+                ||
+                String(account.username || "")
                     .toLowerCase()
                     .includes(search)
-                );
-            }
-        );
+            );
 
-    if(!accounts.length){
+        });
 
-        body.innerHTML = `
-            <tr>
-                <td colspan="5" class="empty">
-                    Пользователи не найдены
-                </td>
-            </tr>
-        `;
+    if (!list.length) {
+
+        body.innerHTML =
+            '<div class="empty">Аккаунты не найдены.</div>';
 
         return;
     }
 
-    body.innerHTML =
-        accounts.map(
-            account => `
+    body.innerHTML = `
 
-                <tr>
+        <div class="table-wrap">
 
-                    <td class="mono">
-                        ${escapeHtml(
-                            account.id
-                        )}
-                    </td>
+        <table>
 
-                    <td>
-                        <b>
-                            ${escapeHtml(
-                                account.username
-                            )}
-                        </b>
-                    </td>
+        <thead>
 
-                    <td>
-                        ${formatNumber(
-                            account.balance
-                        )} ₽
-                    </td>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Balance</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
 
-                    <td>
-                        ${formatDate(
-                            account.created_at
-                        )}
-                    </td>
+        </thead>
 
-                    <td>
+        <tbody>
 
-                        <div class="actions">
+        ${list.map(account => `
 
-                            <button
-                                class="btn btn-small"
-                                onclick="viewUserAccess('${encodeURIComponent(
-                                    account.id
-                                )}')"
-                            >
-                                Доступ
-                            </button>
+            <tr>
 
-                            ${
-                                isOwner()
-                                ? `
-                                    <button
-                                        class="btn btn-small"
-                                        onclick="quickAddBalance('${encodeURIComponent(
-                                            account.username
-                                        )}')"
-                                    >
-                                        + Баланс
-                                    </button>
+                <td class="mono">
+                    ${escapeHtml(account.id)}
+                </td>
 
-                                    <button
-                                        class="btn btn-small btn-danger"
-                                        onclick="quickRemoveBalance('${encodeURIComponent(
-                                            account.username
-                                        )}')"
-                                    >
-                                        − Баланс
-                                    </button>
-                                `
-                                : ""
-                            }
+                <td>
+                    <strong>
+                        ${escapeHtml(account.username)}
+                    </strong>
+                </td>
 
-                        </div>
+                <td>
+                    ${formatNumber(account.balance)} ₽
+                </td>
 
-                    </td>
+                <td>
+                    ${formatDate(account.created_at)}
+                </td>
 
-                </tr>
-            `
-        )
-        .join("");
+                <td>
+
+                    <div class="actions">
+
+                        <button
+                            class="btn"
+                            onclick="openUserAccess('${jsEscape(account.id)}')"
+                        >
+                            Доступ
+                        </button>
+
+                        ${
+                            currentAdmin?.role === "OWNER"
+                            ? `
+
+                                <button
+                                    class="btn green"
+                                    onclick="quickBalance('${jsEscape(account.username)}')"
+                                >
+                                    + Баланс
+                                </button>
+
+                            `
+                            : ""
+                        }
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `).join("")}
+
+        </tbody>
+
+        </table>
+
+        </div>
+
+    `;
+
 }
 
 
 document
-    .getElementById(
-        "accountSearch"
-    )
+    .getElementById("accountsSearch")
     .addEventListener(
         "input",
         renderAccounts
@@ -3054,85 +2262,20 @@ document
 
 
 /* =========================================================
-   QUICK BALANCE
-========================================================= */
-
-function quickAddBalance(
-    encodedUsername
-){
-
-    const username =
-        decodeURIComponent(
-            encodedUsername
-        );
-
-    openSection(
-        "balance"
-    );
-
-    document
-        .getElementById(
-            "balanceIdentifier"
-        )
-        .value =
-        username;
-
-    document
-        .getElementById(
-            "balanceAmount"
-        )
-        .focus();
-}
-
-
-function quickRemoveBalance(
-    encodedUsername
-){
-
-    const username =
-        decodeURIComponent(
-            encodedUsername
-        );
-
-    openSection(
-        "balance"
-    );
-
-    document
-        .getElementById(
-            "balanceIdentifier"
-        )
-        .value =
-        username;
-
-    document
-        .getElementById(
-            "balanceAmount"
-        )
-        .focus();
-}
-
-
-/* =========================================================
    ADMINISTRATORS
 ========================================================= */
 
-async function loadAdministrators(){
+async function loadAdministrators() {
 
     const body =
         document.getElementById(
             "administratorsBody"
         );
 
-    body.innerHTML = `
-        <tr>
-            <td colspan="5" class="loading">
-                Загрузка...
-            </td>
-        </tr>
-    `;
+    body.innerHTML =
+        '<div class="loading">Загрузка...</div>';
 
-    try{
+    try {
 
         const data =
             await api(
@@ -3140,436 +2283,357 @@ async function loadAdministrators(){
             );
 
         administratorsCache =
-            Array.isArray(
-                data.administrators
-            )
+            Array.isArray(data.administrators)
                 ? data.administrators
                 : [];
 
         renderAdministrators();
 
-    }catch(error){
+    } catch(err) {
 
-        body.innerHTML = `
-            <tr>
-                <td colspan="5">
-                    <div class="error-box">
-                        ${escapeHtml(
-                            error.message
-                        )}
-                    </div>
-                </td>
-            </tr>
-        `;
+        body.innerHTML =
+            `<div class="empty">
+                ${escapeHtml(err.message)}
+            </div>`;
+
     }
+
 }
 
 
-function renderAdministrators(){
+function renderAdministrators() {
 
     const body =
         document.getElementById(
             "administratorsBody"
         );
 
-    if(
-        !administratorsCache.length
-    ){
+    if (!administratorsCache.length) {
 
-        body.innerHTML = `
-            <tr>
-                <td colspan="5" class="empty">
-                    Администраторы не найдены
-                </td>
-            </tr>
-        `;
+        body.innerHTML =
+            '<div class="empty">Администраторов нет.</div>';
 
         return;
     }
 
-    body.innerHTML =
-        administratorsCache
-            .map(
-                admin => {
+    body.innerHTML = `
 
-                    const self =
-                        currentAdmin &&
-                        admin.id ===
-                        currentAdmin.id;
+        <div class="table-wrap">
 
-                    return `
+        <table>
 
-                        <tr>
+        <thead>
 
-                            <td class="mono">
-                                ${escapeHtml(
-                                    admin.id
-                                )}
-                            </td>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
 
-                            <td>
-                                <b>
-                                    ${escapeHtml(
-                                        admin.username
-                                    )}
-                                </b>
+        </thead>
+
+        <tbody>
+
+        ${administratorsCache.map(admin => `
+
+            <tr>
+
+                <td class="mono">
+                    ${escapeHtml(admin.id)}
+                </td>
+
+                <td>
+                    <strong>
+                        ${escapeHtml(admin.username)}
+                    </strong>
+                </td>
+
+                <td>
+
+                    <span class="badge ${
+                        admin.role === "OWNER"
+                            ? "owner"
+                            : "admin"
+                    }">
+
+                        ${escapeHtml(admin.role)}
+
+                    </span>
+
+                </td>
+
+                <td>
+                    ${formatDate(admin.created_at)}
+                </td>
+
+                <td>
+
+                    ${
+                        currentAdmin?.role === "OWNER"
+                        ? `
+
+                            <div class="actions">
+
+                                <button
+                                    class="btn"
+                                    onclick="editAdmin('${jsEscape(admin.id)}')"
+                                >
+                                    Изменить
+                                </button>
 
                                 ${
-                                    self
+                                    admin.id !== currentAdmin.id
                                     ? `
-                                        <span
-                                            class="muted"
-                                            style="font-size:11px;"
+
+                                        <button
+                                            class="btn danger"
+                                            onclick="deleteAdmin('${jsEscape(admin.id)}','${jsEscape(admin.username)}')"
                                         >
-                                            (вы)
-                                        </span>
+                                            Удалить
+                                        </button>
+
                                     `
                                     : ""
                                 }
 
-                            </td>
+                            </div>
 
-                            <td>
-                                ${getRoleBadge(
-                                    admin.role
-                                )}
-                            </td>
-
-                            <td>
-                                ${formatDate(
-                                    admin.created_at
-                                )}
-                            </td>
-
-                            <td>
-
-                                <div class="actions">
-
-                                    <button
-                                        class="btn btn-small"
-                                        onclick="openEditAdminModal('${encodeURIComponent(
-                                            admin.id
-                                        )}')"
-                                    >
-                                        Изменить
-                                    </button>
-
-                                    ${
-                                        !self
-                                        ? `
-                                            <button
-                                                class="btn btn-small btn-danger"
-                                                onclick="deleteAdmin('${encodeURIComponent(
-                                                    admin.id
-                                                )}')"
-                                            >
-                                                Удалить
-                                            </button>
-                                        `
-                                        : ""
-                                    }
-
-                                </div>
-
-                            </td>
-
-                        </tr>
-                    `;
-                }
-            )
-            .join("");
-}
-
-
-/* =========================================================
-   CREATE ADMIN
-========================================================= */
-
-function openCreateAdminModal(){
-
-    if(!isOwner()){
-        toast(
-            "Недостаточно прав",
-            "error"
-        );
-
-        return;
-    }
-
-    document
-        .getElementById(
-            "createAdminForm"
-        )
-        .reset();
-
-    document
-        .getElementById(
-            "createAdminModal"
-        )
-        .classList.remove(
-            "hidden"
-        );
-}
-
-
-document
-    .getElementById(
-        "createAdminForm"
-    )
-    .addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-            try{
-
-                const username =
-                    document
-                        .getElementById(
-                            "newAdminUsername"
-                        )
-                        .value
-                        .trim();
-
-                const password =
-                    document
-                        .getElementById(
-                            "newAdminPassword"
-                        )
-                        .value;
-
-                const role =
-                    document
-                        .getElementById(
-                            "newAdminRole"
-                        )
-                        .value;
-
-                await api(
-                    "/api/admin/administrators",
-                    {
-                        method:"POST",
-                        body:{
-                            username,
-                            password,
-                            role
-                        }
+                        `
+                        : "—"
                     }
-                );
 
-                closeModal(
-                    "createAdminModal"
-                );
+                </td>
 
-                toast(
-                    "Администратор создан"
-                );
+            </tr>
 
-                loadAdministrators();
+        `).join("")}
 
-            }catch(error){
+        </tbody>
 
-                toast(
-                    error.message ||
-                    "Не удалось создать администратора",
-                    "error"
-                );
-            }
+        </table>
 
-        }
-    );
+        </div>
+
+    `;
+
+}
 
 
-/* =========================================================
-   EDIT ADMIN
-========================================================= */
+function openAdminCreateModal() {
 
-function openEditAdminModal(
-    encodedId
-){
-
-    if(!isOwner()){
-        toast(
-            "Недостаточно прав",
-            "error"
-        );
-
+    if (currentAdmin?.role !== "OWNER") {
         return;
     }
 
-    const id =
-        decodeURIComponent(
-            encodedId
-        );
+    document
+        .getElementById("adminModalTitle")
+        .textContent =
+        "Создать администратора";
+
+    document
+        .getElementById("editAdminId")
+        .value = "";
+
+    document
+        .getElementById("adminUsername")
+        .value = "";
+
+    document
+        .getElementById("adminPassword")
+        .value = "";
+
+    document
+        .getElementById("adminRole")
+        .value = "ADMIN";
+
+    document
+        .getElementById("adminPasswordField")
+        .classList.remove("hidden");
+
+    document
+        .getElementById("adminModalError")
+        .textContent = "";
+
+    openModal("adminModal");
+
+}
+
+
+function editAdmin(id) {
+
+    if (currentAdmin?.role !== "OWNER") {
+        return;
+    }
 
     const admin =
         administratorsCache.find(
-            item =>
-                String(item.id) ===
-                String(id)
+            item => item.id === id
         );
 
-    if(!admin){
-        toast(
-            "Администратор не найден",
-            "error"
-        );
-
+    if (!admin) {
         return;
     }
 
     document
-        .getElementById(
-            "editAdminId"
-        )
+        .getElementById("adminModalTitle")
+        .textContent =
+        "Изменить администратора";
+
+    document
+        .getElementById("editAdminId")
         .value =
         admin.id;
 
     document
-        .getElementById(
-            "editAdminUsername"
-        )
+        .getElementById("adminUsername")
         .value =
         admin.username;
 
     document
-        .getElementById(
-            "editAdminRole"
-        )
+        .getElementById("adminRole")
         .value =
         admin.role;
 
     document
-        .getElementById(
-            "editAdminModal"
-        )
-        .classList.remove(
-            "hidden"
-        );
+        .getElementById("adminPassword")
+        .value = "";
+
+    document
+        .getElementById("adminPasswordField")
+        .classList.add("hidden");
+
+    document
+        .getElementById("adminModalError")
+        .textContent = "";
+
+    openModal("adminModal");
+
 }
 
 
-document
-    .getElementById(
-        "editAdminForm"
-    )
-    .addEventListener(
-        "submit",
-        async event => {
+async function saveAdministrator() {
 
-            event.preventDefault();
-
-            try{
-
-                const id =
-                    document
-                        .getElementById(
-                            "editAdminId"
-                        )
-                        .value;
-
-                const username =
-                    document
-                        .getElementById(
-                            "editAdminUsername"
-                        )
-                        .value
-                        .trim();
-
-                const role =
-                    document
-                        .getElementById(
-                            "editAdminRole"
-                        )
-                        .value;
-
-                await api(
-                    "/api/admin/administrators",
-                    {
-                        method:"PATCH",
-                        body:{
-                            id,
-                            username,
-                            role
-                        }
-                    }
-                );
-
-                closeModal(
-                    "editAdminModal"
-                );
-
-                toast(
-                    "Администратор обновлён"
-                );
-
-                loadAdministrators();
-
-            }catch(error){
-
-                toast(
-                    error.message ||
-                    "Не удалось изменить администратора",
-                    "error"
-                );
-            }
-
-        }
-    );
-
-
-/* =========================================================
-   DELETE ADMIN
-========================================================= */
-
-async function deleteAdmin(
-    encodedId
-){
-
-    if(!isOwner()){
-        toast(
-            "Недостаточно прав",
-            "error"
-        );
-
+    if (currentAdmin?.role !== "OWNER") {
         return;
     }
 
     const id =
-        decodeURIComponent(
-            encodedId
-        );
+        document
+            .getElementById("editAdminId")
+            .value
+            .trim();
 
-    const admin =
-        administratorsCache.find(
-            item =>
-                String(item.id) ===
-                String(id)
-        );
+    const username =
+        document
+            .getElementById("adminUsername")
+            .value
+            .trim();
 
-    if(!admin){
+    const password =
+        document
+            .getElementById("adminPassword")
+            .value;
+
+    const role =
+        document
+            .getElementById("adminRole")
+            .value;
+
+    const error =
+        document
+            .getElementById("adminModalError");
+
+    error.textContent = "";
+
+    try {
+
+        if (!id) {
+
+            if (password.length < 8) {
+                throw new Error(
+                    "Пароль должен быть не короче 8 символов"
+                );
+            }
+
+            await api(
+                "/api/admin/administrators",
+                {
+                    method:"POST",
+                    body:JSON.stringify({
+                        username,
+                        password,
+                        role
+                    })
+                }
+            );
+
+            toast(
+                "Администратор создан"
+            );
+
+        } else {
+
+            await api(
+                "/api/admin/administrators",
+                {
+                    method:"PATCH",
+                    body:JSON.stringify({
+                        id,
+                        username,
+                        role
+                    })
+                }
+            );
+
+            toast(
+                "Администратор изменён"
+            );
+
+        }
+
+        closeModal("adminModal");
+
+        await loadAdministrators();
+        await loadDashboard();
+
+    } catch(err) {
+
+        error.textContent =
+            err.message;
+
+    }
+
+}
+
+
+async function deleteAdmin(
+    id,
+    username
+) {
+
+    if (currentAdmin?.role !== "OWNER") {
         return;
     }
 
-    const confirmed =
-        confirm(
-            `Удалить администратора "${admin.username}"?`
-        );
-
-    if(!confirmed){
+    if (
+        !confirm(
+            `Удалить администратора "${username}"?`
+        )
+    ) {
         return;
     }
 
-    try{
+    try {
 
         await api(
             "/api/admin/administrators",
             {
                 method:"DELETE",
-                body:{
+                body:JSON.stringify({
                     id
-                }
+                })
             }
         );
 
@@ -3577,644 +2641,496 @@ async function deleteAdmin(
             "Администратор удалён"
         );
 
-        loadAdministrators();
+        await loadAdministrators();
+        await loadDashboard();
 
-    }catch(error){
+    } catch(err) {
 
         toast(
-            error.message ||
-            "Не удалось удалить администратора",
-            "error"
+            err.message,
+            true
         );
+
     }
+
 }
 
 
 /* =========================================================
-   BALANCE ADD
+   BALANCE
 ========================================================= */
 
-async function addBalance(){
+async function changeBalance(
+    operation
+) {
 
-    if(!isOwner()){
-        toast(
-            "Недостаточно прав",
-            "error"
-        );
-
+    if (currentAdmin?.role !== "OWNER") {
         return;
     }
 
     const identifier =
         document
-            .getElementById(
-                "balanceIdentifier"
-            )
+            .getElementById("balanceIdentifier")
             .value
             .trim();
 
     const amount =
         Number(
             document
-                .getElementById(
-                    "balanceAmount"
-                )
+                .getElementById("balanceAmount")
                 .value
         );
 
-    if(!identifier){
-        toast(
-            "Укажите пользователя",
-            "error"
-        );
+    const result =
+        document
+            .getElementById("balanceResult");
 
-        return;
-    }
+    result.innerHTML = "";
 
-    if(
-        !Number.isInteger(amount) ||
-        amount <= 0
-    ){
-        toast(
-            "Введите положительную целую сумму",
-            "error"
-        );
+    try {
 
-        return;
-    }
-
-    try{
-
-        const data =
-            await api(
-                "/api/admin/balance/add",
-                {
-                    method:"POST",
-                    body:{
-                        identifier,
-                        amount
-                    }
-                }
+        if (!identifier) {
+            throw new Error(
+                "Укажите username или ID"
             );
-
-        toast(
-            `Баланс изменён: ${formatNumber(
-                data.account?.newBalance
-            )} ₽`
-        );
-
-        document
-            .getElementById(
-                "balanceAmount"
-            )
-            .value = "";
-
-        loadAccounts();
-
-    }catch(error){
-
-        toast(
-            error.message ||
-            "Не удалось изменить баланс",
-            "error"
-        );
-    }
-}
-
-
-/* =========================================================
-   BALANCE REMOVE
-========================================================= */
-
-async function removeBalance(){
-
-    if(!isOwner()){
-        toast(
-            "Недостаточно прав",
-            "error"
-        );
-
-        return;
-    }
-
-    const identifier =
-        document
-            .getElementById(
-                "balanceIdentifier"
-            )
-            .value
-            .trim();
-
-    const amount =
-        Number(
-            document
-                .getElementById(
-                    "balanceAmount"
-                )
-                .value
-        );
-
-    if(!identifier){
-        toast(
-            "Укажите пользователя",
-            "error"
-        );
-
-        return;
-    }
-
-    if(
-        !Number.isInteger(amount) ||
-        amount <= 0
-    ){
-        toast(
-            "Введите положительную целую сумму",
-            "error"
-        );
-
-        return;
-    }
-
-    try{
-
-        const data =
-            await api(
-                "/api/admin/balance/remove",
-                {
-                    method:"POST",
-                    body:{
-                        identifier,
-                        amount
-                    }
-                }
-            );
-
-        toast(
-            `Баланс изменён: ${formatNumber(
-                data.account?.newBalance
-            )} ₽`
-        );
-
-        document
-            .getElementById(
-                "balanceAmount"
-            )
-            .value = "";
-
-        loadAccounts();
-
-    }catch(error){
-
-        toast(
-            error.message ||
-            "Не удалось изменить баланс",
-            "error"
-        );
-    }
-}
-
-
-/* =========================================================
-   GRANT ACCESS
-========================================================= */
-
-function openGrantModal(){
-
-    if(!isOwner()){
-        toast(
-            "Недостаточно прав",
-            "error"
-        );
-
-        return;
-    }
-
-    document
-        .getElementById(
-            "grantForm"
-        )
-        .reset();
-
-    document
-        .getElementById(
-            "days30"
-        )
-        .checked = true;
-
-    document
-        .getElementById(
-            "grantModal"
-        )
-        .classList.remove(
-            "hidden"
-        );
-}
-
-
-document
-    .getElementById(
-        "grantForm"
-    )
-    .addEventListener(
-        "submit",
-        async event => {
-
-            event.preventDefault();
-
-            if(!isOwner()){
-                toast(
-                    "Недостаточно прав",
-                    "error"
-                );
-
-                return;
-            }
-
-            const identifier =
-                document
-                    .getElementById(
-                        "grantIdentifier"
-                    )
-                    .value
-                    .trim();
-
-            const productId =
-                document
-                    .getElementById(
-                        "grantProduct"
-                    )
-                    .value;
-
-            const productMap = {
-
-                "30-days":{
-                    name:"30 дней",
-                    days:30
-                },
-
-                "90-days":{
-                    name:"90 дней",
-                    days:90
-                },
-
-                "forever":{
-                    name:"Навсегда",
-                    days:0
-                }
-
-            };
-
-            const product =
-                productMap[
-                    productId
-                ];
-
-            if(!product){
-                toast(
-                    "Неизвестный товар",
-                    "error"
-                );
-
-                return;
-            }
-
-            /*
-             * Срок выбирается из radio.
-             * Для forever всегда отправляем 0.
-             */
-
-            let days =
-                Number(
-                    document
-                        .querySelector(
-                            'input[name="grantDays"]:checked'
-                        )
-                        ?.value ||
-                    0
-                );
-
-            if(
-                productId === "forever"
-            ){
-                days = 0;
-            }
-
-            try{
-
-                await api(
-                    "/api/admin/access/grant",
-                    {
-                        method:"POST",
-                        body:{
-                            identifier,
-                            productId,
-                            productName:
-                                product.name,
-                            days
-                        }
-                    }
-                );
-
-                closeModal(
-                    "grantModal"
-                );
-
-                toast(
-                    "Доступ выдан"
-                );
-
-                loadSubscriptions();
-
-            }catch(error){
-
-                toast(
-                    error.message ||
-                    "Не удалось выдать доступ",
-                    "error"
-                );
-            }
-
         }
+
+        if (
+            !Number.isInteger(amount) ||
+            amount <= 0
+        ) {
+            throw new Error(
+                "Сумма должна быть положительным целым числом"
+            );
+        }
+
+        const endpoint =
+            operation === "add"
+                ? "/api/admin/balance/add"
+                : "/api/admin/balance/remove";
+
+        const data =
+            await api(
+                endpoint,
+                {
+                    method:"POST",
+                    body:JSON.stringify({
+                        identifier,
+                        amount
+                    })
+                }
+            );
+
+        const account =
+            data.account || {};
+
+        result.innerHTML = `
+
+            <div class="notice">
+
+                <strong>
+                    ${escapeHtml(
+                        data.message ||
+                        "Операция выполнена"
+                    )}
+                </strong>
+
+                <br><br>
+
+                Пользователь:
+                ${escapeHtml(
+                    account.username ||
+                    identifier
+                )}
+
+                <br>
+
+                Было:
+                ${formatNumber(
+                    account.oldBalance
+                )} ₽
+
+                <br>
+
+                Изменение:
+                ${formatNumber(
+                    account.amount
+                )} ₽
+
+                <br>
+
+                Стало:
+                ${formatNumber(
+                    account.newBalance
+                )} ₽
+
+            </div>
+
+        `;
+
+        toast(
+            "Баланс изменён"
+        );
+
+        await loadAccounts();
+        await loadDashboard();
+
+    } catch(err) {
+
+        result.innerHTML = `
+
+            <div class="notice"
+                 style="border-color:rgba(255,77,77,.4);color:#ff7777">
+
+                ${escapeHtml(err.message)}
+
+            </div>
+
+        `;
+
+        toast(
+            err.message,
+            true
+        );
+
+    }
+
+}
+
+
+function quickBalance(username) {
+
+    openSection("balance");
+
+    document
+        .getElementById("balanceIdentifier")
+        .value =
+        username;
+
+    document
+        .getElementById("balanceAmount")
+        .focus();
+
+}
+
+
+/* =========================================================
+   ACCESS
+========================================================= */
+
+function openAccessModal(
+    identifier = ""
+) {
+
+    if (currentAdmin?.role !== "OWNER") {
+        return;
+    }
+
+    document
+        .getElementById("accessIdentifier")
+        .value =
+        identifier;
+
+    document
+        .getElementById("accessProduct")
+        .value =
+        "30-days";
+
+    document
+        .getElementById("accessDays")
+        .value =
+        "30";
+
+    document
+        .getElementById("accessModalError")
+        .textContent = "";
+
+    openModal("accessModal");
+
+}
+
+
+async function grantAccess() {
+
+    if (currentAdmin?.role !== "OWNER") {
+        return;
+    }
+
+    const identifier =
+        document
+            .getElementById("accessIdentifier")
+            .value
+            .trim();
+
+    const productId =
+        document
+            .getElementById("accessProduct")
+            .value;
+
+    const days =
+        Number(
+            document
+                .getElementById("accessDays")
+                .value
+        );
+
+    const productNames = {
+
+        "30-days":
+            "30 дней",
+
+        "90-days":
+            "90 дней",
+
+        "forever":
+            "Навсегда"
+
+    };
+
+    const error =
+        document
+            .getElementById("accessModalError");
+
+    error.textContent = "";
+
+    try {
+
+        if (!identifier) {
+            throw new Error(
+                "Укажите username или ID пользователя"
+            );
+        }
+
+        await api(
+            "/api/admin/access/grant",
+            {
+                method:"POST",
+                body:JSON.stringify({
+
+                    identifier,
+
+                    productId,
+
+                    productName:
+                        productNames[
+                            productId
+                        ] || productId,
+
+                    days
+
+                })
+            }
+        );
+
+        closeModal(
+            "accessModal"
+        );
+
+        toast(
+            "Доступ выдан"
+        );
+
+        await loadSubscriptions();
+        await loadDashboard();
+
+    } catch(err) {
+
+        error.textContent =
+            err.message;
+
+    }
+
+}
+
+
+async function openUserAccess(
+    identifier
+) {
+
+    openModal(
+        "accessListModal"
     );
 
-
-/* =========================================================
-   USER ACCESS
-========================================================= */
-
-async function viewUserAccess(
-    encodedIdentifier
-){
-
-    const identifier =
-        decodeURIComponent(
-            encodedIdentifier
+    const body =
+        document.getElementById(
+            "accessListBody"
         );
 
-    document
-        .getElementById(
-            "accessModal"
-        )
-        .classList.remove(
-            "hidden"
-        );
+    body.innerHTML =
+        '<div class="loading">Загрузка...</div>';
 
-    document
-        .getElementById(
-            "accessUserInfo"
-        )
-        .textContent =
-        `Пользователь: ${identifier}`;
-
-    document
-        .getElementById(
-            "accessList"
-        )
-        .innerHTML =
-        `<div class="loading">Загрузка...</div>`;
-
-    try{
+    try {
 
         const data =
             await api(
                 "/api/admin/access/list",
                 {
                     method:"POST",
-                    body:{
+                    body:JSON.stringify({
                         identifier
-                    }
+                    })
                 }
             );
 
-        const account =
-            data.account ||
-            {};
-
-        const entitlements =
+        const list =
             Array.isArray(
                 data.entitlements
             )
                 ? data.entitlements
                 : [];
 
-        document
-            .getElementById(
-                "accessUserInfo"
-            )
-            .innerHTML = `
-                <div>
-                    <b>
-                        ${escapeHtml(
-                            account.username ||
-                            identifier
-                        )}
-                    </b>
-                </div>
+        if (!list.length) {
 
-                <div
-                    class="muted"
-                    style="margin-top:5px;"
-                >
-                    Баланс:
-                    ${formatNumber(
-                        account.balance
-                    )} ₽
-                </div>
-            `;
-
-        if(!entitlements.length){
-
-            document
-                .getElementById(
-                    "accessList"
-                )
-                .innerHTML =
-                `<div class="empty">
-                    У пользователя нет доступов.
-                </div>`;
+            body.innerHTML =
+                '<div class="empty">Доступов нет.</div>';
 
             return;
         }
 
-        document
-            .getElementById(
-                "accessList"
-            )
-            .innerHTML =
-            entitlements
-                .map(
-                    item => `
+        body.innerHTML = `
 
-                        <div
-                            style="
-                                border:1px solid var(--line);
-                                border-radius:12px;
-                                padding:14px;
-                                margin-bottom:9px;
-                            "
-                        >
+            <div class="table-wrap">
 
-                            <div
-                                style="
-                                    display:flex;
-                                    justify-content:space-between;
-                                    gap:15px;
-                                "
-                            >
+            <table>
 
-                                <div>
+            <thead>
 
-                                    <div
-                                        style="
-                                            font-weight:750;
-                                        "
-                                    >
-                                        ${escapeHtml(
-                                            item.product_name
-                                        )}
-                                    </div>
+                <tr>
+                    <th>Product</th>
+                    <th>Status</th>
+                    <th>Expires</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
 
-                                    <div
-                                        class="muted"
-                                        style="
-                                            margin-top:5px;
-                                            font-size:11px;
-                                        "
-                                    >
-                                        ID:
-                                        ${escapeHtml(
-                                            item.product_id
-                                        )}
-                                    </div>
+            </thead>
 
-                                </div>
+            <tbody>
 
-                                <div>
-                                    ${getStatusBadge(
-                                        item.status
-                                    )}
-                                </div>
+            ${list.map(item => `
 
-                            </div>
+                <tr>
 
+                    <td>
 
-                            <div
-                                class="muted"
-                                style="
-                                    margin-top:10px;
-                                    font-size:12px;
-                                "
-                            >
-                                ${
-                                    item.expires_at
-                                    ? `Истекает:
-                                        ${formatDate(
-                                            item.expires_at
-                                        )}`
-                                    : "Навсегда"
-                                }
-                            </div>
+                        <strong>
+                            ${escapeHtml(
+                                item.product_name
+                            )}
+                        </strong>
 
-
-                            ${
-                                isOwner() &&
-                                item.status === "active"
-                                ? `
-                                    <div
-                                        style="
-                                            margin-top:10px;
-                                        "
-                                    >
-
-                                        <button
-                                            class="btn btn-small btn-danger"
-                                            onclick="revokeAccess(
-                                                '${encodeURIComponent(
-                                                    account.id
-                                                )}',
-                                                '${encodeURIComponent(
-                                                    item.product_id
-                                                )}'
-                                            )"
-                                        >
-                                            Снять доступ
-                                        </button>
-
-                                    </div>
-                                `
-                                : ""
-                            }
-
+                        <div class="mono">
+                            ${escapeHtml(
+                                item.product_id
+                            )}
                         </div>
 
-                    `
-                )
-                .join("");
+                    </td>
 
-    }catch(error){
+                    <td>
 
-        document
-            .getElementById(
-                "accessList"
-            )
-            .innerHTML = `
-                <div class="error-box">
-                    ${escapeHtml(
-                        error.message
-                    )}
-                </div>
-            `;
+                        <span class="badge ${
+                            item.status === "active"
+                                ? "active"
+                                : "revoked"
+                        }">
+
+                            ${escapeHtml(
+                                item.status
+                            )}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${
+                            item.expires_at
+                            ? formatDate(
+                                item.expires_at
+                            )
+                            : "Навсегда"
+                        }
+                    </td>
+
+                    <td>
+                        ${formatDate(
+                            item.created_at
+                        )}
+                    </td>
+
+                    <td>
+
+                        ${
+                            currentAdmin?.role === "OWNER" &&
+                            item.status === "active"
+
+                            ? `
+
+                                <button
+                                    class="btn danger"
+                                    onclick="revokeAccess('${jsEscape(identifier)}','${jsEscape(item.product_id)}')"
+                                >
+                                    Снять
+                                </button>
+
+                            `
+                            : ""
+                        }
+
+                    </td>
+
+                </tr>
+
+            `).join("")}
+
+            </tbody>
+
+            </table>
+
+            </div>
+
+        `;
+
+    } catch(err) {
+
+        body.innerHTML =
+            `<div class="empty">
+                ${escapeHtml(err.message)}
+            </div>`;
+
     }
+
 }
 
 
-/* =========================================================
-   REVOKE ACCESS
-========================================================= */
-
 async function revokeAccess(
-    encodedIdentifier,
-    encodedProductId
-){
+    identifier,
+    productId
+) {
 
-    if(!isOwner()){
-        toast(
-            "Недостаточно прав",
-            "error"
-        );
-
+    if (currentAdmin?.role !== "OWNER") {
         return;
     }
 
-    const identifier =
-        decodeURIComponent(
-            encodedIdentifier
-        );
-
-    const productId =
-        decodeURIComponent(
-            encodedProductId
-        );
-
-    const confirmed =
-        confirm(
-            "Снять этот доступ у пользователя?"
-        );
-
-    if(!confirmed){
+    if (
+        !confirm(
+            "Снять этот доступ?"
+        )
+    ) {
         return;
     }
 
-    try{
+    try {
 
         await api(
             "/api/admin/access/revoke",
             {
                 method:"POST",
-                body:{
+                body:JSON.stringify({
                     identifier,
                     productId
-                }
+                })
             }
         );
 
@@ -4222,22 +3138,22 @@ async function revokeAccess(
             "Доступ снят"
         );
 
-        viewUserAccess(
-            encodeURIComponent(
-                identifier
-            )
+        await openUserAccess(
+            identifier
         );
 
-        loadSubscriptions();
+        await loadSubscriptions();
+        await loadDashboard();
 
-    }catch(error){
+    } catch(err) {
 
         toast(
-            error.message ||
-            "Не удалось снять доступ",
-            "error"
+            err.message,
+            true
         );
+
     }
+
 }
 
 
@@ -4245,22 +3161,17 @@ async function revokeAccess(
    SUBSCRIPTIONS
 ========================================================= */
 
-async function loadSubscriptions(){
+async function loadSubscriptions() {
 
     const body =
         document.getElementById(
             "subscriptionsBody"
         );
 
-    body.innerHTML = `
-        <tr>
-            <td colspan="6" class="loading">
-                Загрузка...
-            </td>
-        </tr>
-    `;
+    body.innerHTML =
+        '<div class="loading">Загрузка...</div>';
 
-    try{
+    try {
 
         const data =
             await api(
@@ -4274,204 +3185,138 @@ async function loadSubscriptions(){
                 ? data.subscriptions
                 : [];
 
-        if(!list.length){
+        if (!list.length) {
 
-            body.innerHTML = `
-                <tr>
-                    <td colspan="6" class="empty">
-                        Доступов пока нет
-                    </td>
-                </tr>
-            `;
+            body.innerHTML =
+                '<div class="empty">Доступов пока нет.</div>';
 
             return;
         }
 
-        body.innerHTML =
-            list
-                .map(
-                    item => `
+        body.innerHTML = `
 
-                        <tr>
+            <div class="table-wrap">
 
-                            <td class="mono">
-                                ${escapeHtml(
-                                    item.id
-                                )}
-                            </td>
+            <table>
 
-                            <td class="mono">
-                                ${escapeHtml(
-                                    item.account_id
-                                )}
-                            </td>
+            <thead>
 
-                            <td>
-                                <b>
-                                    ${escapeHtml(
-                                        item.product_name
-                                    )}
-                                </b>
+                <tr>
+                    <th>ID</th>
+                    <th>Account</th>
+                    <th>Product</th>
+                    <th>Status</th>
+                    <th>Expires</th>
+                    <th>Created</th>
+                    <th></th>
+                </tr>
 
-                                <div
-                                    class="muted"
-                                    style="margin-top:4px;"
+            </thead>
+
+            <tbody>
+
+            ${list.map(item => `
+
+                <tr>
+
+                    <td class="mono">
+                        ${escapeHtml(item.id)}
+                    </td>
+
+                    <td class="mono">
+                        ${escapeHtml(item.account_id)}
+                    </td>
+
+                    <td>
+
+                        <strong>
+                            ${escapeHtml(
+                                item.product_name
+                            )}
+                        </strong>
+
+                        <div class="mono">
+                            ${escapeHtml(
+                                item.product_id
+                            )}
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge ${
+                            item.status === "active"
+                                ? "active"
+                                : "revoked"
+                        }">
+
+                            ${escapeHtml(
+                                item.status
+                            )}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        ${
+                            item.expires_at
+                            ? formatDate(
+                                item.expires_at
+                            )
+                            : "Навсегда"
+                        }
+                    </td>
+
+                    <td>
+                        ${formatDate(
+                            item.created_at
+                        )}
+                    </td>
+
+                    <td>
+
+                        ${
+                            currentAdmin?.role === "OWNER" &&
+                            item.status === "active"
+
+                            ? `
+
+                                <button
+                                    class="btn danger"
+                                    onclick="revokeAccess('${jsEscape(item.account_id)}','${jsEscape(item.product_id)}')"
                                 >
-                                    ${escapeHtml(
-                                        item.product_id
-                                    )}
-                                </div>
-                            </td>
+                                    Снять
+                                </button>
 
-                            <td>
-                                ${
-                                    item.expires_at
-                                    ? formatDate(
-                                        item.expires_at
-                                    )
-                                    : "Навсегда"
-                                }
-                            </td>
+                            `
+                            : ""
+                        }
 
-                            <td>
-                                ${getStatusBadge(
-                                    item.status
-                                )}
-                            </td>
-
-                            <td>
-                                ${formatDate(
-                                    item.created_at
-                                )}
-                            </td>
-
-                        </tr>
-
-                    `
-                )
-                .join("");
-
-    }catch(error){
-
-        body.innerHTML = `
-            <tr>
-                <td colspan="6">
-                    <div class="error-box">
-                        ${escapeHtml(
-                            error.message
-                        )}
-                    </div>
-                </td>
-            </tr>
-        `;
-    }
-}
-
-
-/* =========================================================
-   PRODUCTS
-========================================================= */
-
-async function loadProducts(){
-
-    const body =
-        document.getElementById(
-            "productsBody"
-        );
-
-    body.innerHTML = `
-        <tr>
-            <td colspan="4" class="loading">
-                Загрузка...
-            </td>
-        </tr>
-    `;
-
-    try{
-
-        const data =
-            await api(
-                "/api/admin/products"
-            );
-
-        const products =
-            Array.isArray(
-                data.products
-            )
-                ? data.products
-                : [];
-
-        if(!products.length){
-
-            body.innerHTML = `
-                <tr>
-                    <td colspan="4" class="empty">
-                        Товары пока не подключены к admin endpoint.
                     </td>
-                </tr>
-            `;
 
-            return;
-        }
+                </tr>
+
+            `).join("")}
+
+            </tbody>
+
+            </table>
+
+            </div>
+
+        `;
+
+    } catch(err) {
 
         body.innerHTML =
-            products
-                .map(
-                    product => `
+            `<div class="empty">
+                ${escapeHtml(err.message)}
+            </div>`;
 
-                        <tr>
-
-                            <td class="mono">
-                                ${escapeHtml(
-                                    product.id
-                                )}
-                            </td>
-
-                            <td>
-                                ${escapeHtml(
-                                    product.name ||
-                                    product.product_name ||
-                                    "—"
-                                )}
-                            </td>
-
-                            <td>
-                                ${
-                                    product.price !== undefined
-                                    ? `${formatNumber(
-                                        product.price
-                                    )} ₽`
-                                    : "—"
-                                }
-                            </td>
-
-                            <td>
-                                ${getStatusBadge(
-                                    product.status ||
-                                    "active"
-                                )}
-                            </td>
-
-                        </tr>
-
-                    `
-                )
-                .join("");
-
-    }catch(error){
-
-        body.innerHTML = `
-            <tr>
-                <td colspan="4">
-                    <div class="error-box">
-                        ${escapeHtml(
-                            error.message
-                        )}
-                    </div>
-                </td>
-            </tr>
-        `;
     }
+
 }
 
 
@@ -4479,129 +3324,240 @@ async function loadProducts(){
    TRANSACTIONS
 ========================================================= */
 
-async function loadTransactions(){
+async function loadTransactions() {
 
     const body =
         document.getElementById(
             "transactionsBody"
         );
 
-    body.innerHTML = `
-        <tr>
-            <td colspan="7" class="loading">
-                Загрузка...
-            </td>
-        </tr>
-    `;
+    body.innerHTML =
+        '<div class="loading">Загрузка...</div>';
 
-    try{
+    try {
 
         const data =
             await api(
                 "/api/admin/transactions"
             );
 
-        const transactions =
+        const list =
             Array.isArray(
                 data.transactions
             )
                 ? data.transactions
                 : [];
 
-        if(!transactions.length){
+        if (!list.length) {
+
+            body.innerHTML =
+                '<div class="empty">Транзакций пока нет.</div>';
+
+            return;
+        }
+
+        body.innerHTML = `
+
+            <div class="table-wrap">
+
+            <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Balance</th>
+                    <th>Product</th>
+                    <th>Tebex</th>
+                    <th>Date</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            ${list.map(item => `
+
+                <tr>
+
+                    <td>
+                        ${escapeHtml(item.id)}
+                    </td>
+
+                    <td class="mono">
+                        ${escapeHtml(item.account_id)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.type)}
+                    </td>
+
+                    <td>
+                        ${formatNumber(item.amount)} ₽
+                    </td>
+
+                    <td>
+                        ${formatNumber(
+                            item.balance_after
+                        )} ₽
+                    </td>
+
+                    <td>
+                        ${escapeHtml(
+                            item.product_id || "—"
+                        )}
+                    </td>
+
+                    <td class="mono">
+                        ${escapeHtml(
+                            item.tebex_transaction_id ||
+                            "—"
+                        )}
+                    </td>
+
+                    <td>
+                        ${formatDate(
+                            item.created_at
+                        )}
+                    </td>
+
+                </tr>
+
+            `).join("")}
+
+            </tbody>
+
+            </table>
+
+            </div>
+
+        `;
+
+    } catch(err) {
+
+        body.innerHTML =
+            `<div class="empty">
+                ${escapeHtml(err.message)}
+            </div>`;
+
+    }
+
+}
+
+
+/* =========================================================
+   PRODUCTS
+========================================================= */
+
+async function loadProducts() {
+
+    const body =
+        document.getElementById(
+            "productsBody"
+        );
+
+    body.innerHTML =
+        '<div class="loading">Загрузка...</div>';
+
+    try {
+
+        const data =
+            await api(
+                "/api/admin/products"
+            );
+
+        const list =
+            Array.isArray(data.products)
+                ? data.products
+                : [];
+
+        if (!list.length) {
 
             body.innerHTML = `
-                <tr>
-                    <td colspan="7" class="empty">
-                        Транзакций пока нет
-                    </td>
-                </tr>
+
+                <div class="empty">
+
+                    Текущий endpoint
+                    /api/admin/products
+                    возвращает пустой список.
+
+                    <br><br>
+
+                    Это соответствует текущему
+                    adminProducts() в admin.js.
+
+                </div>
+
             `;
 
             return;
         }
 
-        body.innerHTML =
-            transactions
-                .map(
-                    transaction => `
-
-                        <tr>
-
-                            <td>
-                                ${escapeHtml(
-                                    transaction.id
-                                )}
-                            </td>
-
-                            <td class="mono">
-                                ${escapeHtml(
-                                    transaction.account_id
-                                )}
-                            </td>
-
-                            <td>
-                                <span class="badge">
-                                    ${escapeHtml(
-                                        transaction.type
-                                    )}
-                                </span>
-                            </td>
-
-                            <td>
-                                ${
-                                    Number(
-                                        transaction.amount
-                                    ) >= 0
-                                    ? "+"
-                                    : ""
-                                }${formatNumber(
-                                    transaction.amount
-                                )} ₽
-                            </td>
-
-                            <td>
-                                ${formatNumber(
-                                    transaction.balance_after
-                                )} ₽
-                            </td>
-
-                            <td>
-                                ${
-                                    transaction.product_id
-                                    ? escapeHtml(
-                                        transaction.product_id
-                                    )
-                                    : "—"
-                                }
-                            </td>
-
-                            <td>
-                                ${formatDate(
-                                    transaction.created_at
-                                )}
-                            </td>
-
-                        </tr>
-
-                    `
-                )
-                .join("");
-
-    }catch(error){
-
         body.innerHTML = `
-            <tr>
-                <td colspan="7">
-                    <div class="error-box">
+
+            <div class="table-wrap">
+
+            <table>
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            ${list.map(item => `
+
+                <tr>
+
+                    <td class="mono">
+                        ${escapeHtml(item.id)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(item.name)}
+                    </td>
+
+                    <td>
+                        ${formatNumber(item.price)} ₽
+                    </td>
+
+                    <td>
                         ${escapeHtml(
-                            error.message
+                            item.status || "—"
                         )}
-                    </div>
-                </td>
-            </tr>
+                    </td>
+
+                </tr>
+
+            `).join("")}
+
+            </tbody>
+
+            </table>
+
+            </div>
+
         `;
+
+    } catch(err) {
+
+        body.innerHTML =
+            `<div class="empty">
+                ${escapeHtml(err.message)}
+            </div>`;
+
     }
+
 }
 
 
@@ -4609,57 +3565,153 @@ async function loadTransactions(){
    MODALS
 ========================================================= */
 
-function closeModal(
-    id
-){
+function openModal(id) {
 
     document
-        .getElementById(
-            id
-        )
-        .classList.add(
-            "hidden"
-        );
+        .getElementById(id)
+        .classList.add("open");
+
+}
+
+
+function closeModal(id) {
+
+    document
+        .getElementById(id)
+        .classList.remove("open");
+
 }
 
 
 document
-    .querySelectorAll(
-        ".modal"
-    )
-    .forEach(
-        modal => {
+    .querySelectorAll(".modal")
+    .forEach(modal => {
 
-            modal.addEventListener(
-                "click",
-                event => {
+        modal.addEventListener(
+            "click",
+            event => {
 
-                    if(
-                        event.target ===
-                        modal
-                    ){
-                        modal.classList.add(
-                            "hidden"
-                        );
-                    }
-
+                if (
+                    event.target === modal
+                ) {
+                    modal.classList.remove(
+                        "open"
+                    );
                 }
-            );
 
+            }
+        );
+
+    });
+
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key !== "Escape"
+        ) {
+            return;
         }
-    );
+
+        document
+            .querySelectorAll(".modal.open")
+            .forEach(modal => {
+
+                modal.classList.remove(
+                    "open"
+                );
+
+            });
+
+    }
+);
 
 
 /* =========================================================
-   INITIALIZATION
+   HELPERS
 ========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    ()=>{
-        checkAdmin();
+function formatNumber(value) {
+
+    const number =
+        Number(value);
+
+    if (!Number.isFinite(number)) {
+        return "0";
     }
-);
+
+    return number.toLocaleString(
+        "ru-RU"
+    );
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) {
+        return "—";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return String(value);
+    }
+
+    return date.toLocaleString(
+        "ru-RU",
+        {
+            year:"numeric",
+            month:"2-digit",
+            day:"2-digit",
+            hour:"2-digit",
+            minute:"2-digit"
+        }
+    );
+
+}
+
+
+function escapeHtml(value) {
+
+    return String(
+        value ?? ""
+    )
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+function jsEscape(value) {
+
+    return String(
+        value ?? ""
+    )
+    .replace(/\\/g,"\\\\")
+    .replace(/'/g,"\\'")
+    .replace(/\r/g,"\\r")
+    .replace(/\n/g,"\\n");
+
+}
+
+
+/* =========================================================
+   START
+========================================================= */
+
+checkAdmin();
 
 </script>
 
